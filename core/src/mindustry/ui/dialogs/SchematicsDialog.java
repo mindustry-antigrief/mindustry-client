@@ -50,8 +50,8 @@ public class SchematicsDialog extends BaseDialog{
 
         shouldPause = true;
         addCloseButton();
-        buttons.button("@schematic.import", Icon.download, this::showImport);
         buttons.button("@schematic.browser", Icon.host, this::toggleBrowser);
+        buttons.button("@schematic.import", Icon.download, this::showImport);
         makeButtonOverlay();
         shown(this::setup);
         onResize(this::setup);
@@ -363,7 +363,7 @@ public class SchematicsDialog extends BaseDialog{
     }
 
     void toggleBrowser(){
-        ui.schematicsBrowser.show();
+        ui.schematicBrowser.show();
         this.hide();
     }
 

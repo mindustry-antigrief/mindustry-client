@@ -1,32 +1,23 @@
 package mindustry.ui.dialogs;
 
-import arc.Core;
-import arc.files.Fi;
-import arc.files.ZipFi;
-import arc.graphics.Color;
-import arc.graphics.Texture;
+import arc.*;
+import arc.files.*;
+import arc.graphics.*;
 import arc.scene.ui.*;
-import arc.scene.ui.layout.Scl;
-import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
-import arc.util.Align;
-import arc.util.Http;
-import arc.util.Log;
-import arc.util.Scaling;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
+import arc.util.*;
 import kotlin.Unit;
-import mindustry.client.Main;
-import mindustry.client.communication.SchematicTransmission;
-import mindustry.client.navigation.clientThread;
-import mindustry.game.Schematic;
-import mindustry.game.Schematics;
-import mindustry.gen.Icon;
-import mindustry.gen.Tex;
-import mindustry.graphics.Pal;
-import mindustry.ui.Styles;
+import mindustry.client.*;
+import mindustry.client.communication.*;
+import mindustry.client.navigation.*;
+import mindustry.game.*;
+import mindustry.gen.*;
+import mindustry.graphics.*;
+import mindustry.ui.*;
 
-import java.util.HashMap;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
+import java.util.function.*;
+import java.util.regex.*;
 
 import static mindustry.Vars.*;
 
@@ -36,12 +27,16 @@ public class SchematicBrowserDialog extends BaseDialog {
     private static final float tagh = 42f;
     private final SchematicRepositoriesDialog repositoriesDialog = new SchematicRepositoriesDialog();
     public final Seq<String> links = new Seq<>();
-    public final HashMap<String, Seq<Schematic>> browserSchematics = new HashMap<>(); // FINISHME: Optimize loading large repositories with 1000+ schematics
+    public final ObjectMap<String, Seq<Schematic>> repositories = new ObjectMap<>(); // FINISHME: Optimize loading large repositories with 1000+ schematics
+    public final ObjectSet<String> hiddenRepositories = new ObjectSet<>();
+    private int fetchedRepositories = 0;
     private Schematic firstSchematic;
     private String search = "";
     private TextField searchField;
     private Runnable rebuildPane = () -> {}, rebuildTags = () -> {};
-    private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
+    private final Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
+    private Seq<String> tags = new Seq<>(), selectedTags = new Seq<>();
+    private boolean checkedTags;
 
     public SchematicBrowserDialog(){
         super("@schematic.browser");
@@ -49,8 +44,9 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         shouldPause = true;
         addCloseButton();
-        buttons.button("@schematic.browser.repo", Icon.host, this.repositoriesDialog::show);
         buttons.button("@schematic", Icon.copy, this::hideBrowser);
+        buttons.button("@schematic.browser.repo", Icon.host, this.repositoriesDialog::show);
+        buttons.button("@schematic.browser.fetch", Icon.refresh, this::fetch);
         makeButtonOverlay();
         readRepositories();
         shown(this::setup);
@@ -75,13 +71,43 @@ public class SchematicBrowserDialog extends BaseDialog {
         }).fillX().padBottom(4);
         cont.row();
 
+        cont.table(in -> {
+            in.left();
+            in.add("@schematic.tags").padRight(4);
+
+            //tags (no scroll pane visible)
+            in.pane(Styles.noBarPane, t -> {
+                rebuildTags = () -> {
+                    t.clearChildren();
+                    t.left();
+
+                    t.defaults().pad(2).height(tagh);
+                    for(var tag : tags){
+                        t.button(tag, Styles.togglet, () -> {
+                            if(selectedTags.contains(tag)){
+                                selectedTags.remove(tag);
+                            }else{
+                                selectedTags.add(tag);
+                            }
+                            rebuildPane.run();
+                        }).checked(selectedTags.contains(tag)).with(c -> c.getLabel().setWrap(false));
+                    }
+                };
+                rebuildTags.run();
+            }).fillX().height(tagh).scrollY(false);
+
+            in.button(Icon.pencilSmall, this::showAllTags).size(tagh).pad(2).tooltip("@schematic.edittags");
+        }).height(tagh).fillX();
+        cont.row();
+
         cont.pane(t -> {
             t.top();
             rebuildPane = () -> {
                 t.clear();
                 firstSchematic = null;
-                for (String link : browserSchematics.keySet()) {
-                    setupRepoUi(t, ignoreSymbols.matcher(search.toLowerCase()).replaceAll(""), link);
+                for (String repo : repositories.keys()) {
+                    if (hiddenRepositories.contains(repo)) continue;
+                    setupRepoUi(t, ignoreSymbols.matcher(search.toLowerCase()).replaceAll(""), repo);
                 }
             };
             rebuildPane.run();
@@ -98,12 +124,13 @@ public class SchematicBrowserDialog extends BaseDialog {
         table.table(t -> {
             int i = 0;
             final int max = Core.settings.getInt("maxschematicslisted");
-            for(Schematic s : browserSchematics.get(repo)){
+            for(Schematic s : repositories.get(repo)){
                 if(max != 0 && i > max) break; // Avoid meltdown on large repositories
 
+                if(selectedTags.any() && !s.labels.containsAll(selectedTags)) continue;  // Tags
                 if(!search.isEmpty() && !(ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)
                         || (Core.settings.getBool("schematicsearchdesc") && ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(searchString)))
-                ) continue;
+                ) continue; // Search
                 if(firstSchematic == null) firstSchematic = s;
 
                 Button[] sel = {null};
@@ -121,6 +148,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                         buttons.button(Icon.download, style, () -> {
                             ui.showInfoFade("@schematic.saved");
                             schematics.add(s);
+                            ui.schematics.checkTags(s);
                         }).tooltip("@schematic.browser.download");
                     }).growX().height(50f);
                     b.row();
@@ -155,7 +183,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
 
             if(i==0){
-                if(!searchString.isEmpty()){
+                if(!searchString.isEmpty() || selectedTags.any()){
                     t.add("@none.found");
                 }else{
                     t.add("@none").color(Color.lightGray);
@@ -212,6 +240,162 @@ public class SchematicBrowserDialog extends BaseDialog {
         dialog.show();
     }
 
+    void checkTags(Schematic s){
+        for(var tag : s.labels){
+            if(!tags.contains(tag)){
+                tags.add(tag);
+            }
+        }
+    }
+
+    void rebuildAll(){
+        tags.clear();
+        selectedTags.clear();
+        for (var repo : repositories.keys()){
+            if (hiddenRepositories.contains(repo)) continue;
+            for (Schematic s : repositories.get(repo)) {
+                checkTags(s);
+            }
+        }
+        rebuildTags.run();
+        rebuildPane.run();
+    }
+
+    void tagsChanged(){
+        rebuildTags.run();
+        if(selectedTags.any()){
+            rebuildPane.run();
+        }
+    }
+
+    void showAllTags(){
+        var dialog = new BaseDialog("@schematic.edittags");
+        dialog.addCloseButton();
+        Runnable[] rebuild = {null};
+        dialog.cont.pane(p -> {
+            rebuild[0] = () -> {
+                p.clearChildren();
+                p.margin(12f).defaults().fillX().left();
+
+                float sum = 0f;
+                Table current = new Table().left();
+
+                for(var tag : tags){
+
+                    var next = new Table(n -> {
+                        n.table(Tex.pane, move -> {
+                            move.margin(2);
+
+                            //move up
+                            move.button(Icon.upOpen, Styles.emptyi, () -> {
+                                int idx = tags.indexOf(tag);
+                                if(idx > 0){
+                                    if(Core.input.shift()){
+                                        tags.insert(0, tags.remove(idx));
+                                    } else {
+                                        tags.swap(idx, idx - 1);
+                                    }
+                                    tagsChanged();
+                                    rebuild[0].run();
+                                }
+                            }).tooltip("@editor.moveup").row();
+                            //move down
+                            move.button(Icon.downOpen, Styles.emptyi, () -> {
+                                int idx = tags.indexOf(tag);
+                                if(idx < tags.size - 1){
+                                    if(Core.input.shift()){
+                                        tags.insert(tags.size - 1, tags.remove(idx));
+                                    } else {
+                                        tags.swap(idx, idx + 1);
+                                    }
+                                    tagsChanged();
+                                    rebuild[0].run();
+                                }
+                            }).tooltip("@editor.movedown");
+                        }).fillY().margin(6f);
+
+                        n.table(Tex.whiteui, t -> {
+                            t.setColor(Pal.gray);
+                            t.add(tag).left().row();
+                            t.add(Core.bundle.format("schematic.tagged", schematics.all().count(s -> s.labels.contains(tag)))).left()
+                                    .update(b -> b.setColor(b.hasMouse() ? Pal.accent : Color.lightGray)).get().clicked(() -> {
+                                        dialog.hide();
+                                        selectedTags.clear().add(tag);
+                                        rebuildTags.run();
+                                        rebuildPane.run();
+                                    });
+                        }).growX().fillY().margin(8f);
+
+                        n.table(Tex.pane, b -> {
+                            b.margin(2);
+
+                            //rename tag
+                            b.button(Icon.pencil, Styles.emptyi, () -> {
+                                ui.showTextInput("@schematic.renametag", "@name", tag, result -> {
+                                    //same tag, nothing was renamed
+                                    if(result.equals(tag)) return;
+
+                                    if(tags.contains(result)){
+                                        ui.showInfo("@schematic.tagexists");
+                                    }else{
+                                        for(Schematic s : schematics.all()){
+                                            if(s.labels.any()){
+                                                s.labels.replace(tag, result);
+                                                s.save();
+                                            }
+                                        }
+                                        selectedTags.replace(tag, result);
+                                        tags.replace(tag, result);
+                                        tagsChanged();
+                                        rebuild[0].run();
+                                    }
+                                });
+                            }).tooltip("@schematic.renametag").row();
+                            //delete tag
+                            b.button(Icon.trash, Styles.emptyi, () -> {
+                                ui.showConfirm("@schematic.tagdelconfirm", () -> {
+                                    for(Schematic s : schematics.all()){
+                                        if(s.labels.any()){
+                                            s.labels.remove(tag);
+                                            s.save();
+                                        }
+                                    }
+                                    selectedTags.remove(tag);
+                                    tags.remove(tag);
+                                    tagsChanged();
+                                    rebuildPane.run();
+                                    rebuild[0].run();
+                                });
+                            }).tooltip("@save.delete");
+                        }).fillY().margin(6f);
+                    });
+
+                    next.pack();
+                    float w = next.getPrefWidth() + Scl.scl(6f);
+
+                    if(w + sum >= Core.graphics.getWidth() * (Core.graphics.isPortrait() ? 1f : 0.8f)){
+                        p.add(current).row();
+                        current = new Table();
+                        current.left();
+                        current.add(next).minWidth(240).pad(4);
+                        sum = 0;
+                    }else{
+                        current.add(next).minWidth(240).pad(4);
+                    }
+
+                    sum += w;
+                }
+
+                if(sum > 0){
+                    p.add(current).row();
+                }
+            };
+
+            resized(true, rebuild[0]);
+        }).scrollX(false);
+        dialog.show();
+    }
+
     void hideBrowser(){
         ui.schematics.show();
         this.hide();
@@ -219,9 +403,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void readRepositories(){
         links.clear();
-        String setting = Core.settings.getString("schematicrepositories","");
-        if (setting.isEmpty()) return;
-        links.add(setting.split(";"));
+        links.add(Core.settings.getString("schematicrepositories","MindustryDesignIt/main").split(";"));
     }
 
     void read(){
@@ -229,29 +411,47 @@ public class SchematicBrowserDialog extends BaseDialog {
             String fileName = link.replace("/","") + ".zip";
             Fi filePath = schematicRepoDirectory.child(fileName);
             if (!filePath.exists()) return;
-            final Seq<Schematic> schems = browserSchematics.get(link) != null ? browserSchematics.get(link) : new Seq<>();
+            final Seq<Schematic> schems = new Seq<>();
             new ZipFi(filePath).walk(f -> {
                 try {
-                    if (f.extEquals("msch")) schems.add(Schematics.read(f));
+                    if (f.extEquals("msch")) {
+                        Schematic s = Schematics.read(f);
+                        schems.add(s);
+                        checkTags(s);
+                    }
                 } catch (Throwable e) {
-                    Log.err("Error parsing schematic repository " + link + ".", e);
+                    Log.err("Error parsing schematic " + link + " " + f.name(), e);
+                    ui.showErrorMessage(Core.bundle.format("schematic.browser.fail.parse", link, f.name()));
                 }
             });
-            browserSchematics.put(link, schems);
+            repositories.put(link, schems);
+        }
+        if (Core.settings.getString("hiddenschematicrepositories", "").isEmpty()) return;
+        for (String link : Core.settings.getString("hiddenschematicrepositories").split(";")) {
+            hiddenRepositories.add(link);
         }
     }
 
     void fetch(){
+        ui.showInfoFade("@schematic.browser.fetching", 2f);
         for (String link : links){
-            Http.get(ghApi + "/repos/" + link + "/zipball/main", res -> handleRedirect(link, res),
-                    e -> Log.info("Schematic repository " + link + " could not be reached. " + e));
+            Http.get(ghApi + "/repos/" + link + "/zipball/main", res -> handleRedirect(link, res), e -> {
+                Core.app.post(() -> {
+                    Log.info("Schematic repository " + link + " could not be reached. " + e);
+                    ui.showErrorMessage(Core.bundle.format("schematic.browser.fail.fetch", link));
+                });
+            });
         }
     }
 
     void handleRedirect(String link, Http.HttpResponse res){
         if (res.getHeader("Location") != null) {
-            Http.get(res.getHeader("Location"), r -> handleRepo(link, r),
-                    e -> Log.info("Schematic repository " + link + " could not be reached. " + e));
+            Http.get(res.getHeader("Location"), r -> handleRepo(link, r), e -> {
+                Core.app.post(() -> {
+                    Log.info("Schematic repository " + link + " could not be reached. " + e);
+                    ui.showErrorMessage(Core.bundle.format("schematic.browser.fail.fetch", link));
+                });
+            });
         } else handleRepo(link, res);
     }
 
@@ -259,15 +459,30 @@ public class SchematicBrowserDialog extends BaseDialog {
         String fileName = link.replace("/","") + ".zip";
         Fi filePath = schematicRepoDirectory.child(fileName);
         filePath.writeBytes(res.getResult());
-        final Seq<Schematic> schems = browserSchematics.get(link) != null ? browserSchematics.get(link) : new Seq<>();
+        final Seq<Schematic> schems = new Seq<>();
         new ZipFi(filePath).walk(f -> {
             try {
-                if (f.extEquals("msch")) schems.add(Schematics.read(f));
+                if (f.extEquals("msch")) {
+                    Schematic s = Schematics.read(f);
+                    schems.add(s);
+                }
             } catch (Throwable e) {
-                Log.err("Error parsing schematic repository " + link + ".", e);
+                Core.app.post(() -> {
+                    Log.err("Error parsing schematic repository " + link + " " + f.name(), e);
+                    ui.showErrorMessage(Core.bundle.format("schematic.browser.fail.parse", link, f.name()));
+                });
             }
         });
-        browserSchematics.put(link, schems);
+        Core.app.post(() ->{
+            repositories.put(link, schems);
+            ui.schematicBrowser.fetchedRepositories += 1;
+            ui.showInfoFade(Core.bundle.format("schematic.browser.fetched", link), 2f);
+
+            if (ui.schematicBrowser.fetchedRepositories == ui.schematicBrowser.repositories.size) {
+                ui.schematicBrowser.fetchedRepositories = 0;
+                rebuildAll();
+            }
+        });
     }
 
     @Override
@@ -281,20 +496,19 @@ public class SchematicBrowserDialog extends BaseDialog {
         return this;
     }
 
-    protected class SchematicRepositoriesDialog extends BaseDialog {
-        private String search = "";
-        private TextField searchField;
+    protected static class SchematicRepositoriesDialog extends BaseDialog {
         public Table repos = new Table();
-        private final String linkRegex = "(https?://)?github\\.com/?";
+        private final Pattern pattern = Pattern.compile("(https?://)?(github\\.com/)?([^`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]+/.+?)(\\.git)?");
 
-        private boolean changed = false;
+        private boolean refetch = false;
+        private boolean rebuild = false;
 
         public SchematicRepositoriesDialog(){
             super("@schematic.browser.repo");
 
             buttons.defaults().size(width, 64f);
-            buttons.button("@back", Icon.left, this::close).size(width, 64f);
-            buttons.button("@schematic.browser.add", () -> editLink("", l -> ui.schematicsBrowser.links.add(l)));
+            buttons.button("@back", Icon.left, this::close);
+            buttons.button("@schematic.browser.add", Icon.add,() -> editLink("", l -> ui.schematicBrowser.links.add(l)));
             makeButtonOverlay();
             addCloseListener();
             shown(this::setup);
@@ -305,41 +519,37 @@ public class SchematicBrowserDialog extends BaseDialog {
             cont.top();
             cont.clear();
 
-            cont.table(s -> {
-                s.left();
-                s.image(Icon.zoom);
-                searchField = s.field(search, res -> {
-                    search = res;
-                    rebuild();
-                }).width(350).pad(5).get();
-                searchField.setMessageText("@schematic.browser.search");
-            }).fillX().padBottom(4);
-
             cont.row();
 
             rebuild();
             cont.pane( t -> {
                t.defaults().pad(5f);
                t.pane ( p -> p.add(repos)).growX();
-               t.row();
             });
         }
 
         void rebuild(){
             repos.clear();
-            repos.defaults().width(450).pad(5f).left();
-            for (var i = 0; i < ui.schematicsBrowser.links.size; i++) {
-                String link = ui.schematicsBrowser.links.get(i);
+            repos.defaults().width(450).pad(5f).center();
+            for (var i = 0; i < ui.schematicBrowser.links.size; i++) {
+                final String link = ui.schematicBrowser.links.get(i);
                 Table table = new Table();
                 table.button(Icon.cancel, Styles.settingTogglei, 16f, () -> {
-                    ui.schematicsBrowser.links.remove(link);
-                    changed = true;
+                    ui.schematicBrowser.links.remove(link);
+                    refetch = true;
+                    rebuild = true;
                     rebuild();
                 }).padRight(20f).tooltip("@save.delete");
                 int finalI = i;
                 table.button(Icon.edit, Styles.settingTogglei, 16f, () -> {
-                    editLink(link, l -> ui.schematicsBrowser.links.set(finalI, l));
-                }).padRight(10f).tooltip("@schematic.browser.edit");
+                    editLink(link, l -> ui.schematicBrowser.links.set(finalI, l));
+                }).padRight(20f).tooltip("@schematic.browser.edit");
+                table.button(ui.schematicBrowser.hiddenRepositories.contains(link) ? Icon.eyeOffSmall : Icon.eyeSmall, Styles.settingTogglei, 16f, () -> {
+                    if (!ui.schematicBrowser.hiddenRepositories.contains(link)) ui.schematicBrowser.hiddenRepositories.add(link);
+                    else ui.schematicBrowser.hiddenRepositories.remove(link);
+                    rebuild = true;
+                    rebuild();
+                }).padRight(20f).tooltip("@schematic.browser.togglevisibility");
                 table.labelWrap(link).right();
                 repos.add(table);
                 repos.row();
@@ -349,24 +559,37 @@ public class SchematicBrowserDialog extends BaseDialog {
         void editLink(String link, Consumer<String> onClose){
             BaseDialog dialog = new BaseDialog("@schematic.browser.edit");
             TextField linkInput = new TextField(link);
+            linkInput.setMessageText("author/repository");
             linkInput.setValidator( l -> !l.isEmpty());
+            dialog.addCloseListener();
             dialog.cont.add(linkInput).width(400f);
             dialog.cont.row();
-            dialog.closeOnBack(() -> {
-                String text = linkInput.getText().replaceAll(linkRegex, "").toLowerCase();
-                onClose.accept(text);
-                changed = true;
-                rebuild();
+            dialog.cont.table(t -> {
+                t.defaults().width(194f).pad(3f);
+                t.button("@schematic.browser.add", () -> {
+                    String text = pattern.matcher(linkInput.getText().toLowerCase()).replaceAll("");
+                    onClose.accept(text);
+                    refetch = true;
+                    rebuild = true;
+                    rebuild();
+                    dialog.hide();
+                });
+                t.button("@close", dialog::hide);
             });
             dialog.show();
         }
 
         void close(){
-            if (changed) {
-                ui.schematicsBrowser.fetch();
-                Core.settings.put("schematicrepositories", ui.schematicsBrowser.links.toString(";"));
+            if (refetch) {
+                ui.schematicBrowser.fetch();
+                Core.settings.put("schematicrepositories", ui.schematicBrowser.links.toString(";"));
+                refetch = false;
             }
-            ui.schematicsBrowser.show();
+            if (rebuild) {
+                ui.schematicBrowser.rebuildAll();
+                Core.settings.put("hiddenschematicrepositories", ui.schematicBrowser.hiddenRepositories.toString(";"));
+                rebuild = false;
+            }
             this.hide();
         }
     }
