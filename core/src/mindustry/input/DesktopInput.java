@@ -829,10 +829,10 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.schematic_menu) && !Core.scene.hasKeyboard()){
-            if(ui.schematics.isShown()){
-                ui.schematics.hide();
-            }else{
-                ui.schematics.show();
+            if (Core.input.shift()) {
+                ui.toggleSchematicBrowser();
+            } else {
+                ui.toggleSchematicMenu();
             }
         }
 

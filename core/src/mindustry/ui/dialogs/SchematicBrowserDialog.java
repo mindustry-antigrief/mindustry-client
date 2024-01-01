@@ -407,6 +407,10 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     void read(){
+        if (Core.settings.getString("hiddenschematicrepositories", "").isEmpty()) return;
+        for (String link : Core.settings.getString("hiddenschematicrepositories").split(";")) {
+            hiddenRepositories.add(link);
+        }
         for (String link : links) {
             String fileName = link.replace("/","") + ".zip";
             Fi filePath = schematicRepoDirectory.child(fileName);
@@ -417,7 +421,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                     if (f.extEquals("msch")) {
                         Schematic s = Schematics.read(f);
                         schems.add(s);
-                        checkTags(s);
+                        if (!hiddenRepositories.contains(link)) checkTags(s);
                     }
                 } catch (Throwable e) {
                     Log.err("Error parsing schematic " + link + " " + f.name(), e);
@@ -425,10 +429,6 @@ public class SchematicBrowserDialog extends BaseDialog {
                 }
             });
             repositories.put(link, schems);
-        }
-        if (Core.settings.getString("hiddenschematicrepositories", "").isEmpty()) return;
-        for (String link : Core.settings.getString("hiddenschematicrepositories").split(";")) {
-            hiddenRepositories.add(link);
         }
     }
 
@@ -498,7 +498,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     protected static class SchematicRepositoriesDialog extends BaseDialog {
         public Table repos = new Table();
-        private final Pattern pattern = Pattern.compile("(https?://)?(github\\.com/)?([^`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]+/.+?)(\\.git)?");
+        private final Pattern pattern = Pattern.compile("(https?://)?github\\.com/");
 
         private boolean refetch = false;
         private boolean rebuild = false;
@@ -516,11 +516,6 @@ public class SchematicBrowserDialog extends BaseDialog {
         }
 
         void setup(){
-            cont.top();
-            cont.clear();
-
-            cont.row();
-
             rebuild();
             cont.pane( t -> {
                t.defaults().pad(5f);
@@ -530,7 +525,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         void rebuild(){
             repos.clear();
-            repos.defaults().width(450).pad(5f).center();
+            repos.defaults().pad(5f).left();
             for (var i = 0; i < ui.schematicBrowser.links.size; i++) {
                 final String link = ui.schematicBrowser.links.get(i);
                 Table table = new Table();
@@ -551,7 +546,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                     rebuild = true;
                     rebuild();
                 }).padRight(20f).tooltip("@schematic.browser.togglevisibility");
-                table.labelWrap(link).right();
+                table.add(new Label(link)).right();
                 repos.add(table);
                 repos.row();
             }

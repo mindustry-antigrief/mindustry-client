@@ -705,6 +705,18 @@ public class UI implements ApplicationListener, Loadable{
         followUpMenus.remove(menuId).hide();
     }
 
+    public void toggleSchematicMenu() {
+        if (ui.schematicBrowser.isShown()) ui.schematicBrowser.hide();
+        if (ui.schematics.isShown()) ui.schematics.hide();
+        else ui.schematics.show();
+    }
+
+    public void toggleSchematicBrowser() {
+        if (ui.schematics.isShown()) ui.schematics.hide();
+        if (ui.schematicBrowser.isShown()) ui.schematicBrowser.hide();
+        else ui.schematicBrowser.show();
+    }
+
     public static String formatAmount(long number){
         return formatAmount(number, false);
     }
