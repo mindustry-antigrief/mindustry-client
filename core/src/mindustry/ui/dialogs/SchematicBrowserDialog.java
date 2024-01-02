@@ -49,12 +49,12 @@ public class SchematicBrowserDialog extends BaseDialog {
         buttons.button("@schematic.browser.fetch", Icon.refresh, this::fetch);
         makeButtonOverlay();
         readRepositories();
+        read();
         shown(this::setup);
         onResize(this::setup);
     }
 
     void setup(){
-        read();
         search = "";
 
         cont.top();
@@ -428,7 +428,12 @@ public class SchematicBrowserDialog extends BaseDialog {
                     ui.showErrorMessage(Core.bundle.format("schematic.browser.fail.parse", link, f.name()));
                 }
             });
-            repositories.put(link, schems);
+            if (repositories.get(link) != null) {
+                repositories.get(link).clear();
+                repositories.get(link).add(schems);
+            } else {
+                repositories.put(link, schems);
+            }
         }
     }
 
@@ -474,7 +479,13 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
         });
         Core.app.post(() ->{
-            repositories.put(link, schems);
+            if (repositories.get(link) != null) {
+                repositories.get(link).clear();
+                repositories.get(link).add(schems);
+            } else {
+                repositories.put(link, schems);
+            }
+
             ui.schematicBrowser.fetchedRepositories += 1;
             ui.showInfoFade(Core.bundle.format("schematic.browser.fetched", link), 2f);
 
