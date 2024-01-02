@@ -38,10 +38,10 @@
  * Ctrl {pause_building} - Moves all frozen plans into build queue.
  * Shift {deselect} - Freezes/Unfreezes build plans. Useful for prioritizing which build plans to execute first.
  * Ctrl {deselect} - Dequeue selection. Aka deletes only build plans. Doesn't deconstruct existing blocks.
- * Ctrl {select} placement - Forcefully
  * Auto bridge weave - Press shift while building with bridges to automatically bridge weave. End point has automatically converged bridge connections.
  * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
  * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)
+ * Shift {schematic_menu} - Schematic browser
 
 # Commands
  * If you're unfamiliar with mindustry command syntax, <name> indicates a required argument, and [name] an optional one
