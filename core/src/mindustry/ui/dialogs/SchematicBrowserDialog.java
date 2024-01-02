@@ -43,7 +43,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         addCloseButton();
         buttons.button("@schematic", Icon.copy, this::hideBrowser);
         buttons.button("@schematic.browser.repo", Icon.host, this.repositoriesDialog::show);
-        buttons.button("@schematic.browser.fetch", Icon.refresh, () -> fetch(loadedRepositories.keys().toSeq()));
+        buttons.button("@schematic.browser.fetch", Icon.refresh, () -> fetch(repositoryLinks));
         makeButtonOverlay();
 
         getSettings();
