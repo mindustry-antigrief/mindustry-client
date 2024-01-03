@@ -60,7 +60,6 @@
   * {p}buildmine - A mix of {p}builder and {p}miner. Switches to buildpath when buildplans exist (and build is enabled) then switches back to mining after done.
  * {p} [message...] (note the space) - sends the given message in chat with an exclamation point at the start
  * {p}shrug [message...] - send ¯\_(ツ)_/¯ in chat followed by the message
- * {p}login [name] [pw] - auto login to CN servers, not secure
  * {p}marker <name> [x] [y] - place a named marker on the map
  * {p}js <code...> - run javascript code locally
  * {p}/js <code...> - run javascript both locally and on the server (if permitted)

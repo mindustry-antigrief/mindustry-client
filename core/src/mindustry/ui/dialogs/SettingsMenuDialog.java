@@ -814,13 +814,13 @@ public class SettingsMenuDialog extends BaseDialog{
 
         private void makeSearchBar(){
             searchBarTable = table(s -> {
-                s.left();
                 s.image(Icon.zoom);
                 searchBar = s.field(search, res -> {
                     search = res;
                     rebuild();
                 }).growX().get();
             }).get();
+            row();
         }
 
         public SliderSetting sliderPref(String name, int def, int min, int max, StringProcessor s){
