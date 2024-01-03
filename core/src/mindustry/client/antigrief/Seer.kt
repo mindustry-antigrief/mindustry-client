@@ -27,7 +27,7 @@ object Seer { // FINISHME: Fully implement and test this
 
     fun update() {
         // per 30 seconds * 60 frames
-        if (timer[Core.settings.getInt("seer-scoredecayinterval") * 900f]) {
+        if (Core.settings.getBool("seer-scoring") && timer[Core.settings.getInt("seer-scoredecayinterval") * 900f]) {
             decayScores()
         }
     }
@@ -44,7 +44,7 @@ object Seer { // FINISHME: Fully implement and test this
     }
 
     private fun warnIfNeeded(data: PlayerData, player: Player) { // FINISHME: Bundles
-        if (!Core.settings.getBool("seer-enabled")) return
+        if (!Core.settings.getBool("seer-warnings")) return
         if (data.score >= Core.settings.getInt("seer-warnthreshold")) {
             Vars.player.sendMessage("${player.coloredName()} [accent]exceeded warn threshold! ${data.score}")
         }
