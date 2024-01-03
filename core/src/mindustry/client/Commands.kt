@@ -194,11 +194,6 @@ fun setupCommands() {
         sendMessage("¯\\_(ツ)_/¯ " + if (args.size == 1) args[0] else "")
     }
 
-    register("login [name] [pw]", Core.bundle.get("client.command.login.description")) { args, _ ->
-        if (args.size == 2) Core.settings.put("cnpw", "${args[0]} ${args[1]}")
-        else sendMessage("/login ${Core.settings.getString("cnpw", "")}")
-    }
-
     register("marker <name> [x] [y]", Core.bundle.get("client.command.marker.description")) { args, player ->
         val x = if (args.size == 3) args[1].toIntOrNull() ?: player.tileX() else player.tileX()
         val y = if (args.size == 3) args[2].toIntOrNull() ?: player.tileY() else player.tileY()

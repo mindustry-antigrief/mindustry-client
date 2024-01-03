@@ -776,7 +776,8 @@ public class SchematicsDialog extends BaseDialog{
         }
 
         private void setPreview(){
-            if(Core.settings.getBool("restrictschematicloading", false) && previewTime > Time.millisToNanos(Core.settings.getInt("schemloadtime", 10)) && !schematics.hasPreview(schematic)){ // Only allow 10ms of expensive preview creation each frame. Yes this is janky. No I don't care
+            var maxTime = Core.settings.getInt("schemloadtime");
+            if(maxTime > 0 && previewTime > maxTime && !schematics.hasPreview(schematic)){ // Only allow 10ms of expensive preview creation each frame. Yes this is janky. No I don't care
                 set = false;
                 return;
             }

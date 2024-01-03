@@ -4,6 +4,7 @@ import arc.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.graphics.gl.*;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.actions.*;
 import arc.scene.ui.*;
@@ -56,8 +57,16 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         shown(this::setup);
         onResize(this::setup);
+    }
 
-        setHideAction(() -> Actions.run(() -> { // Nuke previews to save ram FINISHME: Nuke the schematics as well and reload them on dialog open. Ideally, we should do that across all threads similar to how we load saves
+    @Override
+    public void hide() {
+        if(!isShown()) return;
+        setOrigin(Align.center);
+        setClip(false);
+        setTransform(true);
+
+        hide(Actions.sequence(Actions.fadeOut(0.4f, Interp.fade), Actions.run(() -> { // Nuke previews to save ram FINISHME: Nuke the schematics as well and reload them on dialog open. Ideally, we should do that across all threads similar to how we load saves
             var previews = Reflect.<OrderedMap<Schematic, FrameBuffer>>get(schematics, "previews");
             var removed = new Queue<FrameBuffer>();
             for (var schems : loadedRepositories.values()) {
@@ -66,8 +75,8 @@ public class SchematicBrowserDialog extends BaseDialog {
                     if (rem != null) removed.add(rem);
                 }
             }
-            Core.app.post(() -> disposeBuffers(removed)); // Start removing next frame as the process above may already take a few msec on slow cpus or in large repositories
-        }));
+            Core.app.post(() -> disposeBuffers(removed)); // Start removing next frame as the process above may already take a few ms on slow cpus or in large repositories
+        })));
     }
 
     /** Disposes a list of FrameBuffers over the course of multiple frames to not cause lag. */

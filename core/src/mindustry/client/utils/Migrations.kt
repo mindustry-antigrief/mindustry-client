@@ -75,4 +75,10 @@ class Migrations {
     private fun migration5() = settings.remove("disablemonofont") // Removed as it was made irrelevant long ago
 
     private fun migration6() = settings.remove("vanillamovement") // Removed as it actively broke when not connected to a server as a client
+
+    private fun migration7() {
+        if (settings.has("restrictschematicloading")) settings.put("schemloadtime", 10) // moved from restrictschematicloading which was hardcoded to 10ms to a new schemloadtime setting that is configurable
+        settings.remove("restrictschematicloading")
+        settings.remove("cnpw") // no longer needed as cn has updated their account system
+    }
 }
