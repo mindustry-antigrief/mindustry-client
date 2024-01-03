@@ -508,6 +508,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         }
 
         void rebuild(){
+            Time.mark();
             repoTable.clear();
             repoTable.defaults().pad(5f).left();
             for (var i = 0; i < ui.schematicBrowser.repositoryLinks.size; i++) {
@@ -546,6 +547,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                 repoTable.add(table);
                 repoTable.row();
             }
+            Log.info("Rebuilt Schematic Browser in @ms", Time.elapsed());
         }
 
         void editRepo(String link, Consumer<String> onClose){
