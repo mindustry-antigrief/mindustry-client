@@ -1,20 +1,24 @@
-package mindustry.ui.dialogs;
+package mindustry.client.ui;
 
 import arc.*;
 import arc.files.*;
 import arc.graphics.*;
+import arc.graphics.gl.*;
+import arc.math.geom.*;
+import arc.scene.actions.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import kotlin.Unit;
 import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.client.navigation.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 import java.util.function.*;
 import java.util.regex.*;
@@ -34,16 +38,16 @@ public class SchematicBrowserDialog extends BaseDialog {
     private Runnable rebuildPane = () -> {}, rebuildTags = () -> {};
     private final Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
     private final Seq<String> tags = new Seq<>(), selectedTags = new Seq<>();
+    private final ItemSeq reusableItemSeq = new ItemSeq();
 
     public SchematicBrowserDialog(){
         super("@schematic.browser");
-        Core.assets.load("sprites/schematic-background.png", Texture.class).loaded = t -> t.setWrap(Texture.TextureWrap.repeat);
 
         shouldPause = true;
         addCloseButton();
-        buttons.button("@schematic", Icon.copy, this::hideBrowser);
-        buttons.button("@schematic.browser.repo", Icon.host, this.repositoriesDialog::show);
-        buttons.button("@schematic.browser.fetch", Icon.refresh, () -> fetch(loadedRepositories.keys().toSeq()));
+        buttons.button("@schematics", Icon.copy, this::hideBrowser);
+        buttons.button("@schematic.browser.repo", Icon.host, repositoriesDialog::show);
+        buttons.button("@schematic.browser.fetch", Icon.refresh, () -> fetch(repositoryLinks));
         makeButtonOverlay();
 
         getSettings();
@@ -52,9 +56,36 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         shown(this::setup);
         onResize(this::setup);
+
+        setHideAction(() -> Actions.run(() -> { // Nuke previews to save ram FINISHME: Nuke the schematics as well and reload them on dialog open. Ideally, we should do that across all threads similar to how we load saves
+            var previews = Reflect.<OrderedMap<Schematic, FrameBuffer>>get(schematics, "previews");
+            var removed = new Queue<FrameBuffer>();
+            for (var schems : loadedRepositories.values()) {
+                for (var schem : schems) {
+                    var rem = previews.remove(schem);
+                    if (rem != null) removed.add(rem);
+                }
+            }
+            Core.app.post(() -> disposeBuffers(removed)); // Start removing next frame as the process above may already take a few msec on slow cpus or in large repositories
+        }));
+    }
+
+    /** Disposes a list of FrameBuffers over the course of multiple frames to not cause lag. */
+    void disposeBuffers(Queue<FrameBuffer> todo) {
+        var start = Time.nanos();
+        while (!todo.isEmpty()) {
+            if (Time.millisSinceNanos(start) >= 5) {
+                Log.debug("Couldn't finish disposing buffers in time, resuming next frame. @ remain", todo.size);
+                Core.app.post(() -> disposeBuffers(todo));
+                return;
+            }
+            todo.removeFirst().dispose();
+        }
+        Log.debug("Finished disposing of FrameBuffers");
     }
 
     void setup(){
+        Time.mark();
         search = "";
 
         cont.top();
@@ -100,18 +131,30 @@ public class SchematicBrowserDialog extends BaseDialog {
         }).height(tagh).fillX();
         cont.row();
 
-        cont.pane(t -> {
-            t.top();
-            rebuildPane = () -> {
-                t.clear();
-                firstSchematic = null;
-                for (String repo : loadedRepositories.keys()) {
-                    if (hiddenRepositories.contains(repo)) continue;
-                    setupRepoUi(t, ignoreSymbols.matcher(search.toLowerCase()).replaceAll(""), repo);
-                }
-            };
-            rebuildPane.run();
-        }).grow().scrollX(false);
+        Table[] t = {null}; // Peak java
+        t[0] = new Table() {
+            @Override
+            public void setCullingArea(Rect cullingArea) {
+                super.setCullingArea(cullingArea);
+                t[0].getChildren().<Table>each(c -> c instanceof Table, c -> {
+                    var area = t[0].getCullingArea();
+                    c.getCullingArea().setSize(area.width, area.height) // Set the size (NOT scaled to child coordinates which it should be if either scale isn't 1)
+                        .setPosition(c.parentToLocalCoordinates(area.getPosition(Tmp.v1))); // Set the position (scaled correctly)
+                });
+            }
+        };
+        t[0].top();
+        rebuildPane = () -> {
+            t[0].clear();
+            firstSchematic = null;
+            for (String repo : loadedRepositories.keys()) {
+                if (hiddenRepositories.contains(repo)) continue;
+                setupRepoUi(t[0], ignoreSymbols.matcher(search.toLowerCase()).replaceAll(""), repo);
+            }
+        };
+        rebuildPane.run();
+        cont.pane(t[0]).grow().scrollX(false);
+        Log.info("Rebuilt Schematic Browser in @ms", Time.elapsed());
     }
 
     void setupRepoUi(Table table, String searchString, String repo){
@@ -122,10 +165,12 @@ public class SchematicBrowserDialog extends BaseDialog {
         table.image().growX().padTop(10).height(3).color(Pal.accent).center();
         table.row();
         table.table(t -> {
-            int i = 0;
+            t.setCullingArea(new Rect()); // Make sure this isn't null for later
+
+            int[] i = {0};
             final int max = Core.settings.getInt("maxschematicslisted");
             for(Schematic s : loadedRepositories.get(repo)){
-                if(max != 0 && i > max) break; // Avoid meltdown on large repositories
+                if(max != 0 && i[0] > max) break; // Avoid meltdown on large repositories
 
                 if(selectedTags.any() && !s.labels.containsAll(selectedTags)) continue;  // Tags
                 if(!search.isEmpty() && !(ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)
@@ -148,15 +193,24 @@ public class SchematicBrowserDialog extends BaseDialog {
                         buttons.button(Icon.download, style, () -> {
                             ui.showInfoFade("@schematic.saved");
                             schematics.add(s);
-                            ui.schematics.checkTags(s);
+                            Reflect.invoke(ui.schematics, "checkTags", new Object[]{s}, Schematic.class); // Vars.ui.schematics.checkTags(s)
                         }).tooltip("@schematic.browser.download");
                     }).growX().height(50f);
                     b.row();
                     b.stack(new SchematicsDialog.SchematicImage(s).setScaling(Scaling.fit), new Table(n -> {
                         n.top();
                         n.table(Styles.black3, c -> {
-                            Label label = c.add(s.name()).style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f)
-                                    .update(l -> l.setText((!player.team().rules().infiniteResources && !state.rules.infiniteResources && player.core() != null && !player.core().items.has(s.requirements()) ? "[#dd5656]" : "") + s.name())).get();
+                            Label label = c.add("").style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f)
+                                .update(l -> {
+                                    var txt = l.getText(); // Update the stringBuilder directly
+                                    if (txt.length() == 0 || (Core.graphics.getFrameId() + i[0]) % 60 == 0) { // update() is run every frame even when the element is culled out, the solution is to only update a portion every frame FINISHME: Do we want to hack this and update the text in the draw() method which is only called when the element isn't culled?
+                                        txt.setLength(0);
+                                        if (!player.team().rules().infiniteResources && !state.rules.infiniteResources && player.core() != null && !player.core().items.has(s.requirements(reusableItemSeq))) txt.append("[#dd5656]");
+                                        txt.append(s.name());
+                                        reusableItemSeq.clear();
+                                    }
+                                }).get();
+                            label.runUpdate(); // Update the text instantly
                             label.setEllipsis(true);
                             label.setAlignment(Align.center);
                         }).growX().margin(1).pad(4).maxWidth(Scl.scl(200f - 8f)).padBottom(0);
@@ -177,12 +231,12 @@ public class SchematicBrowserDialog extends BaseDialog {
 
                 sel[0].getStyle().up = Tex.pane;
 
-                if(++i % cols == 0){
+                if(++i[0] % cols == 0){
                     t.row();
                 }
             }
 
-            if(i==0){
+            if(i[0]==0){
                 if(!searchString.isEmpty() || selectedTags.any()){
                     t.add("@none.found");
                 }else{
@@ -224,10 +278,9 @@ public class SchematicBrowserDialog extends BaseDialog {
                 t.button("@schematic.chatshare", Icon.bookOpen, style, () -> {
                     if (!state.isPlaying()) return;
                     dialog.hide();
-                    clientThread.post(() -> Main.INSTANCE.send(new SchematicTransmission(s), () -> {
-                        Core.app.post(() -> ui.showInfoToast(Core.bundle.get("client.finisheduploading"), 2f));
-                        return Unit.INSTANCE;
-                    }));
+                    clientThread.post(() -> Main.INSTANCE.send(new SchematicTransmission(s), () -> Core.app.post(() ->
+                        ui.showInfoToast(Core.bundle.get("client.finisheduploading"), 2f)
+                    )));
                 }).marginLeft(12f).get().setDisabled(() -> !state.isPlaying());
             });
         });
@@ -394,7 +447,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void hideBrowser(){
         ui.schematics.show();
-        this.hide();
+        hide();
     }
 
     void getSettings(){
@@ -436,6 +489,7 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     void fetch(Seq<String> repos){
+        Log.debug("Fetching schematics from repos: @", repos);
         ui.showInfoFade("@schematic.browser.fetching", 2f);
         for (String link : repos){
             Http.get(ghApi + "/repos/" + link + "/zipball/main", res -> handleRedirect(link, res), e -> Core.app.post(() -> {
@@ -503,7 +557,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             rebuild();
             cont.pane( t -> {
                t.defaults().pad(5f);
-               t.pane ( p -> p.add(repoTable)).growX();
+               t.pane(p -> p.add(repoTable)).growX();
             });
         }
 
@@ -593,7 +647,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
             Core.settings.put("schematicrepositories", ui.schematicBrowser.repositoryLinks.toString(";"));
             Core.settings.put("hiddenschematicrepositories", ui.schematicBrowser.hiddenRepositories.toString(";"));
-            this.hide();
+            hide();
         }
     }
 }

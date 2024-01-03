@@ -274,7 +274,7 @@ object Main : ApplicationListener {
         }
     }
 
-    fun send(transmission: Transmission, onFinish: (() -> Unit)? = null) {
+    fun send(transmission: Transmission, onFinish: Runnable? = null) {
         communicationClient.send(transmission, onFinish)
     }
 

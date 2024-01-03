@@ -153,7 +153,7 @@ object Packets {
                 val toSend = outgoing.peek() ?: return // Return if there's nothing to send
 
                 // Gets the next packet in this transmission, if there are no more packets move to the next transmission
-                val packet = toSend.packets.poll() ?: run { outgoing.remove(toSend); toSend.onFinish?.invoke(); return }
+                val packet = toSend.packets.poll() ?: run { outgoing.remove(toSend); toSend.onFinish?.run(); return }
 
                 lastSent.reset(0, 0f) // Sending a packet, reset the timer fully
                 try { communicationSystem.send(packet.bytes()) } catch (e: Exception) { outgoing.remove(toSend); toSend.onError?.invoke() }
@@ -213,7 +213,7 @@ object Packets {
             } catch (e: Exception) { Log.err(e) }
         }
 
-        private data class OutgoingTransmission(val packets: Queue<Packet>, val onFinish: (() -> Unit)?, val onError: (() -> Unit)?)
+        private data class OutgoingTransmission(val packets: Queue<Packet>, val onFinish: Runnable?, val onError: (() -> Unit)?)
 
         /**
          * Splits the transmission into packets and queues them for sending.
@@ -221,7 +221,7 @@ object Packets {
          * @param onFinish A lambda that will be run once it is sent, null by default.
          * @param onError A lambda that will be run when no suitable message block is found.
          */
-        fun send(transmission: Transmission, onFinish: (() -> Unit)? = null, onError: (() -> Unit)? = null) {
+        fun send(transmission: Transmission, onFinish: Runnable? = null, onError: (() -> Unit)? = null) {
             val type = registeredTransmissionTypes.indexOfFirst { it.type == transmission::class }
 
             if (transmission.secureOnly && !communicationSystem.secure) throw IllegalArgumentException("Communications system must be secure to send secure-only transmissions!")

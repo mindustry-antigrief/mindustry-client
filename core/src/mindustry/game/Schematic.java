@@ -39,8 +39,10 @@ public class Schematic implements Publishable, Comparable<Schematic>{
     }
 
     public ItemSeq requirements(){
-        ItemSeq requirements = new ItemSeq();
+        return requirements(new ItemSeq());
+    }
 
+    public ItemSeq requirements(ItemSeq requirements){
         tiles.each(t -> {
             for(ItemStack stack : t.block.requirements){
                 requirements.add(stack.item, stack.amount);

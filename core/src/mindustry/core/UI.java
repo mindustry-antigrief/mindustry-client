@@ -75,7 +75,6 @@ public class UI implements ApplicationListener, Loadable{
     public PlanetDialog planet;
     public ResearchDialog research;
     public SchematicsDialog schematics;
-    public SchematicBrowserDialog schematicBrowser;
     public ModsDialog mods;
     public ColorPicker picker;
     public EffectsDialog effects;
@@ -90,6 +89,7 @@ public class UI implements ApplicationListener, Loadable{
     private @Nullable Element lastAnnouncement;
 
     // Client related
+    public SchematicBrowserDialog schematicBrowser;
     public UnitPicker unitPicker;
     public ClajManagerDialog clajManager;
     public ClajJoinDialog clajJoin;

@@ -14,7 +14,6 @@ import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import kotlin.Unit;
 import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.client.navigation.*;
@@ -40,7 +39,6 @@ public class SchematicsDialog extends BaseDialog{
     private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
     private Seq<String> tags, selectedTags = new Seq<>();
     private boolean checkedTags;
-    private static long previewTime;
 
     public SchematicsDialog(){
         super("@schematics");
@@ -55,7 +53,6 @@ public class SchematicsDialog extends BaseDialog{
         makeButtonOverlay();
         shown(this::setup);
         onResize(this::setup);
-        update(() -> previewTime = 0);
     }
 
     void setup(){
@@ -308,14 +305,9 @@ public class SchematicsDialog extends BaseDialog{
                 t.button("@schematic.chatshare", Icon.bookOpen, style, () -> {
                     if (!state.isPlaying()) return;
                     dialog.hide();
-                    clientThread.post(() -> {
-                        Main.INSTANCE.send(new SchematicTransmission(s), () -> {
-                            Core.app.post(() -> {
-                                ui.showInfoToast(Core.bundle.get("client.finisheduploading"), 2f);
-                            });
-                            return Unit.INSTANCE;
-                        });
-                    });
+                    clientThread.post(() -> Main.INSTANCE.send(new SchematicTransmission(s), () -> Core.app.post(() ->
+                        ui.showInfoToast(Core.bundle.get("client.finisheduploading"), 2f)
+                    )));
                 }).marginLeft(12f).get().setDisabled(() -> !state.isPlaying());
             });
         });
@@ -730,6 +722,12 @@ public class SchematicsDialog extends BaseDialog{
         private Texture lastTexture;
         boolean set;
 
+        private static long previewTime;
+
+        static { // Reset the preview time every frame
+            Events.run(EventType.Trigger.update, () -> previewTime = 0);
+        }
+
         public SchematicImage(Schematic s){
             super(Tex.clear);
             setScaling(Scaling.fit);
@@ -778,14 +776,14 @@ public class SchematicsDialog extends BaseDialog{
         }
 
         private void setPreview(){
-            if(Core.settings.getBool("restrictschematicloading", false) && previewTime > Time.millisToNanos(10) && !schematics.hasPreview(schematic)){ // Only allow 10ms of expensive preview creation each frame. Yes this is janky. No I don't care
+            if(Core.settings.getBool("restrictschematicloading", false) && previewTime > Time.millisToNanos(Core.settings.getInt("schemloadtime", 10)) && !schematics.hasPreview(schematic)){ // Only allow 10ms of expensive preview creation each frame. Yes this is janky. No I don't care
                 set = false;
                 return;
             }
             var start = Time.nanos();
             TextureRegionDrawable draw = new TextureRegionDrawable(new TextureRegion(lastTexture = schematics.getPreview(schematic)));
             var time = Time.timeSinceNanos(start);
-            if(time > Time.millisToNanos(100)) Log.info("Schematic @ (@x@) took @ms to load", schematic.name(), schematic.width, schematic.height, time/(float)Time.nanosPerMilli);
+            if(time > Time.millisToNanos(50)) Log.debug("Schematic @ (@x@) took @ms to load", schematic.name(), schematic.width, schematic.height, time/(float)Time.nanosPerMilli);
             previewTime += time;
             setDrawable(draw);
             setScaling(Scaling.fit);
