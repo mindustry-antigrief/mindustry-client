@@ -26,7 +26,7 @@ public class Version{
     public static String assetUrl = "", assetRef = "";
     /** Foo's version string */
     public static String clientVersion = "v1.0.0, Jan. 1, 1970";
-    /** The installer mod checks for the existence of this boolean */
+    /** Allows for mods to detect the presence of the client */
     @SuppressWarnings("unused") private static boolean foos;
 
     public static String path(){

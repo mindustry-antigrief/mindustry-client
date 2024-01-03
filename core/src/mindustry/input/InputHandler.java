@@ -614,7 +614,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     @Remote(targets = Loc.both, called = Loc.both, forward = true, ratelimited = true)
     public static void unitControl(Player player, @Nullable Unit unit){
         if(player == null) return;
-        Log.debug("UnitControl of @ by @ at @", unit == null ? "Nullunit" : unit.type, player.plainName(), Time.millis());
+        Log.debug("UnitControl of @ by @ at @", unit == null ? "Nullunit" : unit.type, player.plainName(), graphics.getFrameId());
 
         //make sure player is allowed to control the unit
         if(net.server() && (!state.rules.possessionAllowed || !netServer.admins.allowAction(player, ActionType.control, action -> action.unit = unit))){

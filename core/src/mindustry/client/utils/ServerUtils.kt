@@ -1,5 +1,4 @@
-@file:Suppress("EnumEntryName")
-@file:JvmName("ServerUtils")
+@file:Suppress("EnumEntryName") @file:JvmName("ServerUtils")
 
 package mindustry.client.utils
 
@@ -10,6 +9,8 @@ import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.content.*
+import mindustry.content.Blocks.*
+import mindustry.content.UnitTypes.*
 import mindustry.entities.abilities.*
 import mindustry.entities.bullet.*
 import mindustry.game.EventType.*
@@ -42,7 +43,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         override fun handleBan(p: Player) {
             ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing.") { reason ->
                 val id = p.trace?.uuid ?: p.serverID
-                if (id != null){
+                if (id != null) {
                     ui.showConfirm("@confirm", "@client.rollback.title") {
                         Call.sendChatMessage("/rollback $id 5-f")
                     }
@@ -118,7 +119,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         init {
             Events.on(MenuReturnEvent::class.java) {
                 current = other
-                Log.info("Returning to menu, server override cleared")
+                Log.debug("Returning to menu, server override cleared")
             }
         }
 
@@ -166,70 +167,102 @@ enum class CustomMode {
 
         override fun enable() {
             super.enable()
+            Time.mark()
 
             overwrites( // This system is awful but it (mostly) works and it wasn't hard to implement.
-                UnitTypes.pulsar, "abilities", Seq<Ability>(0), // Pulsar shield regen field removed
-                UnitTypes.crawler, "health", 100f,
-                UnitTypes.crawler, "speed", 1.5f,
-                UnitTypes.crawler, "accel", 0.08f,
-                UnitTypes.crawler, "drag", 0.016f,
-                UnitTypes.crawler, "flying", true,
-                UnitTypes.atrax, "speed", 0.5f,
-                UnitTypes.spiroct, "speed", 0.4f,
-                UnitTypes.spiroct, "targetAir", false,
-                UnitTypes.arkyid, "speed", 0.5f ,
-                UnitTypes.arkyid, "targetAir", false,
-                UnitTypes.toxopid, "targetAir", false,
-                UnitTypes.flare, "health", 275,
-                UnitTypes.flare, "range", 140,
-                UnitTypes.horizon, "itemCapacity", 20, // Horizons can pick up items in flood, this just allows the items to draw correctly
-                UnitTypes.horizon, "health", 440,
-                UnitTypes.horizon, "speed", 1.7f,
-                UnitTypes.zenith, "health", 1400,
-                UnitTypes.zenith, "speed", 1.8f,
-                UnitTypes.oct, "abilities", Seq.with(ForceFieldAbility(140f, 16f, 15000f, 60f * 8)), // Oct heal removed, force field buff
-                UnitTypes.bryde, "abilities", Seq<Ability>(0), // Bryde shield regen field removed
+                // Units
+                pulsar, "abilities", Seq<Ability>(0), // Pulsar shield regen field removed
+                crawler, "health", 100f,
+                crawler, "speed", 1.5f,
+                crawler, "accel", 0.08f,
+                crawler, "drag", 0.016f,
+                crawler, "hitSize", 6f,
+                crawler, "targetAir", false,
+                atrax, "speed", 0.5f,
+                spiroct, "speed", 0.4f,
+                spiroct, "targetAir", false,
+                arkyid, "speed", 0.5f,
+                arkyid, "hitSize", 21f,
+                arkyid, "targetAir", false,
+                toxopid, "hitSize", 21f,
+                flare, "health", 275,
+                flare, "range", 140,
+                horizon, "itemCapacity", 20, // Horizons can pick up items in flood, this just allows the items to draw correctly
+                horizon, "health", 440,
+                horizon, "speed", 1.7f,
+                zenith, "health", 1400,
+                zenith, "speed", 1.8f,
+                oct, "abilities", Seq.with(ForceFieldAbility(140f, 16f, 15000f, 60f * 8, 8, 0f)), // Oct heal removed, force field buff
+                bryde, "abilities", Seq<Ability>(0), // Bryde shield regen field removed
 
-                Blocks.phaseWall, "chanceDeflect", -1,
-                Blocks.surgeWall, "lightningChance", 0f,
-                Blocks.reinforcedSurgeWall, "lightningChance", 0f,
-                Blocks.mender, "healAmount", 6f,
-                Blocks.mender, "phaseBoost", 2f,
-                Blocks.mendProjector, "phaseBoost", 12f,
-                Blocks.mendProjector, "phaseBoost", 2f,
-                Blocks.forceProjector, "shieldHealth", 2500f,
-//                Blocks.forceProjector, "coolantConsumer", ConsumeCoolant(.1f), // FINISHME: This one probably breaks things, also it wont display correctly in the stats page
-                Blocks.radar, "health", 500,
-                Blocks.regenProjector, "healPercent", 12f, // Nice balance, a casual 180x buff
-                Blocks.shockwaveTower, "health", 2000,
-//                Blocks.shockwaveTower, "consumeLiquids", Blocks.shockwaveTower.consumeLiquids(*LiquidStack.with(Liquids.cyanogen, 1f / 60f)) // FINISHME: This one too, consumers are annoying
-                Blocks.thoriumReactor, "health", 1400,
-                Blocks.lancer, "shootType.damage", 10,
-                Blocks.arc, "shootType.damage", 4,
-                Blocks.arc, "shootType.lightningLength", 15,
-                Blocks.swarmer, "shoot.shots", 5,
-                Blocks.swarmer, "shoot.shotDelay", 4f,
-                Blocks.segment, "range", 160f,
-                Blocks.segment, "reload", 9f,
-                Blocks.tsunami, "reload", 2f,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.titanium), "pierce", false,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.titanium), "damage", 10f,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.thorium), "pierce", false,
-                (Blocks.fuse as ItemTurret).ammoTypes.get(Items.thorium), "damage", 20f,
-                Blocks.breach, "targetUnderBlocks", true,
-                Blocks.diffuse, "targetUnderBlocks", true,
-                Blocks.scathe, "targetUnderBlocks", true,
+                // Blocks
+                scrapWall, "solid", false,
+                titaniumWall, "solid", false,
+                thoriumWall, "solid", false,
+                phaseWall, "chanceDeflect", -1,
+                surgeWall, "lightningChance", 0f,
+                reinforcedSurgeWall, "lightningChance", 0f,
+                berylliumWall, "absorbLasers", true,
+                berylliumWall, "insulated", true,
+                tungstenWall, "absorbLasers", true,
+                tungstenWall, "insulated", true,
+                carbideWall, "absorbLasers", true,
+                carbideWall, "insulated", true,
+                mender, "reload", 800f,
+                mendProjector, "reload", 500f,
+                forceProjector, "shieldHealth", 2500f,
+                radar, "health", 500,
+                massDriver, "health", 1250,
+                shockwaveTower, "health", 2000,
+                thoriumReactor, "health", 1400,
+                impactReactor, "rebuildable", false,
+                lancer, "shootType.damage", 10,
+                arc, "shootType.damage", 4,
+                arc, "shootType.lightningLength", 15,
+                parallax, "force", 8f,
+                parallax, "scaledForce", 7f,
+                parallax, "range", 230f,
+                parallax, "damage", 6f,
+                (fuse as ItemTurret).ammoTypes.get(Items.titanium), "pierce", false,
+                (fuse as ItemTurret).ammoTypes.get(Items.titanium), "damage", 10f,
+                (fuse as ItemTurret).ammoTypes.get(Items.thorium), "pierce", false,
+                (fuse as ItemTurret).ammoTypes.get(Items.thorium), "damage", 20f,
+                (scathe as ItemTurret).ammoTypes.get(Items.carbide), "damage", 700f,
+                (scathe as ItemTurret).ammoTypes.get(Items.carbide), "buildingDamageMultiplier", 0.3f,
+                (scathe as ItemTurret).ammoTypes.get(Items.carbide), "splashDamage", 80f,
             )
 
-            val fsAmmo = (Blocks.foreshadow as ItemTurret).ammoTypes
-            foreshadowBulletVanilla = fsAmmo.get(Items.surgeAlloy)
-            fsAmmo.put(Items.surgeAlloy, foreshadowBulletFlood)
+            arrayOf(alpha, beta, gamma).flatMap { it.weapons }.forEach { overwrite(it, "bullet.buildingDamageMultiplier", 1) }
+            quad.weapons.each { overwrites(
+                it, "bullet.pierceBuilding", true,
+                it, "bullet.pierceCap", 9
+            ) }
+            merui.weapons.each { overwrite(it, "bullet.collides", true) }
+            vela.weapons.each { overwrite(it, "bullet.damage", 20f) }
+            minke.weapons.each { if (it.bullet is FlakBulletType) overwrite(it, "bullet.collidesGround", true) }
+            arkyid.weapons.each {
+                when (val b = it.bullet) {
+                    is SapBulletType -> overwrite(b, "sapStrength", 0)
+                    is ArtilleryBulletType -> overwrites(b, "pierceBuilding", true, b, "pierceCap", 5)
+                }
+            }
+            spiroct.weapons.each {
+                val b = it.bullet
+                overwrite(b, "sapStrength", 0) // All arkyid bullets have 0 sapStrength in flood
+                when (name) {
+                    "spiroct-weapon" -> overwrite(b, "damage", 25)
+                    "mount-purple-weapon" -> overwrite(b, "damage", 20)
+                }
+            }
+
+            foreshadowBulletVanilla = (foreshadow as ItemTurret).ammoTypes.put(Items.surgeAlloy, foreshadowBulletFlood)
+            Log.debug("Applied flood in ${Time.elapsed()}ms")
         }
 
         override fun disable() {
             super.disable()
 
-            (Blocks.foreshadow as ItemTurret).ammoTypes.put(Items.surgeAlloy, foreshadowBulletVanilla)
+            (foreshadow as ItemTurret).ammoTypes.put(Items.surgeAlloy, foreshadowBulletVanilla)
         }
     },
     defense
@@ -255,20 +288,23 @@ enum class CustomMode {
             }
         }
 
-        private var defaults: MutableList<Triple<*, Field, *>> = mutableListOf()
+        private var defaults: MutableList<Any> = mutableListOf()
 
-        private fun overwrites(vararg args: Any) {
-            for (i in args.indices step 3) overwrite(args[i], args[i + 1] as String, args[i + 2])
-        }
+        /** Convenient way of adding multiple overwrites at once */
+        private fun overwrites(vararg args: Any) =
+            args.indices.step(3).forEach { overwrite(args[it], args[it + 1] as String, args[it + 2]) }
 
-        private fun <O: Any, T: Any> overwrite(obj: O, name: String, value: T) {
+        private fun <O : Any, T : Any> overwrite(obj: O, name: String, value: T) {
             val split = name.split('.', limit = 2)
             val field = obj::class.java.getField(split[0])
             field.isAccessible = true
 
-            if (split.size > 1) return overwrite(field.get(obj), split[1], value) // In the case of a string with periods, run the function recursively until we get to the last item which is then set
+            // In the case of a string with periods, run the function recursively until we get to the last item which is then set
+            if (split.size > 1) return overwrite(field.get(obj), split[1], value)
 
-            defaults.add(Triple(obj, field, field.get(obj)))
+            defaults.add(obj)
+            defaults.add(field)
+            defaults.add(field.get(obj))
             field.set(obj, value)
         }
     }
@@ -281,11 +317,8 @@ enum class CustomMode {
     }
 
     /** Called when switching to a different gamemode */
-    protected open fun disable() {
-        defaults.forEach { (obj, field, value) ->
-            field.set(obj, value)
-        }
-    }
+    protected open fun disable() = // Don't have to worry about clearing defaults as it is replaced with a blank mutable list when the new gamemode is applied
+        defaults.indices.step(3).forEach { (defaults[it + 1] as Field).set(defaults[it], defaults[it + 2]) } // (obj, field, value) -> field.set(obj, value)
 }
 
 private val foreshadowBulletFlood = LaserBulletType().apply {
@@ -317,4 +350,4 @@ fun handleKick(reason: String) {
 }
 
 // FINISHME: The jank is growing worse. The servers really need their own classes
-fun Server.Companion.ohno(): Timer.Task = Timer.schedule({ if (!player.blockOn().solid && UnitTypes.alpha.supportsEnv(state.rules.env)) Call.sendChatMessage("/ohno") }, 3f, 0.3f)
+fun Server.Companion.ohno(): Timer.Task = Timer.schedule({ if (!player.blockOn().solid && alpha.supportsEnv(state.rules.env)) Call.sendChatMessage("/ohno") }, 3f, 0.3f)

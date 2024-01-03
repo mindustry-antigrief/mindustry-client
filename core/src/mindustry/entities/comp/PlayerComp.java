@@ -29,6 +29,7 @@ import mindustry.ui.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 @EntityDef(value = {Playerc.class}, serialize = false)
@@ -124,7 +125,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         //when the player recs a unit that they JUST transitioned away from, use the new unit instead
         //reason: we know the server is lying here, essentially skip the unit snapshot because we know the client's information is more recent
         if(isLocal() && unit == justSwitchFrom && justSwitchFrom != null && justSwitchTo != null){
-            Log.debug("@ rubberbanded: @ at @", plainName(), wrongReadUnits, Time.millis());
+            Log.debug("@ rubberbanded: @ at @", plainName(), wrongReadUnits, graphics.getFrameId());
             unit = justSwitchTo;
             //if several snapshots have passed and this unit is still incorrect, something's wrong
             if(++wrongReadUnits >= 2){
@@ -132,7 +133,9 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
                 wrongReadUnits = 0;
             }
         }else{
-            if(justSwitchFrom != null || justSwitchTo != null || wrongReadUnits != 0) Log.debug("@ didn't rubberband at @", plainName(), Time.millis());
+            if(justSwitchFrom != null || justSwitchTo != null || wrongReadUnits != 0 && isLocal()) { // FINISHME: When local, check if we are the unitPicker unit we just swapped to and handle that as needed
+                Log.debug("@ didn't rubberband at @", plainName(), graphics.getFrameId());
+            }
             justSwitchFrom = null;
             justSwitchTo = null;
             wrongReadUnits = 0;
@@ -220,6 +223,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     public void unit(Unit unit){
         //refuse to switch when the unit was just transitioned from
         if(isLocal() && unit == justSwitchFrom && justSwitchFrom != null && justSwitchTo != null){
+            Log.info("@ just attempted to switch back @ at @", plainName(), wrongReadUnits, graphics.getFrameId());
             return;
         }
 
