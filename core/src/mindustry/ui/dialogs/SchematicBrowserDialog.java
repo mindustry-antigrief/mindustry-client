@@ -55,6 +55,7 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     void setup(){
+        Time.mark();
         search = "";
 
         cont.top();
@@ -112,6 +113,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             };
             rebuildPane.run();
         }).grow().scrollX(false);
+        Log.info("Rebuilt Schematic Browser in @ms", Time.elapsed());
     }
 
     void setupRepoUi(Table table, String searchString, String repo){
@@ -508,7 +510,6 @@ public class SchematicBrowserDialog extends BaseDialog {
         }
 
         void rebuild(){
-            Time.mark();
             repoTable.clear();
             repoTable.defaults().pad(5f).left();
             for (var i = 0; i < ui.schematicBrowser.repositoryLinks.size; i++) {
@@ -547,7 +548,6 @@ public class SchematicBrowserDialog extends BaseDialog {
                 repoTable.add(table);
                 repoTable.row();
             }
-            Log.info("Rebuilt Schematic Browser in @ms", Time.elapsed());
         }
 
         void editRepo(String link, Consumer<String> onClose){
