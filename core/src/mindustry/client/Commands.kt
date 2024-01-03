@@ -250,24 +250,6 @@ fun setupCommands() {
         }
     }
 
-    // Removed in Erekir
-//    register("cc [setting]", Core.bundle.get("client.command.cc.description")) { args, player ->
-//        if (args.size != 1 || !args[0].matches("(?i)^[ari].*".toRegex())) {
-//            player.sendMessage(Core.bundle.format("client.command.cc.invalid", player.team().data().command.localized()))
-//            return@register
-//        }
-//
-//        val cc = Units.findAllyTile(player.team(), player.x, player.y, Float.MAX_VALUE / 2) { it is CommandCenter.CommandBuild }
-//        if (cc != null) {
-//            Call.tileConfig(player, cc, when (args[0].lowercase()[0]) {
-//                'a' -> UnitCommand.attack
-//                'r' -> UnitCommand.rally
-//                else -> UnitCommand.idle
-//            })
-//            player.sendMessage(Core.bundle.format("client.command.cc.success", args[0]))
-//        } else player.sendMessage(Core.bundle.get("client.command.cc.notfound"))
-//    }
-
     register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
         player.sendMessage(
             if (pluginVersion != -1F) (Core.bundle.get("client.networking.plugin") as String) else
@@ -724,6 +706,10 @@ fun setupCommands() {
     
     // Special commands
 
+    register("seer", "Clientside moderation") { _, _ -> // FINISHME
+        SeerDialog.show()
+    }
+
     register("admin [option]", Core.bundle.get("client.command.admin.description")) { args, player ->
         val arg = if (args.isEmpty()) "" else args[0]
         when (arg.lowercase()) {
@@ -753,8 +739,8 @@ fun setupCommands() {
 
     //FINISHME: add various % for gamerules
 
-    // Experimentals (and funny commands)
-    if (Core.settings.getBool("client-experimentals") || OS.hasProp("policone")) {
+        // Experimentals (and funny commands)
+    if (Core.settings.getBool("client-experimentals")) {
         register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
             sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
         }
@@ -835,10 +821,6 @@ fun setupCommands() {
 
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
             undoPlayer(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) }, id)
-        }
-
-        register("seer", "Seer related commands") { _, _ -> // FINISHME
-            SeerDialog.show()
         }
     }
 }

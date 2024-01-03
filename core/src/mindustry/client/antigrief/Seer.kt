@@ -11,6 +11,7 @@ import java.io.*
 import java.time.*
 import java.util.zip.*
 
+// Client side moderation and player tracking
 object Seer { // FINISHME: Fully implement and test this
     val players = Seq<PlayerData>()
     val timer = Interval()

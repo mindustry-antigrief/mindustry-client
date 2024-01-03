@@ -86,9 +86,9 @@ class Moderation {
         }
 
         Events.on(EventType.PlayerJoin::class.java) { e -> // Trace players when they join, also traces all players on join
-            if (e.player == null || e.player == Vars.player || !Core.settings.getBool("modenabled")) return@on
-            Seer.registerPlayer(e.player)
-            if (!Server.current.adminui() || e.player.admin) return@on
+            if (e.player == null || e.player == Vars.player) return@on
+            if (Core.settings.getBool("seer-enabled")) Seer.registerPlayer(e.player)
+            if (!Core.settings.getBool("modenabled") || !Server.current.adminui() || e.player.admin) return@on
             silentTrace++
             Call.adminRequest(e.player, Packets.AdminAction.trace, null)
 
