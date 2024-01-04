@@ -739,8 +739,26 @@ fun setupCommands() {
 
     //FINISHME: add various % for gamerules
 
-    // Experimentals available for public
+    // Experimentals (and funny commands)
     if (Core.settings.getBool("client-experimentals")) {
+        register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
+            sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
+        }
+
+        register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
+            sendMessage("Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance. They are not the same, please get it right!")
+        }
+
+        register("hh [h]", "!") { args, player ->
+            if (!net.client()) return@register
+            val u = if (args.any()) findUnit(args[0]) else player.unit().type
+            val current = ui.join.lastHost ?: return@register
+            if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
+            switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && (it.version == Version.build || Version.build == -1) }.apply { add(current); add(u) }
+            val first = switchTo!!.removeFirst() as Host
+            NetClient.connect(first.address, first.port)
+        }
+
         register("rollback <time> <buildrange>", """
             Retrieves blocks from tile logs and places them into buildplan.
                 [white]time[] How long ago to rollback to, in minutes before now
@@ -802,27 +820,6 @@ fun setupCommands() {
 
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
             undoPlayer(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) }, id)
-        }
-    }
-
-    // Funny commands
-    register("hh [h]", "!") { args, player ->
-        if (!net.client()) return@register
-        val u = if (args.any()) findUnit(args[0]) else player.unit().type
-        val current = ui.join.lastHost ?: return@register
-        if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
-        switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && (it.version == Version.build || Version.build == -1) }.apply { add(current); add(u) }
-        val first = switchTo!!.removeFirst() as Host
-        NetClient.connect(first.address, first.port)
-    }
-
-    if (OS.hasProp("policone")) {
-        register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
-            sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
-        }
-
-        register("silicone", "Spelling is hard. This will make sure you never forget how to spell silicon, you're welcome.") { _, _ ->
-            sendMessage("Silicon is a naturally occurring chemical element, whereas silicone is a synthetic substance. They are not the same, please get it right!")
         }
     }
 }
