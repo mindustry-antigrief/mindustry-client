@@ -824,18 +824,6 @@ fun setupCommands() {
             val first = switchTo!!.removeFirst() as Host
             NetClient.connect(first.address, first.port)
         }
-
-        register("fog [h]", "Yeets fog for viewing pleasure") { args, _ ->
-            state.rules.fog = false
-            state.rules.staticFog = false
-            if (args.any()) {
-                state.rules.limitX = 0
-                state.rules.limitY = 0
-                state.rules.limitWidth = world.width()
-                state.rules.limitHeight = world.height()
-            }
-            renderer.updateAllDarkness()
-        }
     }
 }
 
