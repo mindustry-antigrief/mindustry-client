@@ -108,7 +108,7 @@ abstract class Navigator {
             start, end, realObstacles, world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
             world.tileChanges
-            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !canBoost && solidity?.solid(x, y) ?: false
+            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !canBoost && solidity?.solid(x, y) ?: false && world.tiles.getc(x, y).block() !is AutoDoor
         }
         Pools.freeAll(realObstacles)
         realObstacles.clear()

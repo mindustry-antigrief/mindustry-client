@@ -23,7 +23,6 @@ import mindustry.client.*;
 import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
 import mindustry.client.navigation.waypoints.*;
-import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.entities.*;
@@ -277,9 +276,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 unit.lastCommanded = player.coloredName();
 
                 //remove when other player command
-                if(!headless && player != Vars.player && !ClientUtils.isDeveloper()){
-                    control.input.selectedUnits.remove(unit);
-                }
+//                if(!headless && player != Vars.player && !ClientUtils.isDeveloper()){ // whats the worst that could happen
+//                    control.input.selectedUnits.remove(unit);
+//                }
             }
         }
 
