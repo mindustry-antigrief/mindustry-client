@@ -10,10 +10,9 @@ import mindustry.logic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range: Float, @JvmField val targetGround: Boolean, @JvmField val targetAir: Boolean, private val canShoot: Boolp, @JvmField val mustAvoid: Boolean) : QuadTreeObject {
+class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range: Float, @JvmField val targetGround: Boolean, @JvmField val targetAir: Boolean, private val canShoot: Boolp) : QuadTreeObject {
     var id = 0L
 
-    fun mustAvoid() = mustAvoid
     fun canShoot() = canShoot.get()
     fun canHitPlayer() = if (player.unit().isFlying) targetAir else targetGround
     fun x() = entity.x

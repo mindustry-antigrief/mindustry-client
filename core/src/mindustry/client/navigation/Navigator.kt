@@ -12,6 +12,7 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.world.blocks.defense.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
@@ -46,18 +47,21 @@ abstract class Navigator {
         end.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
         val additionalRadius = player.unit().hitSize / 2 + tilesize
 
-        for (turret in obstacles) {
-            if (turret.mustAvoid() || (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit()) && turret.canHitPlayer() && turret.canShoot())) {
-                realObstacles.add(
-                    Pools.obtain(Circle::class.java) { Circle() }.set(
-                        turret.x(),
-                        turret.y(),
-                        turret.range + additionalRadius
+        if (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit())) {
+            for (turret in obstacles) {
+                if (turret.canHitPlayer() && turret.canShoot()) {
+                    realObstacles.add(
+                        Pools.obtain(Circle::class.java) { Circle() }.set(
+                            turret.x(),
+                            turret.y(),
+                            turret.range + additionalRadius
+                        )
                     )
-                )
+                }
             }
         }
 
+        // Spawns
         if (state.hasSpawns()) {
             for (spawn in spawner.spawns) {
                 realObstacles.add(
@@ -66,6 +70,19 @@ abstract class Navigator {
                         spawn.worldy(),
                         state.rules.dropZoneRadius + additionalRadius
                     )
+                )
+            }
+        }
+
+        // Shield projectors
+        for (team in state.teams.active) {
+            for (shield in team.getBuildings(Blocks.shieldProjector).addAll(team.getBuildings(Blocks.largeShieldProjector))) {
+                realObstacles.add(
+                        Pools.obtain(Circle::class.java) { Circle() }.set(
+                                shield.x,
+                                shield.y,
+                                (shield.block as BaseShield).radius + additionalRadius
+                        )
                 )
             }
         }
