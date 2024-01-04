@@ -8,6 +8,7 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.CommandHandler.*
+import arc.util.serialization.*
 import mindustry.Vars.*
 import mindustry.ai.types.*
 import mindustry.client.ClientVars.*
@@ -22,6 +23,7 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.entities.*
+import mindustry.game.*
 import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
@@ -39,6 +41,7 @@ import java.math.*
 import java.security.cert.*
 import java.time.*
 import java.time.temporal.*
+import java.util.concurrent.*
 import java.util.regex.*
 import kotlin.math.*
 import kotlin.random.*
@@ -722,7 +725,7 @@ fun setupCommands() {
         }
     }
 
-    
+
     // Symbol replacements
 
     registerReplace("%", "c", "cursor") {
@@ -740,7 +743,7 @@ fun setupCommands() {
     //FINISHME: add various % for gamerules
 
     // Experimentals (and funny commands)
-    if (Core.settings.getBool("client-experimentals")) {
+    if (Core.settings.getBool("client-experimentals") || OS.hasProp("policone")) {
         register("poli", "Spelling is hard. This will make sure you never forget how to spell the plural of poly, you're welcome.") { _, _ ->
             sendMessage("Unlike a roly-poly whose plural is roly-polies, the plural form of poly is polys. Please remember this, thanks! :)")
         }
@@ -820,6 +823,66 @@ fun setupCommands() {
 
             Tmp.r1.set(player.x - range, player.y - range, range * 2, range * 2)
             undoPlayer(world.tiles.filter { it.getBounds(Tmp.r2).overlaps(Tmp.r1) && it.within(player.x, player.y, range) }, id)
+        }
+
+        register("upload", "This is a terrible idea") { _, player -> // FINISHME: This is a super lazy implementation
+            val results = ConcurrentLinkedQueue<String>() // Results of the http requests
+            val pool = Threads.unboundedExecutor("Schematic Upload", 1)
+            val sb = StringBuilder()
+
+            fun uploadSchematics() { // FINISHME: We really need to handle failed uploads
+                val str = sb.substring(0, sb.length - 1) // Drop the trailing \n
+                pool.execute { Http.post("https://cancer-co.de/upload", "text=" + Strings.encode(str)).block { results.add(it.resultAsString) } }
+                sb.clear()
+            }
+
+            schematics.all().each {
+                val b = schematics.writeBase64(it)
+                if (b.length + 1 > 8_000_000) { // Who in their right mind has a schematic that's over 8 million characters
+                    player.sendMessage("[scarlet]You have an insanely large schematic which will not be uploaded.")
+                    return@each
+                }
+                if (sb.length + b.length> 8_000_000) uploadSchematics()
+
+                sb.append(b).append('\n')
+            }
+
+            if (sb.length > 0) uploadSchematics() // Upload any leftovers
+            sb.append("[accent]Your schematics have been uploaded: ")
+            Threads.await(pool) // Wait for all requests to finish before continuing
+            results.forEach {
+                val json = Jval.read(it)
+                sb.append(json.getString("url").substringAfterLast('/')).append(' ')
+            }
+            sb.setLength(sb.length - 1) // Remove extra appended space
+            val ids = sb.toString().substringAfter(": ")
+            ui.chatfrag.addMsg(sb.toString()).addButton(0, sb.length) { Core.app.clipboardText = ids }
+        }
+
+        register("view <name> <ids...>", "This is an equally terrible idea") { args, player -> // FINISHME: Why did I think this was a good idea?
+            val pool = Threads.unboundedExecutor("Schematic Download")
+            val browser = ui.schematicBrowser
+            val dest = browser.loadedRepositories.get(args[0]) { Seq() }.clear()
+
+            args[1].split(' ').forEach { id ->
+                pool.execute { Http.get("https://cancer-co.de/raw/$id").block { r ->  // FINISHME: Add handling for failed http requests
+                    val str = r.resultAsString
+                    if (str == "Paste not found!") { // FINISHME: Improve messaging for failed loads
+                        player.sendMessage("[scarlet]Failed to load https://cancer-co.de/raw/$id as it was not found.")
+                        return@block
+                    }
+                    val out = Seq<Schematic>()
+                    str.split('\n').forEach {
+                        Log.info(it)
+                        out.add(Schematics.readBase64(it))
+                    }
+                    Core.app.post { // Do this on the main thread
+                        player.sendMessage("[accent]Finished loading $id")
+                        dest.add(out)
+                        browser.rebuildAll()
+                    }
+                } }
+            }
         }
     }
 }

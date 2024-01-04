@@ -156,7 +156,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         rebuildPane = () -> {
             t[0].clear();
             firstSchematic = null;
-            for (String repo : loadedRepositories.keys()) {
+            for (String repo : loadedRepositories.keys().toSeq().sort()) {
                 if (hiddenRepositories.contains(repo)) continue;
                 setupRepoUi(t[0], ignoreSymbols.matcher(search.toLowerCase()).replaceAll(""), repo);
             }
@@ -197,7 +197,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
                         ImageButton.ImageButtonStyle style = Styles.emptyi;
 
-                        buttons.button(Icon.info, style, () -> showInfo(s)).tooltip("@info.title");
+                        buttons.button(Icon.info, style, () -> ui.schematics.showInfo(s)).tooltip("@info.title");
                         buttons.button(Icon.upload, style, () -> showExport(s)).tooltip("@editor.export");
                         buttons.button(Icon.download, style, () -> {
                             ui.showInfoFade("@schematic.saved");
@@ -227,7 +227,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                 }, () -> {
                     if(sel[0].childrenPressed()) return;
                     if(state.isMenu()){
-                        showInfo(s);
+                        ui.schematics.showInfo(s);
                     }else{
                         if(!(state.rules.schematicsAllowed || Core.settings.getBool("forceallowschematics"))){
                             ui.showInfo("@schematic.disabled");
@@ -254,10 +254,6 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
         });
         table.row();
-    }
-
-    public void showInfo(Schematic schematic){
-        ui.schematics.info.show(schematic);
     }
 
     public void showExport(Schematic s){
@@ -306,7 +302,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         }
     }
 
-    void rebuildAll(){
+    public void rebuildAll(){
         tags.clear();
         selectedTags.clear();
         for (var repo : loadedRepositories.keys()){
@@ -487,12 +483,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                     ui.showErrorMessage(Core.bundle.format("schematic.browser.fail.parse", link, f.name()));
                 }
             });
-            if (loadedRepositories.get(link) != null) {
-                loadedRepositories.get(link).clear();
-                loadedRepositories.get(link).add(schems);
-            } else {
-                loadedRepositories.put(link, schems);
-            }
+            loadedRepositories.get(link, () -> new Seq<>(schems.size)).clear().add(schems);
         }
         unloadedRepositories.clear();
     }

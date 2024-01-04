@@ -28,7 +28,7 @@ public class BlockIndexer{
     private int quadWidth, quadHeight;
 
     /** Stores all ore quadrants on the map. Maps ID to qX to qY to a list of tiles with that ore. */
-    private IntSeq[][][] ores, wallOres; // FINISHME: Current wall ore indexing is cursed
+    private IntSeq[][][] ores, wallOres;
     /** Stores all damaged tile entities by team. */
     private Seq<Building>[] damagedTiles = new Seq[Team.all.length];
     /** All ores available on this map. */

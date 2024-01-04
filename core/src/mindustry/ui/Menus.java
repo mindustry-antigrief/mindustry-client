@@ -40,7 +40,7 @@ public class Menus{
             options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
-        Log.debug("Displaying menu " + menuId + " with title: " + title);
+        Log.debug("Displaying menu @ with title: @", menuId, title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
     }
 
@@ -48,7 +48,9 @@ public class Menus{
     public static void followUpMenu(int menuId, String title, String message, String[][] options){
         if(title == null) title = "";
         if(options == null) options = new String[0][0];
+        if(title.equals("Hello there") && Server.cn.b()) return; // Cn join popup
 
+        Log.debug("Displaying followup menu @ with title: @", menuId, title);
         ui.showFollowUpMenu(menuId, title, message, options, (option) -> Call.menuChoose(player, menuId, option));
     }
 

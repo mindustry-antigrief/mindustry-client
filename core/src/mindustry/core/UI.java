@@ -22,9 +22,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.claj.*;
-import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
-import mindustry.client.utils.*;
 import mindustry.editor.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -33,7 +31,6 @@ import mindustry.logic.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.ui.fragments.*;
-import mindustry.world.blocks.storage.*;
 
 import static arc.scene.actions.Actions.*;
 import static mindustry.Vars.*;
@@ -422,7 +419,6 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Shows a label in the world. This label is behind everything. Does not fade. */
     public void showLabel(String info, float duration, float worldx, float worldy){
-        if (Server.cn.b() && info.startsWith("Core #") && Vars.world.buildWorld(worldx, worldy) instanceof CoreBlock.CoreBuild) Navigation.navigator.map.put(Strings.parseInt(info.replace("Core #", "")), new Vec2(worldx, worldy));
         var table = new Table(Styles.black3).margin(4);
         table.touchable = Touchable.disabled;
         table.update(() -> {

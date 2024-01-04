@@ -1,6 +1,5 @@
 package mindustry.client.navigation
 
-import arc.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
@@ -17,15 +16,9 @@ import mindustry.world.blocks.defense.*
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
     @JvmField
-    val map = IntMap<Vec2>()
-    var lastWp = 0L
+    var lastTp = 0L
     private val realObstacles = Seq<Circle>() // Avoids creating new lists every time navigate is called
 
-    init {
-        Events.on(EventType.WorldLoadEvent::class.java) {
-            map.clear()
-        }
-    }
     /** Called once upon client loading.  */
     abstract fun init()
 
@@ -47,6 +40,7 @@ abstract class Navigator {
         end.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
         val additionalRadius = player.unit().hitSize / 2 + tilesize
 
+        // Turrets and units FINISHME: Turrets should probably not use this system
         if (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit())) {
             for (turret in obstacles) {
                 if (turret.canHitPlayer() && turret.canShoot()) {
@@ -76,37 +70,35 @@ abstract class Navigator {
 
         // Shield projectors
         for (team in state.teams.active) {
-            for (shield in team.getBuildings(Blocks.shieldProjector).addAll(team.getBuildings(Blocks.largeShieldProjector))) {
-                realObstacles.add(
+            if (team == player.team()) continue
+            arrayOf(team.getBuildings(Blocks.shieldProjector), team.getBuildings(Blocks.largeShieldProjector)).forEach { shields ->
+                val radius = ((shields.firstOpt()?.block ?: return@forEach) as BaseShield).radius + additionalRadius
+                for (shield in shields) {
+                    realObstacles.add(
                         Pools.obtain(Circle::class.java) { Circle() }.set(
-                                shield.x,
-                                shield.y,
-                                (shield.block as BaseShield).radius + additionalRadius
+                            shield.x,
+                            shield.y,
+                            radius
                         )
-                )
+                    )
+                }
             }
         }
 
         //Consider respawning at a core
-        if (Time.timeSinceMillis(lastWp) > 3000 && player.team().cores().any()) {
-            if (map.size > 0) { // CN auto core tp is different as a plugin allows for some magic...
-                val closestCore = map.minByOrNull { it.value.dst2(end) }!!
-                if (player.dst2(closestCore.value) > buildingRange * buildingRange && player.dst2(end) > closestCore.value.dst2(end)) {
-                    lastWp = Time.millis() // Try again in 3s
-                    Call.sendChatMessage("/wp ${closestCore.key}")
-                }
-            } else if (
+        if (Time.timeSinceMillis(lastTp) > 3000 && player.team().cores().any()) {
+            if (
                 player.unit().spawnedByCore &&
                 player.unit().stack.amount == 0 &&
                 (if(player.unit() is Payloadc) !(player.unit() as Payloadc).hasPayload() else true)
-            ) { // Everything that isn't CN
+            ) {
                 val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst2(end) }))
                 if (player.dst2(bestCore) > buildingRange * buildingRange && player.dst2(end) > bestCore.dst2(end) && player.dst2(bestCore) > player.unit().speed() * player.unit().speed() * 24 * 24) { // don't try to move if we're already close to that core
-                    lastWp = Time.millis() // Try again in 3s FINISHME: Add the Call to the config queue as it uses ratelimit, prevent running this again until 3s after last one is processed
+                    lastTp = Time.millis() // Try again in 3s
                     if (ClientVars.ratelimitRemaining > 1) Call.buildingControlSelect(player, bestCore)
                 }
             }
-            if (Time.timeSinceMillis(lastWp) > 3000) lastWp = Time.millis() - 2900 // Didn't tp, try again in .1s
+            if (Time.timeSinceMillis(lastTp) > 3000) lastTp = Time.millis() - 2900 // Didn't tp, try again in .1s
         }
 
         val avoidFlood = CustomMode.flood() && player.unit().type != UnitTypes.horizon
