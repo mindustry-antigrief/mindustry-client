@@ -46,17 +46,15 @@ abstract class Navigator {
         end.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
         val additionalRadius = player.unit().hitSize / 2 + tilesize
 
-        if (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit())) {
-            for (turret in obstacles) {
-                if (turret.canHitPlayer() && turret.canShoot()) {
-                    realObstacles.add(
-                        Pools.obtain(Circle::class.java) { Circle() }.set(
-                            turret.x(),
-                            turret.y(),
-                            turret.range + additionalRadius
-                        )
+        for (turret in obstacles) {
+            if (turret.mustAvoid() || (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit()) && turret.canHitPlayer() && turret.canShoot())) {
+                realObstacles.add(
+                    Pools.obtain(Circle::class.java) { Circle() }.set(
+                        turret.x(),
+                        turret.y(),
+                        turret.range + additionalRadius
                     )
-                }
+                )
             }
         }
 

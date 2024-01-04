@@ -6,11 +6,13 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.logic.*;
 import mindustry.world.*;
 
 import static mindustry.Vars.*;
@@ -76,10 +78,18 @@ public class BaseShield extends Block{
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, radius, player.team().color);
     }
 
-    public class BaseShieldBuild extends Building{
+    public class BaseShieldBuild extends Building implements Ranged{
         public boolean broken = false; //TODO
         public float hit = 0f;
         public float smoothRadius;
+        protected TurretPathfindingEntity turretEnt;
+
+        @Override
+        public void add() {
+            super.add();
+            turretEnt = new TurretPathfindingEntity(this, radius, false, false, () -> false, true);
+            Navigation.addEnt(turretEnt);
+        }
 
         @Override
         public void updateTile(){
@@ -163,6 +173,11 @@ public class BaseShield extends Block{
                 smoothRadius = read.f();
                 broken = read.bool();
             }
+        }
+
+        @Override
+        public float range() {
+            return radius;
         }
     }
 }
