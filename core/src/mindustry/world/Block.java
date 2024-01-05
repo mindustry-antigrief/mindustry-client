@@ -561,7 +561,7 @@ public class Block extends UnlockableContent implements Senseable{
 
     public void addLiquidBar(Liquid liq){
         addBar("liquid-" + liq.name, entity -> !liq.unlockedNow() ? null : new Bar(
-            () -> liq.localizedName,
+            () -> Strings.format("@ (@)", liq.localizedName, UI.formatAmount(Mathf.round(entity.liquids.get(liq)))),
             liq::barColor,
             () -> entity.liquids.get(liq) / liquidCapacity
         ));
@@ -577,7 +577,11 @@ public class Block extends UnlockableContent implements Senseable{
     }
 
     public void setBars(){
-        addBar("health", entity -> new Bar("stat.health", Pal.health, entity::healthf).blink(Color.white));
+        addBar("health", entity -> new Bar(
+                () -> Strings.format("@ (@)", Core.bundle.get("stat.health"), UI.formatAmount(Mathf.round(entity.health()))),
+                () -> Pal.health,
+                entity::healthf
+        ).blink(Color.white));
 
         if(consPower != null){
             boolean buffered = consPower.buffered;
