@@ -35,6 +35,8 @@ public class SchematicsDialog extends BaseDialog{
     private Schematic firstSchematic;
     private String search = "";
     private TextField searchField;
+    private String descSearch = "";
+    private TextField descSearchField;
     private Runnable rebuildPane = () -> {}, rebuildTags = () -> {};
     private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
     private Seq<String> tags, selectedTags = new Seq<>();
@@ -75,7 +77,17 @@ public class SchematicsDialog extends BaseDialog{
             }).growX().get();
             searchField.setMessageText("@schematic.search");
         }).fillX().padBottom(4);
+        cont.row();
 
+        cont.table(s -> {
+            s.left();
+            s.image(Icon.edit);
+            descSearchField = s.field(descSearch, res -> {
+                descSearch = res;
+                rebuildPane.run();
+            }).growX().get();
+            descSearchField.setMessageText("@schematic.searchdescription");
+        }).fillX().padBottom(4);
         cont.row();
 
         cont.table(in -> {
@@ -130,6 +142,7 @@ public class SchematicsDialog extends BaseDialog{
                 t.clear();
                 int i = 0;
                 String searchString = ignoreSymbols.matcher(search.toLowerCase()).replaceAll("");
+                String descSearchString = ignoreSymbols.matcher(descSearch.toLowerCase()).replaceAll("");
 
                 firstSchematic = null;
 
@@ -137,8 +150,11 @@ public class SchematicsDialog extends BaseDialog{
                     //make sure *tags* fit
                     if(selectedTags.any() && !s.labels.containsAll(selectedTags)) continue;
                     //make sure search fits
-                    if(!search.isEmpty() && !(ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)
-                        || (Core.settings.getBool("schematicsearchdesc") && ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(searchString)))
+                    // !(A && B)
+                    // else !(C || D)
+                    if((!search.isEmpty() || !descSearch.isEmpty()) &&
+                            (search.isEmpty() || !ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)) &&
+                            (descSearch.isEmpty() || !ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(descSearchString))
                     ) continue;
                     if(firstSchematic == null) firstSchematic = s;
 
@@ -294,7 +310,7 @@ public class SchematicsDialog extends BaseDialog{
                 t.button("@schematic.copy", Icon.copy, style, () -> {
                     dialog.hide();
                     ui.showInfoFade("@copied");
-                    Core.app.setClipboardText(schematics.writeBase64(s));
+                    Core.app.setClipboardText(schematics.writeBase64(s, false));
                 }).marginLeft(12f);
                 t.row();
                 t.button("@schematic.exportfile", Icon.export, style, () -> {

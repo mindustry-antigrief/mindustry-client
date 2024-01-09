@@ -81,4 +81,6 @@ class Migrations {
         settings.remove("restrictschematicloading")
         settings.remove("cnpw") // no longer needed as cn has updated their account system
     }
+
+    private fun migration8() = settings.remove("schematicsearchdesc") // Now in form of search bar
 }
