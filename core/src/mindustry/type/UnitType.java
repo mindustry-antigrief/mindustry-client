@@ -524,7 +524,7 @@ public class UnitType extends UnlockableContent implements Senseable{
                     //unless it has a force field, because then the shield is already displayed as a separate bar
                     return Strings.format("@ (@ + @)", Core.bundle.get("stat.health"), Mathf.round(unit.health, 0.1f), Mathf.round(unit.shield, 0.1f));
                 } else {
-                    return Strings.format("@ (@)", Core.bundle.get("stat.health"), Mathf.round(unit.health, 0.1f));
+                    return Strings.format("@ (@ / @)", Core.bundle.get("stat.health"), Mathf.round(unit.health, 0.1f), health);
                 }
             }, () -> Pal.health, unit::healthf).blink(Color.white));
             bars.row();
