@@ -419,7 +419,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.sliderPref("pingexecutorthreads", OS.isWindows && !OS.is64Bit ? 5 : 65, 5, 100, 5, s -> "" + s);
         client.sliderPref("maxschematicslisted", 300, 0, 3000, 150, s -> s == 0 ? "Unlimited" : String.valueOf(s));
-        client.textPref("defaultbuildpathargs", "broken assist unfinished networkassist upgrade");
+        client.textPref("defaultbuildpathargs", "self"); // Keep it to just self. Skill issue players going afk make this too problematic otherwise.
         client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "");
@@ -445,7 +445,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("ignoremodminversion", false);
         client.checkPref("betterenemyblocktapping", false);
         client.checkPref("autoohno", false);
-        client.checkPref("schematicsearchdesc", false);
+        client.checkPref("schematicmenuexporttags", true);
+        client.checkPref("schematicbrowserimporttags", true);
 
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
             client.category("Experimental");

@@ -339,7 +339,13 @@ public class Schematics implements Loadable{
 
     /** Adds a schematic to the list, also copying it into the files.*/
     public void add(Schematic schematic){
+        add(schematic, true);
+    }
+
+    /** Adds a schematic to the list with the option to import tags. */
+    public void add(Schematic schematic, boolean importTags){
         all.add(schematic);
+        if (!importTags) schematic.labels.clear();
         try{
             Fi file = findFile(Strings.sanitizeFilename(schematic.name()));
             write(schematic, file);
@@ -434,9 +440,20 @@ public class Schematics implements Loadable{
 
     /** Converts a schematic to base64. Note that the result of this will always start with 'bXNjaAB'.*/
     public String writeBase64(Schematic schematic){
+        return writeBase64(schematic, true);
+    }
+
+    /** Converts a schematic to base64 with the option to export tags.*/
+    public String writeBase64(Schematic schematic, boolean exportTags){
+        Seq<String> tags = new Seq<>();
+        if (!exportTags) {
+            tags.addAll(schematic.labels);
+            schematic.labels.clear();
+        }
         try{
             out.reset();
             write(schematic, out);
+            schematic.labels.addAll(tags);
             return new String(Base64Coder.encode(out.getBuffer(), out.size()));
         }catch(IOException e){
             throw new RuntimeException(e);
@@ -604,7 +621,9 @@ public class Schematics implements Loadable{
             stream.writeShort(schematic.width);
             stream.writeShort(schematic.height);
 
-            schematic.tags.put("labels", JsonIO.write(schematic.labels.toArray(String.class)));
+            if (Core.settings.getBool("schematicmenuexporttags")) {
+                schematic.tags.put("labels", JsonIO.write(schematic.labels.toArray(String.class)));
+            }
 
             stream.writeByte(schematic.tags.size);
             for(var e : schematic.tags.entries()){

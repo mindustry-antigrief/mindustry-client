@@ -25,6 +25,11 @@ class MinePath @JvmOverloads constructor(
     var tile: Tile? = null
 
     init {
+        if (AutoTransfer.enabled) { // AutoTransfer breaks MinePath
+            AutoTransfer.enabled = false
+            Core.settings.put("autotransfer", false)
+        }
+
         val split = args.lowercase().split("\\s".toRegex())
         if (items.isEmpty) {
             for (a in split) {

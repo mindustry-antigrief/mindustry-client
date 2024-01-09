@@ -32,10 +32,10 @@ public class SchematicBrowserDialog extends BaseDialog {
     private static final float tagh = 42f;
     private final SchematicRepositoriesDialog repositoriesDialog = new SchematicRepositoriesDialog();
     public final Seq<String> repositoryLinks = new Seq<>(), hiddenRepositories = new Seq<>(), unloadedRepositories = new Seq<>(), unfetchedRepositories = new Seq<>();
-    public final ObjectMap<String, Seq<Schematic>> loadedRepositories = new ObjectMap<>(); // FINISHME: Optimize loading large repositories with 1000+ schematics
+    public final ObjectMap<String, Seq<Schematic>> loadedRepositories = new ObjectMap<>();
     private Schematic firstSchematic;
-    private String search = "";
-    private TextField searchField;
+    private String nameSearch = "", descSearch = "";
+    private TextField nameSearchField, descSearchField;
     private Runnable rebuildPane = () -> {}, rebuildTags = () -> {};
     private final Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
     private final Seq<String> tags = new Seq<>(), selectedTags = new Seq<>();
@@ -95,22 +95,44 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void setup(){
         Time.mark();
-        search = "";
+        nameSearch = "";
+        descSearch = "";
 
         cont.top();
         cont.clear();
 
+        buildSearch();
+        buildTags();
+        buildResults();
+
+        Log.info("Rebuilt Schematic Browser in @ms", Time.elapsed());
+    }
+
+    void buildSearch() {
         cont.table(s -> {
             s.left();
             s.image(Icon.zoom);
-            searchField = s.field(search, res -> {
-                search = res;
+            nameSearchField = s.field(nameSearch, res -> {
+                nameSearch = res;
                 rebuildPane.run();
             }).growX().get();
-            searchField.setMessageText("@schematic.search");
+            nameSearchField.setMessageText("@schematic.search");
         }).fillX().padBottom(4);
         cont.row();
 
+        cont.table(s -> {
+            s.left();
+            s.image(Icon.edit);
+            descSearchField = s.field(descSearch, res -> {
+                descSearch = res;
+                rebuildPane.run();
+            }).growX().get();
+            descSearchField.setMessageText("@schematic.searchdescription");
+        }).fillX().padBottom(4);
+        cont.row();
+    }
+
+    void buildTags() {
         cont.table(in -> {
             in.left();
             in.add("@schematic.tags").padRight(4);
@@ -139,7 +161,9 @@ public class SchematicBrowserDialog extends BaseDialog {
             in.button(Icon.pencilSmall, this::showAllTags).size(tagh).pad(2).tooltip("@schematic.edittags");
         }).height(tagh).fillX();
         cont.row();
+    }
 
+    void buildResults() {
         Table[] t = {null}; // Peak java
         t[0] = new Table() {
             @Override
@@ -148,7 +172,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                 t[0].getChildren().<Table>each(c -> c instanceof Table, c -> {
                     var area = t[0].getCullingArea();
                     c.getCullingArea().setSize(area.width, area.height) // Set the size (NOT scaled to child coordinates which it should be if either scale isn't 1)
-                        .setPosition(c.parentToLocalCoordinates(area.getPosition(Tmp.v1))); // Set the position (scaled correctly)
+                            .setPosition(c.parentToLocalCoordinates(area.getPosition(Tmp.v1))); // Set the position (scaled correctly)
                 });
             }
         };
@@ -156,17 +180,18 @@ public class SchematicBrowserDialog extends BaseDialog {
         rebuildPane = () -> {
             t[0].clear();
             firstSchematic = null;
+            String filteredNameSearch = ignoreSymbols.matcher(nameSearch.toLowerCase()).replaceAll("");
+            String filteredDescSearch = ignoreSymbols.matcher(descSearch.toLowerCase()).replaceAll("");
             for (String repo : loadedRepositories.keys().toSeq().sort()) {
                 if (hiddenRepositories.contains(repo)) continue;
-                setupRepoUi(t[0], ignoreSymbols.matcher(search.toLowerCase()).replaceAll(""), repo);
+                buildRepo(t[0], repo, filteredNameSearch, filteredDescSearch);
             }
         };
         rebuildPane.run();
         cont.pane(t[0]).grow().scrollX(false);
-        Log.info("Rebuilt Schematic Browser in @ms", Time.elapsed());
     }
 
-    void setupRepoUi(Table table, String searchString, String repo){
+    void buildRepo(Table table, String repo, String nameSearchString, String descSearchString){
         int cols = Math.max((int)(Core.graphics.getWidth() / Scl.scl(230)), 1);
 
         table.add(repo).center().color(Pal.accent);
@@ -182,8 +207,9 @@ public class SchematicBrowserDialog extends BaseDialog {
                 if(max != 0 && i[0] > max) break; // Avoid meltdown on large repositories
 
                 if(selectedTags.any() && !s.labels.containsAll(selectedTags)) continue;  // Tags
-                if(!search.isEmpty() && !(ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)
-                        || (Core.settings.getBool("schematicsearchdesc") && ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(searchString)))
+                if((!nameSearchString.isEmpty() || !descSearchString.isEmpty()) &&
+                        (nameSearchString.isEmpty() || !ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(nameSearchString)) &&
+                        (descSearchString.isEmpty() || !ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(descSearchString))
                 ) continue; // Search
                 if(firstSchematic == null) firstSchematic = s;
 
@@ -201,7 +227,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                         buttons.button(Icon.upload, style, () -> showExport(s)).tooltip("@editor.export");
                         buttons.button(Icon.download, style, () -> {
                             ui.showInfoFade("@schematic.saved");
-                            schematics.add(s);
+                            schematics.add(s, Core.settings.getBool("schematicbrowserimporttags"));
                             Reflect.invoke(ui.schematics, "checkTags", new Object[]{s}, Schematic.class); // Vars.ui.schematics.checkTags(s)
                         }).tooltip("@client.schematic.browser.download");
                     }).growX().height(50f);
@@ -246,7 +272,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
 
             if(i[0]==0){
-                if(!searchString.isEmpty() || selectedTags.any()){
+                if(!nameSearchString.isEmpty() || selectedTags.any()){
                     t.add("@none.found");
                 }else{
                     t.add("@none").color(Color.lightGray);
@@ -302,7 +328,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         }
     }
 
-    public void rebuildAll(){
+    public void rebuildResults(){
         tags.clear();
         selectedTags.clear();
         for (var repo : loadedRepositories.keys()){
@@ -519,7 +545,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
             if (unfetchedRepositories.size == 0) {
                 loadRepositories();
-                rebuildAll();
+                rebuildResults();
             }
         });
     }
@@ -528,8 +554,8 @@ public class SchematicBrowserDialog extends BaseDialog {
     public Dialog show() {
         super.show();
 
-        if (Core.app.isDesktop() && searchField != null) {
-            Core.scene.setKeyboardFocus(searchField);
+        if (Core.app.isDesktop() && nameSearchField != null) {
+            Core.scene.setKeyboardFocus(nameSearchField);
         }
 
         return this;
@@ -642,7 +668,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
             if (rebuild) {
                 ui.schematicBrowser.loadRepositories();
-                ui.schematicBrowser.rebuildAll();
+                ui.schematicBrowser.rebuildResults();
                 rebuild = false;
             }
             Core.settings.put("schematicrepositories", ui.schematicBrowser.repositoryLinks.toString(";"));
