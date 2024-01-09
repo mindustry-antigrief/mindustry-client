@@ -30,7 +30,7 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class ChatFragment extends Table{
-    private static final int messagesShown = 10;
+    private static int messagesShown = 10;
     private static final ImageButton.ImageButtonStyle uploadStyle = new ImageButton.ImageButtonStyle(Styles.emptyi);
     public Seq<ChatMessage> messages = new Seq<>();
     private float fadetime;
@@ -52,6 +52,7 @@ public class ChatFragment extends Table{
 
     public ChatFragment(){
         super();
+        setShownMessages();
 
         setFillParent(true);
         font = Fonts.def;
@@ -99,6 +100,10 @@ public class ChatFragment extends Table{
 
         history.insert(0, "");
         setup();
+    }
+
+    public static void setShownMessages(){
+        messagesShown = Core.settings.getInt("shownmessagescount");;
     }
 
     // FINISHME: Awful.

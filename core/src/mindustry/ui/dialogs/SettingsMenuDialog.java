@@ -34,6 +34,7 @@ import mindustry.logic.*;
 import mindustry.service.*;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.ui.fragments.ChatFragment;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.power.*;
@@ -355,6 +356,10 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showuserid", false);
         client.checkPref("hideserversbydefault", false); // Inverts behavior of server hiding
         client.checkPref("enablechatlimit", false);
+        client.sliderPref("shownmessagescount", 10, 1, 25, 1, s -> {
+            ChatFragment.setShownMessages();
+            return String.valueOf(s);
+        });
 
         client.category("controls");
         client.checkPref("blockreplace", true);
@@ -405,6 +410,8 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showcutscenes", true);
         client.checkPref("powerinfo", true);
         client.checkPref("activemodesdisplay", true);
+        client.checkPref("useblockicon", false);
+        client.checkPref("colorizelogs", false);
 
         client.category("misc");
         client.updatePref();
