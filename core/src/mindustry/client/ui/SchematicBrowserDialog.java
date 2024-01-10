@@ -509,6 +509,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                     ui.showErrorMessage(Core.bundle.format("client.schematic.browser.fail.parse", link, f.name()));
                 }
             });
+            schems.sort();
             loadedRepositories.get(link, () -> new Seq<>(schems.size)).clear().add(schems);
         }
         unloadedRepositories.clear();
