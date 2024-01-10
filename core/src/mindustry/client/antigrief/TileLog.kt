@@ -11,6 +11,7 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.gen.Unit
+import mindustry.ui.Fonts
 import mindustry.world.*
 import java.time.*
 import kotlin.math.*
@@ -196,7 +197,7 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rota
         }
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.configured")}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""}  ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.configured")}[]" else Core.bundle.get("client.configured")}"
 }
 
 open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, var rotation: Int = tile.build?.rotation?:0, var configuration: Any?, val isRootTile: Boolean) : TileLog(tile, cause) {
@@ -216,7 +217,7 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, var ro
         return "${cause.name.stripColors()} ${Core.bundle.get("client.built")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.built")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
 }
 
 class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation: Int, configuration: Any?, origin: Boolean) : TilePlacedLog(tile, cause, block, rotation, configuration, origin) {
@@ -224,7 +225,7 @@ class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation:
         return "${cause.name.stripColors()} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.putdown")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
 }
 
 open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
@@ -239,7 +240,7 @@ open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileL
         return "${cause.name.stripColors()} ${Core.bundle.get("client.broke")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.broke")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.broke")}[]" else Core.bundle.get("client.broke")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
 }
 
 class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileBreakLog(tile, cause, block) {
@@ -247,7 +248,7 @@ class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileB
         return "${cause.name.stripColors()} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.pickedup")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
 }
 
 class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteractor(), block) {
@@ -255,7 +256,7 @@ class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteract
         return "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
     }
 
-    override fun toShortString() = "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
+    override fun toShortString() = "${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.destroyed")}[]" else Core.bundle.get("client.destroyed")}"
 }
 
 class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer : Boolean) : TileLog(tile, cause) {
@@ -269,9 +270,11 @@ class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val is
 
     }
 
-    override fun toShortString() : String {
-        if(isPlayer) return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.playerunitdeath")} ${unit.type?.localizedName ?: "null unit"}"
-        return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.unitdeath")}"
+    override fun toShortString(): String {
+        if(isPlayer) return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.playerunitdeath")}[]" else Core.bundle.get("client.playerunitdeath") } ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(
+            unit.type.name.ifEmpty { "null unit" }
+        ) else unit.type?.localizedName ?: "null unit"}"
+        return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.unitdeath")}[]" else Core.bundle.get("client.unitdeath")}"
     }
 }
 
@@ -284,5 +287,5 @@ class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotatio
         return "${cause.name.stripColors()} ${Core.bundle.get("client.rotated")} ${block.localizedName} ${Core.bundle.get(if (direction) "client.counterclockwise" else "client.clockwise")}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.rotated")} ${block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.rotated")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
 }

@@ -709,7 +709,11 @@ fun setupCommands() {
     
     // Special commands
 
-    register("seer", "Clientside moderation") { _, _ -> // FINISHME
+    register("seer", "Clientside moderation") { _, player -> // FINISHME
+        if (!Core.settings.getBool("seer-enabled")) {
+            player.sendMessage(Core.bundle.get("client.command.seer.disabled"))
+            return@register
+        }
         SeerDialog.show()
     }
 
@@ -879,7 +883,7 @@ fun setupCommands() {
                     Core.app.post { // Do this on the main thread
                         player.sendMessage("[accent]Finished loading $id")
                         dest.add(out)
-                        browser.rebuildAll()
+                        browser.rebuildResults()
                     }
                 } }
             }

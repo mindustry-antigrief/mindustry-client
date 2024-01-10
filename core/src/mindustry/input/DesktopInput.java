@@ -591,7 +591,7 @@ public class DesktopInput extends InputHandler{
             // if(((input.keyDown(Binding.control) || input.alt()) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed) && block == null){ // Hmm?
                 // Unit on = selectedUnit(true);
             // TODO: Merge recheck: I have no clue if I merged this correctly, what even does this code do
-            if((input.keyDown(Binding.control) || input.shift()) && input.keyTap(Binding.select)){
+            if((input.ctrl() || input.shift()) && input.keyTap(Binding.select)){
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 boolean hidingAirUnits = ClientVars.hidingAirUnits;
@@ -602,6 +602,7 @@ public class DesktopInput extends InputHandler{
                         Call.unitControl(player, on);
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
+                        Navigation.stopFollowing();
                     } else if ((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) {
                         Navigation.follow(new AssistPath(on.getPlayer(),
                                 input.shift() && input.alt() ? AssistPath.Type.FreeMove :
