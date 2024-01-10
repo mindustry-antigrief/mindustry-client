@@ -67,7 +67,7 @@ class ClientLogic {
                             if (res.type == CommandHandler.ResponseType.noCommand) out.append(clean) // If the command doesn't exist we pass the text through to the output, otherwise we don't pass it to the output. this is kind of hacky but i don't care.
                         }
                         Log.debug("Sent message: $out")
-                        Call.sendChatMessage(out.toString())
+                        if (out.isNotBlank()) Call.sendChatMessage(out.toString())
                     }
                 }
             }, .1F)

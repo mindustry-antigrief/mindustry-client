@@ -11,6 +11,7 @@ import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
+import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -83,10 +84,16 @@ public class ForceProjector extends Block{
     @Override
     public void setBars(){
         super.setBars();
-        addBar("shield", (ForceBuild entity) -> {
-            float entityMaxHealth = shieldHealth + phaseShieldBoost * entity.phaseHeat;
-            return new Bar(() -> Strings.format("@ (@ / @)", Core.bundle.get("stat.shieldhealth"), Mathf.round(entityMaxHealth - entity.buildup, 1f), Mathf.round(entityMaxHealth, 1f)), () -> Pal.accent, () -> 1f - entity.buildup / entityMaxHealth).blink(Color.white);
-        });
+        addBar("shield", (ForceBuild entity) -> new Bar(
+            () -> Strings.format(
+                "@ (@ / @)",
+                Core.bundle.get("stat.shieldhealth"),
+                UI.formatAmount(Mathf.round(shieldHealth + phaseShieldBoost * entity.phaseHeat - entity.buildup)),
+                UI.formatAmount(Mathf.round(shieldHealth + phaseShieldBoost * entity.phaseHeat))
+            ),
+            () -> Pal.accent,
+            () -> 1f - entity.buildup / (shieldHealth + phaseShieldBoost * entity.phaseHeat)
+        ).blink(Color.white));
     }
 
     @Override
