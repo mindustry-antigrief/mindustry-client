@@ -587,11 +587,7 @@ public class DesktopInput extends InputHandler{
                 scene.add(table);
             }
 
-            // if(mode != placing && ((input.ctrl() || input.shift()) && Core.input.keyTap(Binding.select)) && block == null && state.rules.possessionAllowed){
-            // if(((input.keyDown(Binding.control) || input.alt()) && Core.input.keyTap(Binding.select) && state.rules.possessionAllowed) && block == null){ // Hmm?
-                // Unit on = selectedUnit(true);
-            // TODO: Merge recheck: I have no clue if I merged this correctly, what even does this code do
-            if((input.ctrl() || input.shift()) && input.keyTap(Binding.select)){
+            if((input.keyDown(Binding.control) || input.shift()) && input.keyTap(Binding.select)){
                 Unit on = selectedUnit(true);
                 var build = selectedControlBuild();
                 boolean hidingAirUnits = ClientVars.hidingAirUnits;
@@ -610,11 +606,11 @@ public class DesktopInput extends InputHandler{
                                 input.keyDown(Binding.control) ? AssistPath.Type.Cursor : AssistPath.Type.Regular,
                                 Core.settings.getBool("circleassist")));
                         shouldShoot = false;
-                    }else if(on.controller() instanceof LogicAI ai && ai.controller != null) { // Alt + click logic unit: spectate processor
+                    }else if(!isPlacing() && on.controller() instanceof LogicAI ai && ai.controller != null) { // Alt + click logic unit: spectate processor
                         Spectate.INSTANCE.spectate(ai.controller);
                         shouldShoot = false;
                     }
-                }else if(!hidingUnits && (on = Units.closestOverlap((mouseWorld = Core.input.mouseWorld()).x, mouseWorld.y, tilesize * 8f,
+                }else if(!isPlacing() && !hidingUnits && (on = Units.closestOverlap((mouseWorld = Core.input.mouseWorld()).x, mouseWorld.y, tilesize * 8f,
                         u -> (!u.isFlying() || !hidingAirUnits) && mouseWorld.within(u, u.hitSize))) != null && on.controller() instanceof LogicAI ai && ai.controller != null){
                     // This condition is meant to catch logic-controlled units of any team
                     Spectate.INSTANCE.spectate(ai.controller);
@@ -918,8 +914,6 @@ public class DesktopInput extends InputHandler{
                 mode = none;
             }else if(selectPlans.any()){
                 flushPlans(selectPlans, isFreezeQueueing, Core.input.keyDown(Binding.force_place_modifier), isFreezeQueueing);
-            }else if(!selectPlans.isEmpty()){
-                flushPlans(selectPlans);
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;
