@@ -109,25 +109,27 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     void buildSearch() {
-        cont.table(s -> {
-            s.left();
-            s.image(Icon.zoom);
-            nameSearchField = s.field(nameSearch, res -> {
-                nameSearch = res;
-                rebuildPane.run();
-            }).growX().get();
-            nameSearchField.setMessageText("@schematic.search");
-        }).fillX().padBottom(4);
-        cont.row();
-
-        cont.table(s -> {
-            s.left();
-            s.image(Icon.edit);
-            descSearchField = s.field(descSearch, res -> {
-                descSearch = res;
-                rebuildPane.run();
-            }).growX().get();
-            descSearchField.setMessageText("@schematic.searchdescription");
+        cont.table(t -> {
+            t.table(s -> {
+                s.setWidth(t.getWidth() / 2);
+                s.left();
+                s.image(Icon.zoom);
+                nameSearchField = s.field(nameSearch, res -> {
+                    nameSearch = res;
+                    rebuildPane.run();
+                }).growX().get();
+                nameSearchField.setMessageText("@schematic.search");
+            }).growX();
+            t.table(s -> {
+                s.setWidth(t.getWidth() / 2);
+                s.left();
+                s.image(Icon.edit);
+                descSearchField = s.field(descSearch, res -> {
+                    descSearch = res;
+                    rebuildPane.run();
+                }).growX().get();
+                descSearchField.setMessageText("@schematic.searchdescription");
+            }).growX().padLeft(4);
         }).fillX().padBottom(4);
         cont.row();
     }

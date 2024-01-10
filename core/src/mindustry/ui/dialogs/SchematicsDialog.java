@@ -68,25 +68,28 @@ public class SchematicsDialog extends BaseDialog{
         cont.top();
         cont.clear();
 
-        cont.table(s -> {
-            s.left();
-            s.image(Icon.zoom);
-            searchField = s.field(search, res -> {
-                search = res;
-                rebuildPane.run();
-            }).growX().get();
-            searchField.setMessageText("@schematic.search");
-        }).fillX().padBottom(4);
-        cont.row();
 
-        cont.table(s -> {
-            s.left();
-            s.image(Icon.edit);
-            descSearchField = s.field(descSearch, res -> {
-                descSearch = res;
-                rebuildPane.run();
-            }).growX().get();
-            descSearchField.setMessageText("@schematic.searchdescription");
+        cont.table(t -> {
+            t.table(s -> {
+                s.setWidth(t.getWidth() / 2);
+                s.left();
+                s.image(Icon.zoom);
+                searchField = s.field(search, res -> {
+                    search = res;
+                    rebuildPane.run();
+                }).growX().get();
+                searchField.setMessageText("@schematic.search");
+            }).growX();
+            t.table(s -> {
+                s.setWidth(t.getWidth() / 2);
+                s.left();
+                s.image(Icon.edit);
+                descSearchField = s.field(descSearch, res -> {
+                    descSearch = res;
+                    rebuildPane.run();
+                }).growX().get();
+                descSearchField.setMessageText("@schematic.searchdescription");
+            }).growX().padLeft(4);
         }).fillX().padBottom(4);
         cont.row();
 
