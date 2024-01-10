@@ -570,7 +570,8 @@ public class Block extends UnlockableContent implements Senseable{
     /** Adds a liquid bar that dynamically displays a liquid type. */
     public <T extends Building> void addLiquidBar(Func<T, Liquid> current){
         addBar("liquid", entity -> new Bar(
-            () -> current.get((T)entity) == null || entity.liquids.get(current.get((T)entity)) <= 0.001f ? Core.bundle.get("bar.liquid") : current.get((T)entity).localizedName,
+            () -> current.get((T)entity) == null || entity.liquids.get(current.get((T)entity)) <= 0.001f ? Core.bundle.get("bar.liquid") :
+                    Strings.format("@ (@)", current.get((T)entity).localizedName, UI.formatAmount(Mathf.round(entity.liquids.get(current.get((T)entity))))),
             () -> current.get((T)entity) == null ? Color.clear : current.get((T)entity).barColor(),
             () -> current.get((T)entity) == null ? 0f : entity.liquids.get(current.get((T)entity)) / liquidCapacity)
         );
