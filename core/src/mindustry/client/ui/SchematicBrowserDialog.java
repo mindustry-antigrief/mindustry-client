@@ -47,7 +47,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         shouldPause = true;
         addCloseButton();
-        buttons.button("@schematics", Icon.copy, this::hideBrowser);
+        buttons.button("@schematics", Icon.copy, SchematicBrowserDialog::hideBrowser);
         buttons.button("@client.schematic.browser.repo", Icon.host, repositoriesDialog::show);
         buttons.button("@client.schematic.browser.fetch", Icon.refresh, () -> fetch(repositoryLinks));
         makeButtonOverlay();
@@ -332,7 +332,6 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     public void rebuildResults(){
-        tags.clear();
         selectedTags.clear();
         for (var repo : loadedRepositories.keys()){
             if (hiddenRepositories.contains(repo)) continue;
@@ -340,6 +339,8 @@ public class SchematicBrowserDialog extends BaseDialog {
                 checkTags(s);
             }
         }
+        Core.settings.putJson("schematic-browser-tags", String.class, tags);
+
         rebuildTags.run();
         rebuildPane.run();
     }
@@ -349,6 +350,8 @@ public class SchematicBrowserDialog extends BaseDialog {
         if(selectedTags.any()){
             rebuildPane.run();
         }
+
+        Core.settings.putJson("schematic-tags", String.class, tags);
     }
 
     void showAllTags(){
@@ -359,6 +362,11 @@ public class SchematicBrowserDialog extends BaseDialog {
             rebuild[0] = () -> {
                 p.clearChildren();
                 p.margin(12f).defaults().fillX().left();
+                p.table(t -> {
+                    t.left().defaults().fillX().height(tagh).pad(2);
+                    t.button("@client.schematic.cleartags", Icon.refresh, selectedTags::clear).wrapLabel(false).get().getLabelCell().padLeft(5);
+                });
+                p.row();
 
                 float sum = 0f;
                 Table current = new Table().left();
@@ -400,49 +408,33 @@ public class SchematicBrowserDialog extends BaseDialog {
                         n.table(Tex.whiteui, t -> {
                             t.setColor(Pal.gray);
                             t.add(tag).left().row();
-                            t.add(Core.bundle.format("schematic.tagged", schematics.all().count(s -> s.labels.contains(tag)))).left()
-                                    .update(b -> b.setColor(b.hasMouse() ? Pal.accent : Color.lightGray)).get().clicked(() -> {
-                                        dialog.hide();
-                                        selectedTags.clear().add(tag);
-                                        rebuildTags.run();
-                                        rebuildPane.run();
-                                    });
+                            var count = 0;
+                            var totalCount = 0;
+                            for (var link : loadedRepositories.keys()) {
+                                var c = loadedRepositories.get(link).count(s -> s.labels.contains(tag));
+                                totalCount += c;
+                                if (!hiddenRepositories.contains(link)) count += c;
+                            }
+                            int finalTotalCount = totalCount;
+                            t.add(Core.bundle.format("client.schematic.browser.tagged", count, totalCount)).left()
+                            .update(b -> b.setColor(b.hasMouse() ? Pal.accent : selectedTags.contains(tag) ? Color.lime : finalTotalCount == 0 ? Color.red : Color.lightGray))
+                            .get().clicked(() -> {
+                                if (!selectedTags.contains(tag)) selectedTags.add(tag);
+                                else selectedTags.remove(tag);
+                                rebuildTags.run();
+                                rebuildPane.run();
+                            });
                         }).growX().fillY().margin(8f);
 
                         n.table(Tex.pane, b -> {
                             b.margin(2);
 
-                            //rename tag
-                            b.button(Icon.pencil, Styles.emptyi, () -> {
-                                ui.showTextInput("@schematic.renametag", "@name", tag, result -> {
-                                    //same tag, nothing was renamed
-                                    if(result.equals(tag)) return;
-
-                                    if(tags.contains(result)){
-                                        ui.showInfo("@schematic.tagexists");
-                                    }else{
-                                        for(Schematic s : schematics.all()){
-                                            if(s.labels.any()){
-                                                s.labels.replace(tag, result);
-                                                s.save();
-                                            }
-                                        }
-                                        selectedTags.replace(tag, result);
-                                        tags.replace(tag, result);
-                                        tagsChanged();
-                                        rebuild[0].run();
-                                    }
-                                });
-                            }).tooltip("@schematic.renametag").row();
                             //delete tag
-                            b.button(Icon.trash, Styles.emptyi, () -> {
+                            b.button(Icon.trash, Styles.emptyi, () -> { // FINISHME: Figure out what to do when tags get deleted. This feels scufffed for some reason.
+                                for (var schematics : loadedRepositories.values()) { // Only delete when no schematics (globally) are tagged
+                                    if (schematics.contains(s -> s.labels.contains(tag))) return;
+                                }
                                 ui.showConfirm("@schematic.tagdelconfirm", () -> {
-                                    for(Schematic s : schematics.all()){
-                                        if(s.labels.any()){
-                                            s.labels.remove(tag);
-                                            s.save();
-                                        }
-                                    }
                                     selectedTags.remove(tag);
                                     tags.remove(tag);
                                     tagsChanged();
@@ -479,18 +471,17 @@ public class SchematicBrowserDialog extends BaseDialog {
         dialog.show();
     }
 
-    void hideBrowser(){
-        ui.schematics.show();
-        hide();
-    }
-
     void getSettings(){
         repositoryLinks.clear();
         repositoryLinks.add(Core.settings.getString("schematicrepositories","bend-n/design-it").split(";"));
 
-        if (Core.settings.getString("hiddenschematicrepositories", "").isEmpty()) return;
-        hiddenRepositories.clear();
-        hiddenRepositories.addAll(Core.settings.getString("hiddenschematicrepositories").split(";"));
+        if (!Core.settings.getString("hiddenschematicrepositories", "").isEmpty()) {
+            hiddenRepositories.clear();
+            hiddenRepositories.addAll(Core.settings.getString("hiddenschematicrepositories").split(";"));
+        }
+
+        tags.clear();
+        tags.addAll(Core.settings.getJson("schematic-browser-tags", Seq.class, String.class, Seq::new));
     }
 
     void loadRepositories(){
@@ -498,14 +489,21 @@ public class SchematicBrowserDialog extends BaseDialog {
             if (hiddenRepositories.contains(link)) continue; // Skip loading
             String fileName = link.replace("/","") + ".zip";
             Fi filePath = schematicRepoDirectory.child(fileName);
-            if (!filePath.exists()) return;
+            if (!filePath.exists() || filePath.length() == 0) return;
+            ZipFi zip;
+            try {
+                zip = new ZipFi(filePath);
+            } catch (Throwable e) {
+                Log.err("Error parsing repository zip " + filePath.name(), e);
+                continue;
+            }
             final Seq<Schematic> schems = new Seq<>();
-            new ZipFi(filePath).walk(f -> {
+            zip.walk(f -> {
                 try {
                     if (f.extEquals("msch")) {
                         Schematic s = Schematics.read(f);
                         schems.add(s);
-                        if (!hiddenRepositories.contains(link)) checkTags(s);
+                        checkTags(s);
                     }
                 } catch (Throwable e) {
                     Log.err("Error parsing schematic " + link + " " + f.name(), e);
@@ -519,6 +517,7 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     void fetch(Seq<String> repos){
+        getSettings(); // Refresh settings while at it
         Log.debug("Fetching schematics from repos: @", repos);
         ui.showInfoFade("@client.schematic.browser.fetching", 2f);
         for (String link : repos){
@@ -559,6 +558,16 @@ public class SchematicBrowserDialog extends BaseDialog {
                 rebuildResults();
             }
         });
+    }
+
+    public static void showBrowser(){
+        ui.schematicBrowser.show();
+        ui.schematics.hide();
+    }
+
+    public static void hideBrowser(){
+        ui.schematics.show();
+        ui.schematicBrowser.hide();
     }
 
     @Override
@@ -673,17 +682,18 @@ public class SchematicBrowserDialog extends BaseDialog {
         }
 
         void close(){
-            if (refetch) {
-                ui.schematicBrowser.fetch(ui.schematicBrowser.unfetchedRepositories);
-                refetch = false;
-            }
+            Core.settings.put("schematicrepositories", ui.schematicBrowser.repositoryLinks.toString(";"));
+            Core.settings.put("hiddenschematicrepositories", ui.schematicBrowser.hiddenRepositories.toString(";"));
+
             if (rebuild) {
                 ui.schematicBrowser.loadRepositories();
                 ui.schematicBrowser.rebuildResults();
                 rebuild = false;
             }
-            Core.settings.put("schematicrepositories", ui.schematicBrowser.repositoryLinks.toString(";"));
-            Core.settings.put("hiddenschematicrepositories", ui.schematicBrowser.hiddenRepositories.toString(";"));
+            if (refetch) {
+                ui.schematicBrowser.fetch(ui.schematicBrowser.unfetchedRepositories);
+                refetch = false;
+            }
             hide();
         }
     }

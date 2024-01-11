@@ -17,6 +17,7 @@ import arc.util.*;
 import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.client.navigation.*;
+import mindustry.client.ui.*;
 import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -50,7 +51,7 @@ public class SchematicsDialog extends BaseDialog{
 
         shouldPause = true;
         addCloseButton();
-        buttons.button("@client.schematic.browser", Icon.host, this::toggleBrowser);
+        buttons.button("@client.schematic.browser", Icon.host, SchematicBrowserDialog::showBrowser);
         buttons.button("@schematic.import", Icon.download, this::showImport);
         makeButtonOverlay();
         shown(this::setup);
@@ -373,10 +374,7 @@ public class SchematicsDialog extends BaseDialog{
         }}.show();
     }
 
-    void toggleBrowser(){
-        ui.schematicBrowser.show();
-        this.hide();
-    }
+
 
     //adds all new tags to the global list of tags
     //alternatively, unknown tags could be discarded on import?
@@ -507,6 +505,14 @@ public class SchematicsDialog extends BaseDialog{
                 p.clearChildren();
                 p.margin(12f).defaults().fillX().left();
 
+                p.table(t -> {
+                    t.left().defaults().fillX().height(tagh).pad(2);
+                    t.button("@client.schematic.cleartags", Icon.refresh, selectedTags::clear).wrapLabel(false).get().getLabelCell().padLeft(5);
+                    t.button("@schematic.texttag", Icon.add, () -> showNewTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
+                    t.button("@schematic.icontag", Icon.add, () -> showNewIconTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
+                });
+                p.row();
+
                 float sum = 0f;
                 Table current = new Table().left();
 
@@ -547,10 +553,12 @@ public class SchematicsDialog extends BaseDialog{
                         n.table(Tex.whiteui, t -> {
                             t.setColor(Pal.gray);
                             t.add(tag).left().row();
-                            t.add(Core.bundle.format("schematic.tagged", schematics.all().count(s -> s.labels.contains(tag)))).left()
-                            .update(b -> b.setColor(b.hasMouse() ? Pal.accent : Color.lightGray)).get().clicked(() -> {
-                                dialog.hide();
-                                selectedTags.clear().add(tag);
+                            final var count = schematics.all().count(s -> s.labels.contains(tag));
+                            t.add(Core.bundle.format("schematic.tagged", count)).left()
+                            .update(b -> b.setColor(b.hasMouse() ? Pal.accent : selectedTags.contains(tag) ? Color.lime : count == 0 ? Color.red : Color.lightGray))
+                            .get().clicked(() -> {
+                                if (!selectedTags.contains(tag)) selectedTags.add(tag);
+                                else selectedTags.remove(tag);
                                 rebuildTags.run();
                                 rebuildPane.run();
                             });
@@ -583,17 +591,14 @@ public class SchematicsDialog extends BaseDialog{
                             }).tooltip("@schematic.renametag").row();
                             //delete tag
                             b.button(Icon.trash, Styles.emptyi, () -> {
+                                if (Core.input.shift()) {
+                                    deleteTag(tag);
+                                    rebuild[0].run();
+                                    return;
+                                }
+
                                 ui.showConfirm("@schematic.tagdelconfirm", () -> {
-                                    for(Schematic s : schematics.all()){
-                                        if(s.labels.any()){
-                                            s.labels.remove(tag);
-                                            s.save();
-                                        }
-                                    }
-                                    selectedTags.remove(tag);
-                                    tags.remove(tag);
-                                    tagsChanged();
-                                    rebuildPane.run();
+                                    deleteTag(tag);
                                     rebuild[0].run();
                                 });
                             }).tooltip("@save.delete");
@@ -619,19 +624,24 @@ public class SchematicsDialog extends BaseDialog{
                 if(sum > 0){
                     p.add(current).row();
                 }
-
-                p.table(t -> {
-                    t.left().defaults().fillX().height(tagh).pad(2);
-
-                    t.button("@schematic.texttag", Icon.add, () -> showNewTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
-                    t.button("@schematic.icontag", Icon.add, () -> showNewIconTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
-                });
-
             };
 
             resized(true, rebuild[0]);
         }).scrollX(false);
         dialog.show();
+    }
+
+    void deleteTag(String tag) {
+        for(Schematic s : schematics.all()){
+            if(s.labels.any()){
+                s.labels.remove(tag);
+                s.save();
+            }
+        }
+        selectedTags.remove(tag);
+        tags.remove(tag);
+        tagsChanged();
+        rebuildPane.run();
     }
 
     void buildTags(Schematic schem, Table t){
