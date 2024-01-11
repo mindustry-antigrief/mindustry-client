@@ -11,7 +11,7 @@ import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
 import mindustry.gen.Unit
-import mindustry.ui.Fonts
+import mindustry.ui.*
 import mindustry.world.*
 import java.time.*
 import kotlin.math.*
@@ -217,7 +217,7 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, var ro
         return "${cause.name.stripColors()} ${Core.bundle.get("client.built")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
+    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.built")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
 }
 
 class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation: Int, configuration: Any?, origin: Boolean) : TilePlacedLog(tile, cause, block, rotation, configuration, origin) {
