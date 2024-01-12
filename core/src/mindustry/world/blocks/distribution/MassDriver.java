@@ -2,6 +2,7 @@ package mindustry.world.blocks.distribution;
 
 import arc.*;
 import arc.audio.*;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -19,6 +20,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
 import mindustry.type.*;
+import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 
@@ -93,6 +95,21 @@ public class MassDriver extends Block{
         Lines.dashLine(x1, y1, x2, y2, segs);
         Lines.stroke(2f, Pal.placing);
         Lines.dashLine(x1, y1, x2, y2, segs);
+
+        if (Core.settings.getBool("showmassdriverdistance")) {
+            Font font = Fonts.outline;
+            font.setColor(player.team().color);
+            var ints = font.usesIntegerPositions();
+            font.setUseIntegerPositions(false);
+            var z = Draw.z();
+            Draw.z(Layer.endPixeled);
+            font.getData().setScale(1 / renderer.camerascale);
+            font.draw(String.valueOf((int)(selected.dst(x * tilesize, y * tilesize) / tilesize)), (x - (size + sizeOffset - 1)) * tilesize, (y - (size + sizeOffset)) * tilesize);
+            font.getData().setScale(1);
+            font.setUseIntegerPositions(ints);
+            Draw.z(z);
+        }
+
         Draw.reset();
     }
 
@@ -260,6 +277,21 @@ public class MassDriver extends Block{
                 Building target = world.build(link);
                 Drawf.circles(target.x, target.y, (target.block().size / 2f + 1) * tilesize + sin - 2f, Pal.place);
                 Drawf.arrow(x, y, target.x, target.y, size * tilesize + sin, 4f + sin);
+
+                if (Core.settings.getBool("showmassdriverdistance")) {
+                    Font font = Fonts.outline;
+                    font.setColor(player.team().color);
+                    var ints = font.usesIntegerPositions();
+                    font.setUseIntegerPositions(false);
+                    var z = Draw.z();
+                    Draw.z(Layer.endPixeled);
+                    font.getData().setScale(1 / renderer.camerascale);
+                    font.draw(String.valueOf((int)(target.dst(x, y) / tilesize)), x - (size + sizeOffset - 1) * tilesize, y - (size + sizeOffset) * tilesize);
+                    font.setColor(Color.white);
+                    font.getData().setScale(1);
+                    font.setUseIntegerPositions(ints);
+                    Draw.z(z);
+                }
             }
 
             Drawf.dashCircle(x, y, range, Pal.accent);

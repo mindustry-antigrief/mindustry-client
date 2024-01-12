@@ -508,6 +508,7 @@ public class SchematicsDialog extends BaseDialog{
                 p.table(t -> {
                     t.left().defaults().fillX().height(tagh).pad(2);
                     t.button("@client.schematic.cleartags", Icon.refresh, selectedTags::clear).wrapLabel(false).get().getLabelCell().padLeft(5);
+                    t.button("@client.schematic.prunetags", Icon.trash, this::pruneTags).wrapLabel(false).get().getLabelCell().padLeft(5);
                     t.button("@schematic.texttag", Icon.add, () -> showNewTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
                     t.button("@schematic.icontag", Icon.add, () -> showNewIconTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
                 });
@@ -629,6 +630,10 @@ public class SchematicsDialog extends BaseDialog{
             resized(true, rebuild[0]);
         }).scrollX(false);
         dialog.show();
+    }
+
+    public void pruneTags() {
+        tags.removeAll(t -> schematics.all().find(s -> s.labels.contains(t)) == null);
     }
 
     void deleteTag(String tag) {

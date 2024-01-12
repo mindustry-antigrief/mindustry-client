@@ -412,6 +412,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("activemodesdisplay", true);
         client.checkPref("useblockicon", false);
         client.checkPref("colorizelogs", false);
+        client.checkPref("showmassdriverdistance", false);
 
         client.category("misc");
         client.updatePref();
