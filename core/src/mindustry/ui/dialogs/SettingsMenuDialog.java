@@ -410,7 +410,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showcutscenes", true);
         client.checkPref("powerinfo", true);
         client.checkPref("activemodesdisplay", true);
-        client.checkPref("useblockicon", false);
+        client.checkPref("useiconslogs", false);
         client.checkPref("colorizelogs", false);
 
         client.category("misc");

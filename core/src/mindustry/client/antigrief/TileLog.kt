@@ -188,7 +188,7 @@ private fun String.shorten() = take(MAX_NAME_LENGTH).let {
 
 abstract class AbstractTileLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
     protected val eventPlayer: String = cause.shortName.stripColors().shorten()
-    protected val eventTarget: String = if (Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName
+    protected val eventTarget: String = if (Core.settings.getBool("useiconslogs")) Fonts.getUnicodeStr(block.name) else block.localizedName
 }
 
 class ConfigureTileLog(tile: Tile, cause: Interactor, block: Block, val rotation: Int, var configuration: Any?) : AbstractTileLog(tile, cause, block) {
@@ -289,7 +289,7 @@ class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val is
 
     private val eventPlayer: String = "${cause.shortName.stripColors().take(16)}${if (cause.shortName.stripColors().length > 16) "..." else ""}"
     private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.playerunitdeath")}[]" else Core.bundle.get("client.playerunitdeath")
-    private val eventUnit: String = if(Core.settings.getBool("useblockicon") && unit.type.name.isNotEmpty()) Fonts.getUnicodeStr(unit.type.name) else unit.type?.localizedName ?: "null unit"
+    private val eventUnit: String = if(Core.settings.getBool("useiconslogs") && unit.type.name.isNotEmpty()) Fonts.getUnicodeStr(unit.type.name) else unit.type?.localizedName ?: "null unit"
 
     override fun toShortString(): String {
         return "$eventPlayer $eventName $eventUnit"
