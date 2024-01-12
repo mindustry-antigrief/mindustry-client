@@ -290,22 +290,20 @@ public class DesktopInput extends InputHandler{
 
     private enum JSBindingOption {
 
-        shift(() -> input.shift(), "keybind1shiftcommand", "No JS configured for Shift+@, go to client settings to add a script to run", true),
-        ctrl(() -> input.ctrl(), "keybind1ctrlcommand", "No JS configured for Ctrl+@, go to client settings to add a script to run", true),
-        alt(() -> input.alt(), "keybind1altcommand", "No JS configured for Alt+@, go to client settings to add a script to run", true),
-        none(() -> true, "keybind1command", "No JS configured for keybind @, go to client settings to add a script to run", false),
+        shift(() -> input.shift(), "keybind1shiftcommand", "No JS configured for Shift+@, go to client settings to add a script to run"),
+        ctrl(() -> input.ctrl(), "keybind1ctrlcommand", "No JS configured for Ctrl+@, go to client settings to add a script to run"),
+        alt(() -> input.alt(), "keybind1altcommand", "No JS configured for Alt+@, go to client settings to add a script to run"),
+        none(() -> true, "keybind1command", "No JS configured for keybind @, go to client settings to add a script to run"),
         ;
 
         public final Boolp check;
         public final String settingsKey;
         public final String message;
-        public final boolean runIfOthersRan;
 
-        JSBindingOption(Boolp check, String settingsKey, String message, boolean runIfOthersRan){
+        JSBindingOption(Boolp check, String settingsKey, String message){
             this.check = check;
             this.settingsKey = settingsKey;
             this.message = message;
-            this.runIfOthersRan = runIfOthersRan;
         }
     }
 
@@ -328,7 +326,7 @@ public class DesktopInput extends InputHandler{
         if(input.keyTap(Binding.run_js) && scene.getKeyboardFocus() == null){
             boolean ran = false;
             for(var opt : JSBindingOption.values()){
-                if(opt.check.get() && (opt.runIfOthersRan || !ran)){
+                if(opt.check.get() && !ran){
                     if(!settings.getString(opt.settingsKey, "").isEmpty()){
                         ChatFragment.handleClientCommand(Core.settings.getString(opt.settingsKey));
                         ran = true;
