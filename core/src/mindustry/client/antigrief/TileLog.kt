@@ -180,16 +180,24 @@ class TileRecord(val x: Int, val y: Int) {
     }
 }
 
-class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, var configuration: Any?) : TileLog(tile, cause) {
+private const val MAX_NAME_LENGTH = 16
+
+private fun String.shorten() = take(MAX_NAME_LENGTH).let {
+    if (length > MAX_NAME_LENGTH) "$it..." else it
+}
+
+abstract class AbstractTileLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
+    protected val eventPlayer: String = cause.shortName.stripColors().shorten()
+    protected val eventTarget: String = if (Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName
+}
+
+class ConfigureTileLog(tile: Tile, cause: Interactor, block: Block, val rotation: Int, var configuration: Any?) : AbstractTileLog(tile, cause, block) {
     override fun apply(previous: TileState) {
         previous.rotation = rotation
         previous.configuration = configuration
     }
 
-    override fun toString(): String {
-        return "${cause.name.stripColors()} ${Core.bundle.get("client.configured")} ${block.localizedName}"
-    }
-
+    override fun toString() = "$eventPlayer ${Core.bundle.get("client.configured")} $eventTarget"
     override fun add(sequence: TileLogSequence) {
         Core.app.post {
             configuration = Vars.world.tile(position.x, position.y)?.build?.config()
@@ -197,10 +205,12 @@ class ConfigureTileLog(tile: Tile, cause: Interactor, val block: Block, val rota
         }
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""}  ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.configured")}[]" else Core.bundle.get("client.configured")}"
+    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[accent]${Core.bundle.get("client.configured")}[]" else Core.bundle.get("client.configured")
+
+    override fun toShortString() = "$eventPlayer $eventName $eventTarget"
 }
 
-open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, var rotation: Int = tile.build?.rotation?:0, var configuration: Any?, val isRootTile: Boolean) : TileLog(tile, cause) {
+open class TilePlacedLog(tile: Tile, cause: Interactor, block: Block, var rotation: Int = tile.build?.rotation ?: 0, var configuration: Any?, val isRootTile: Boolean) : AbstractTileLog(tile, cause, block) {
     override fun apply(previous: TileState) {
         previous.block = block
         previous.rotation = rotation
@@ -217,7 +227,9 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, val block: Block, var ro
         return "${cause.name.stripColors()} ${Core.bundle.get("client.built")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.built")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
+    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[green]${Core.bundle.get("client.built")}[]" else Core.bundle.get("client.built")
+
+    override fun toShortString() = "$eventPlayer $eventName $eventTarget"
 }
 
 class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation: Int, configuration: Any?, origin: Boolean) : TilePlacedLog(tile, cause, block, rotation, configuration, origin) {
@@ -225,10 +237,12 @@ class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation:
         return "${cause.name.stripColors()} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.putdown")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
+    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[accent]${Core.bundle.get("client.putdown")}[]" else Core.bundle.get("client.putdown")
+
+    override fun toShortString() = "$eventPlayer $eventName $eventTarget"
 }
 
-open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
+open class TileBreakLog(tile: Tile, cause: Interactor, block: Block) : AbstractTileLog(tile, cause, block) {
     override fun apply(previous: TileState) {
         previous.block = Blocks.air
         previous.rotation = -1
@@ -240,7 +254,9 @@ open class TileBreakLog(tile: Tile, cause: Interactor, val block: Block) : TileL
         return "${cause.name.stripColors()} ${Core.bundle.get("client.broke")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.broke")}[]" else Core.bundle.get("client.broke")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
+    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.broke")}[]" else Core.bundle.get("client.broke")
+
+    override fun toShortString() = "$eventPlayer $eventName $eventTarget"
 }
 
 class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileBreakLog(tile, cause, block) {
@@ -248,37 +264,39 @@ class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileB
         return "${cause.name.stripColors()} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.pickedup")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
-}
+    private val eventName: String = if (Core.settings.getBool("colorizelogs")) "[accent]${Core.bundle.get("client.pickedup")}[]" else Core.bundle.get("client.pickedup")
 
+    override fun toShortString() = "$eventPlayer $eventName $eventTarget"
+}
 class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteractor(), block) {
     override fun toString(): String {
         return "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
     }
 
-    override fun toShortString() = "${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.destroyed")}[]" else Core.bundle.get("client.destroyed")}"
+    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.destroyed")}[]" else Core.bundle.get("client.destroyed")
+
+    override fun toShortString() = "$eventTarget $eventName"
 }
 
-class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer : Boolean) : TileLog(tile, cause) {
+class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val isPlayer: Boolean) : TileLog(tile, cause) {
     override fun apply(previous: TileState) {
         //pass
     }
 
     override fun toString(): String {
-        if(isPlayer) return "${cause.name.stripColors()} ${Core.bundle.get("client.playerunitdeath")} ${unit.type?.localizedName ?: "null unit"}"
-        return "${cause.name.stripColors()} ${Core.bundle.get("client.unitdeath")}"
-
+        return "${cause.name.stripColors()} ${Core.bundle.get("client.playerunitdeath")} ${unit.type?.localizedName ?: "null unit"}"
     }
 
+    private val eventPlayer: String = "${cause.shortName.stripColors().take(16)}${if (cause.shortName.stripColors().length > 16) "..." else ""}"
+    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.playerunitdeath")}[]" else Core.bundle.get("client.playerunitdeath")
+    private val eventUnit: String = if(Core.settings.getBool("useblockicon") && unit.type.name.isNotEmpty()) Fonts.getUnicodeStr(unit.type.name) else unit.type?.localizedName ?: "null unit"
+
     override fun toShortString(): String {
-        if(isPlayer) return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.playerunitdeath")}[]" else Core.bundle.get("client.playerunitdeath") } ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(
-            unit.type.name.ifEmpty { "null unit" }
-        ) else unit.type?.localizedName ?: "null unit"}"
-        return "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.unitdeath")}[]" else Core.bundle.get("client.unitdeath")}"
+        return "$eventPlayer $eventName $eventUnit"
     }
 }
 
-class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotation: Int, val direction: Boolean) : TileLog(tile, cause) {
+class RotateTileLog(tile: Tile, cause: Interactor, block: Block, val rotation: Int, val direction: Boolean) : AbstractTileLog(tile, cause, block) {
     override fun apply(previous: TileState) {
         previous.rotation = rotation
     }
@@ -287,5 +305,7 @@ class RotateTileLog(tile: Tile, cause: Interactor, val block: Block, val rotatio
         return "${cause.name.stripColors()} ${Core.bundle.get("client.rotated")} ${block.localizedName} ${Core.bundle.get(if (direction) "client.counterclockwise" else "client.clockwise")}"
     }
 
-    override fun toShortString() = "${cause.shortName.stripColors().subSequence(0, min(16, cause.shortName.stripColors().length))}${if (cause.shortName.stripColors().length > 16) "..." else ""} ${Core.bundle.get("client.rotated")} ${if(Core.settings.getBool("useblockicon")) Fonts.getUnicodeStr(block.name) else block.localizedName}"
+    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[accent]${Core.bundle.get("client.rotated")}[]" else Core.bundle.get("client.rotated")
+
+    override fun toShortString() = "$eventPlayer $eventName $eventTarget"
 }
