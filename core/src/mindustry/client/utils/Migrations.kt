@@ -83,4 +83,15 @@ class Migrations {
     }
 
     private fun migration8() = settings.remove("schematicsearchdesc") // Now in form of search bar
+
+    private fun migration9() {
+        val s = Seq<String>()
+        for (setting in settings.keys()) {
+            if (setting.startsWith("ptext-")) s.add(setting)
+        }
+        s.forEach {
+            settings.put(it.substring(1), settings.getString(it, ""))
+            settings.remove(it)
+        }
+    }
 }

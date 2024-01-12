@@ -611,58 +611,58 @@ fun setupCommands() {
         }
     }
 
-    register("ptext <option> [name] [text...]", Core.bundle.get("client.command.ptext.description")) { args, player ->
+    register("text <option> [name] [text...]", Core.bundle.get("client.command.text.description")) { args, player ->
         when (args[0]) {
             "edit", "e" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.get("client.command.ptext.edit.noselected"))
+                    player.sendMessage(Core.bundle.get("client.command.text.edit.noselected"))
                     return@register
                 }
                 if (args.size <= 2) {
-                    player.sendMessage(Core.bundle.format("client.command.ptext.edit.clear", args[1]))
-                    if (Core.settings.get("ptext-${args[1]}", "").toString().isNotEmpty()) Core.settings.remove("ptext-${args[1]}")
+                    player.sendMessage(Core.bundle.format("client.command.text.edit.clear", args[1]))
+                    if (Core.settings.get("text-${args[1]}", "").toString().isNotEmpty()) Core.settings.remove("text-${args[1]}")
                 }
                 else {
                     val text = args.drop(2).joinToString(" ")
-                    Core.settings.put("ptext-${args[1]}", text)
-                    player.sendMessage(Core.bundle.format("client.command.ptext.edit.success", args[1], text))
+                    Core.settings.put("text-${args[1]}", text)
+                    player.sendMessage(Core.bundle.format("client.command.text.edit.success", args[1], text))
                 }
             }
             "say", "s" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.get("client.command.ptext.say.noselected"))
+                    player.sendMessage(Core.bundle.get("client.command.text.say.noselected"))
                     return@register
                 }
-                val text = Core.settings.get("ptext-${args[1]}", "").toString()
-                if (text.isEmpty()) player.sendMessage(Core.bundle.format("client.command.ptext.notext", args[1]))
+                val text = Core.settings.get("text-${args[1]}", "").toString()
+                if (text.isEmpty()) player.sendMessage(Core.bundle.format("client.command.text.notext", args[1]))
                 else Call.sendChatMessage(text)
             }
             "run", "r" -> {
                 if (args.size <= 1) {
-                    player.sendMessage(Core.bundle.get("client.command.ptext.run.noselected"))
+                    player.sendMessage(Core.bundle.get("client.command.text.run.noselected"))
                     return@register
                 }
-                val text = Core.settings.get("ptext-${args[1]}", "").toString()
-                if (text.isEmpty()) player.sendMessage(Core.bundle.format("client.command.ptext.notext", args[1]))
+                val text = Core.settings.get("text-${args[1]}", "").toString()
+                if (text.isEmpty()) player.sendMessage(Core.bundle.format("client.command.text.notext", args[1]))
                 else ChatFragment.handleClientCommand(text)
             }
             "list", "l" -> {
                 var exists = false
                 val texts = Seq<String>()
                 for (setting in Core.settings.keys()) {
-                    if (setting.startsWith("ptext-")) {
+                    if (setting.startsWith("text-")) {
                         exists = true
                         texts.add(setting)
                     }
                 }
-                if (!exists) player.sendMessage(Core.bundle.get("client.command.ptext.notexts"))
+                if (!exists) player.sendMessage(Core.bundle.get("client.command.text.notexts"))
                 else {
-                    val sb = StringBuilder(Core.bundle.get("client.command.ptext.list"))
-                    texts.forEach { sb.append("\n${it.drop(6)} [gray]-[] ${Core.settings.getString(it)}") }
+                    val sb = StringBuilder(Core.bundle.get("client.command.text.list"))
+                    texts.forEach { sb.append("\n${it.drop(5)} [gray]-[] ${Core.settings.getString(it)}") }
                     player.sendMessage(sb.toString())
                 }
             }
-            else -> player.sendMessage(Core.bundle.get("client.command.ptext.invalidargs"))
+            else -> player.sendMessage(Core.bundle.get("client.command.text.invalidargs"))
         }
     }
 

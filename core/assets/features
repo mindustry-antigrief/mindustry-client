@@ -81,7 +81,7 @@
  * {p}gamejointext - Sets the text you send when you join.
  * {p}gamewintext - Sets the text you send when you win the game. Typically something like "gg".
  * {p}gamelosetext - Same as above but for when you lose.
- * {p}ptext - Sets a custom text you can easily send in chat with {p}ptext say (do {p}help ptext for more details)
+ * {p}text - Sets a custom text you can easily send in chat with {p}text say (do {p}help text for more details)
  * {p}bannedcontent - Lists out banned units and blocks on the map
  * {p}mute <player> - Searches for the player name / id and mutes messages coming from that player.(The symbols infront of names [if the server does add symbols] are required when using name search)
  * {p}unmute <player> - Same as {p}mute
