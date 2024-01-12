@@ -28,6 +28,7 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.ui.fragments.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
 import mindustry.world.blocks.logic.*
@@ -636,14 +637,14 @@ fun setupCommands() {
                 if (text.isEmpty()) player.sendMessage(Core.bundle.format("client.command.ptext.notext", args[1]))
                 else Call.sendChatMessage(text)
             }
-            "js", "j" -> {
+            "run", "r" -> {
                 if (args.size <= 1) {
                     player.sendMessage(Core.bundle.get("client.command.ptext.run.noselected"))
                     return@register
                 }
                 val text = Core.settings.get("ptext-${args[1]}", "").toString()
                 if (text.isEmpty()) player.sendMessage(Core.bundle.format("client.command.ptext.notext", args[1]))
-                else player.sendMessage("[accent]${mods.scripts.runConsole(text)}")
+                else ChatFragment.handleClientCommand(text)
             }
             "list", "l" -> {
                 var exists = false
