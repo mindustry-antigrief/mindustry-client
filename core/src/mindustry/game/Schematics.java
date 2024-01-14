@@ -163,7 +163,7 @@ public class Schematics implements Loadable{
     public void saveChanges(Schematic s){
         if(s.file != null){
             try{
-                write(s, s.file);
+                write(s, s.file, true);
             }catch(Exception e){
                 ui.showException(e);
             }
@@ -613,11 +613,19 @@ public class Schematics implements Loadable{
         }
     }
 
-    public static void write(Schematic schematic, Fi file) throws IOException{
-        write(schematic, file.write(false, 1024));
+    public static void write(Schematic schematic, Fi file) throws IOException {
+        write(schematic, file.write(false, 1024), false);
     }
 
-    public static void write(Schematic schematic, OutputStream output) throws IOException{
+    public static void write(Schematic schematic, Fi file, boolean tags) throws IOException{
+        write(schematic, file.write(false, 1024), tags);
+    }
+
+    public static void write(Schematic schematic, OutputStream output) throws IOException {
+        write(schematic, output, false);
+    }
+
+    public static void write(Schematic schematic, OutputStream output, boolean tags) throws IOException{
         output.write(header);
         output.write(version);
 
@@ -626,7 +634,7 @@ public class Schematics implements Loadable{
             stream.writeShort(schematic.width);
             stream.writeShort(schematic.height);
 
-            if (Core.settings.getBool("schematicmenuexporttags")) {
+            if (tags || Core.settings.getBool("schematicmenuexporttags")) {
                 schematic.tags.put("labels", JsonIO.write(schematic.labels.toArray(String.class)));
             }
 
