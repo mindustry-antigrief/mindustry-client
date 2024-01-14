@@ -284,15 +284,16 @@ class UnitDestroyedLog(val tile: Tile, cause: Interactor, val unit: Unit, val is
     }
 
     override fun toString(): String {
-        return "${cause.name.stripColors()} ${Core.bundle.get("client.playerunitdeath")} ${unit.type?.localizedName ?: "null unit"}"
+        return if(isPlayer) "${cause.name.stripColors()} ${Core.bundle.get("client.playerunitdeath")} ${unit.type?.localizedName ?: "null unit"}" else "${cause.name.stripColors()} ${Core.bundle.get("client.unitdeath")}"
     }
 
-    private val eventPlayer: String = "${cause.shortName.stripColors().take(16)}${if (cause.shortName.stripColors().length > 16) "..." else ""}"
-    private val eventName: String = if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.playerunitdeath")}[]" else Core.bundle.get("client.playerunitdeath")
+    private val eventController: String = "${cause.shortName.stripColors().take(16)}${if (cause.shortName.stripColors().length > 16) "..." else ""}"
+    private val eventNamePlayer: String = if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.playerunitdeath")}[]" else Core.bundle.get("client.playerunitdeath")
+    private val eventNameLogic: String = if(Core.settings.getBool("colorizelogs")) "[red]${Core.bundle.get("client.unitdeath")}[]" else Core.bundle.get("client.unitdeath")
     private val eventUnit: String = if(Core.settings.getBool("useiconslogs") && unit.type.name.isNotEmpty()) Fonts.getUnicodeStr(unit.type.name) else unit.type?.localizedName ?: "null unit"
 
     override fun toShortString(): String {
-        return "$eventPlayer $eventName $eventUnit"
+        return if(isPlayer) "$eventController $eventNamePlayer $eventUnit" else "$eventController $eventNameLogic"
     }
 }
 
