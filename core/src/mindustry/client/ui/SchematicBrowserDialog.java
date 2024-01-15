@@ -68,7 +68,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         setTransform(true);
 
         hide(Actions.sequence(Actions.fadeOut(0.4f, Interp.fade), Actions.run(() -> { // Nuke previews to save ram FINISHME: Nuke the schematics as well and reload them on dialog open. Ideally, we should do that across all threads similar to how we load saves
-            var previews = Reflect.<OrderedMap<Schematic, FrameBuffer>>get(schematics, "previews");
+            var previews = schematics.previews();
             var removed = new Queue<FrameBuffer>();
             for (var schems : loadedRepositories.values()) {
                 for (var schem : schems) {

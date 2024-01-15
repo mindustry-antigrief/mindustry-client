@@ -193,6 +193,11 @@ public class Schematics implements Loadable{
         }
     }
 
+    /** Because making this public in foo's only will certainly break some mod */
+    public OrderedMap<Schematic, FrameBuffer> previews(){
+        return previews;
+    }
+
     public boolean hasPreview(Schematic schematic){
         return previews.containsKey(schematic);
     }

@@ -93,6 +93,7 @@ object Client {
                 var target: Tile? = spawner.spawns[i]
                 val field = pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)
                 Lines.beginLine()
+                Lines.linePoint(target)
                 while(target != pathfinder.getTargetTile(target, field).also { target = it }) {
                     Lines.linePoint(target)
                 }

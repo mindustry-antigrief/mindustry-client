@@ -107,17 +107,17 @@ object AStarNavigator : Navigator() {
         blocked: Int2P
     ): Array<PositionWaypoint> {
 
-        tileWidth = ceil(width / tilesize).toInt() + 1
-        tileHeight = ceil(height / tilesize).toInt() + 1
+        tileWidth = ceil(width / tilesize).toInt()
+        tileHeight = ceil(height / tilesize).toInt()
 
         start.clamp(0f, 0f, width, height)
         end.clamp(0f, 0f, width, height)
 
         //Reset
-        startX = World.toTile(start.x).coerceIn(0, tileWidth - 1)
-        startY = World.toTile(start.y).coerceIn(0, tileHeight - 1)
-        endX = World.toTile(end.x).coerceIn(0, tileWidth - 1)
-        endY = World.toTile(end.y).coerceIn(0, tileHeight - 1)
+        startX = World.toTile(start.x).coerceIn(0, tileWidth)
+        startY = World.toTile(start.y).coerceIn(0, tileHeight)
+        endX = World.toTile(end.x).coerceIn(0, tileWidth)
+        endY = World.toTile(end.y).coerceIn(0, tileHeight)
 
         if (!gridSize.equals(tileWidth, tileHeight)) {
             grid = Array(tileWidth * tileHeight) { Cell(it % tileWidth, it / tileWidth) }
@@ -127,8 +127,8 @@ object AStarNavigator : Navigator() {
         open.clear()
 
         // Reset all cells
-        for (x in 0 until tileWidth) {
-            for (y in 0 until tileHeight) {
+        for (x in 0 ..< tileWidth) {
+            for (y in 0 ..< tileHeight) {
                 val cell = cell(x, y)
                 cell.g = 0f
                 cell.cameFrom = null

@@ -27,7 +27,6 @@ import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.legacy.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.*;
 
 public class World{
     public final Context context = new Context();

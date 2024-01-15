@@ -70,7 +70,7 @@ abstract class Navigator {
 
         // Shield projectors
         for (team in state.teams.active) {
-            if (team == player.team()) continue
+            if (team === player.team()) continue
             arrayOf(team.getBuildings(Blocks.shieldProjector), team.getBuildings(Blocks.largeShieldProjector)).forEach { shields ->
                 val radius = ((shields.firstOpt()?.block ?: return@forEach) as BaseShield).radius + additionalRadius
                 for (shield in shields) {
@@ -107,8 +107,10 @@ abstract class Navigator {
         val ret = findPath(
             start, end, realObstacles, world.unitWidth().toFloat(), world.unitHeight().toFloat()
         ) { x, y ->
-            world.tileChanges
-            avoidFlood && world.tiles.getc(x, y).team() == Team.blue || player.unit().type != null && !canBoost && solidity?.solid(x, y) ?: false && world.tiles.getc(x, y).block() !is AutoDoor
+//            Log.info("pos: $x $y | clamp: ${world.tiles.getn(x, y).x} ${world.tiles.getn(x, y).y}")
+            avoidFlood && world.tiles.getn(x, y).team() === Team.blue || // Avoid blue team in flood
+            !canBoost && solidity?.solid(x, y) ?: false && // Units that cannot hover will check for solid blocks
+                world.tiles.getn(x, y).run { build === null || build.team !== player.team() || !block().teamPassable } // Ignore teamPassable blocks such as erekir blastDoors
         }
         Pools.freeAll(realObstacles)
         realObstacles.clear()

@@ -122,9 +122,7 @@ public class PositionWaypoint extends Waypoint implements Position {
 
     @Override
     public void draw() {
-        Draw.color(Color.green);
-        Draw.alpha(0.3f);
+        Draw.color(Color.green, 0.3f);
         Fill.circle(getX(), getY(), stopOnFinish? 16f : tolerance);
-        Draw.color();
     }
 }

@@ -7,7 +7,6 @@ import arc.math.geom.*
 import arc.struct.*
 import mindustry.Vars.*
 import mindustry.client.navigation.waypoints.*
-import mindustry.graphics.*
 
 /** A [Path] composed of [Waypoint] instances.  */
 class WaypointPath<T : Waypoint> : Path {
@@ -98,26 +97,19 @@ class WaypointPath<T : Waypoint> : Path {
     override fun draw() {
         if (!show) return
 
-        var lastWaypoint : Position? = if (Navigation.currentlyFollowing != null && Path.waypoints == this) player else null
-        Draw.z(Layer.space)
+        var lastWaypoint: Position? = if (Navigation.currentlyFollowing != null && Path.waypoints == this) player else null // Choose the player unless this is a recording
         for (waypoint in waypoints) {
-            if (waypoint !is Position) continue
-            if (lastWaypoint !is Position) {
-                lastWaypoint = waypoint
-                continue
-            }
-            if (waypoint.dst(-1f, -1f) < 0.001f) continue // don't draw the -1 -1
+            if (waypoint.within(-1f, -1f, 0.01f)) continue // If the path changes, we set waypoints to a single waypoint at -1, -1 as a hack. Don't draw that waypoint
             Draw.color(Color.cyan, 0.6f)
             Lines.stroke(3f)
-            Lines.line(lastWaypoint.x, lastWaypoint.y, waypoint.x, waypoint.y)
+            if (lastWaypoint != null) Lines.line(lastWaypoint.x, lastWaypoint.y, waypoint.x, waypoint.y) // Lines.linePoint() is very cursed when used here
             lastWaypoint = waypoint
             waypoint.draw()
-            Draw.color()
         }
-        Draw.color()
+        Draw.reset()
     }
 
     override operator fun next(): Position? {
-        return waypoints.first() as Position?
+        return waypoints.first()
     }
 }

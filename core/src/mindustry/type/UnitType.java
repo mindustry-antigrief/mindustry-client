@@ -46,7 +46,7 @@ import static mindustry.Vars.*;
 public class UnitType extends UnlockableContent implements Senseable{
     public static final float shadowTX = -12, shadowTY = -13;
     private static final Vec2 legOffset = new Vec2();
-    public static boolean drawAllItems;
+    public static boolean drawAllItems, pixelated;
     public static float formationAlpha = -1, hitboxAlpha;
 
     /** Environmental flags that are *all* required for this unit to function. 0 = any environment */
@@ -303,7 +303,6 @@ public class UnitType extends UnlockableContent implements Senseable{
 
     /** color for outline generated around sprites */
     public Color outlineColor = Pal.darkerMetal;
-    public Color accentCopy = Pal.accent.cpy();
     /** thickness for sprite outline  */
     public int outlineRadius = 3;
     /** if false, no sprite outlines are generated */
@@ -436,6 +435,11 @@ public class UnitType extends UnlockableContent implements Senseable{
     protected @Nullable ItemStack[] totalRequirements, cachedRequirements, firstRequirements;
 
     public static float alpha = 1f; // FINISHME: Seriously, why the hell is this static? Shouldn't this be a variable tied to the unit?!?
+    private static final Color accentCopy = Pal.accent.cpy(); // Used so we can set the alpha value without resetting it
+
+    static {
+        Events.run(EventType.Trigger.update, () -> pixelated = Core.settings.getBool("pixelate"));
+    }
 
     public UnitType(String name){
         super(name);
@@ -1174,7 +1178,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
         alpha =
             ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 :
-            (unit.controller() instanceof Player p && p.assisting && !unit.isLocal()) ? formationAlpha :
+            (unit.controller() instanceof Player p && p.assisting && !p.isLocal()) ? formationAlpha :
             1;
         if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = isPayload ? Draw.z() : unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
@@ -1344,7 +1348,8 @@ public class UnitType extends UnlockableContent implements Senseable{
 
         //draw back items
         if(unit.item() != null && unit.itemTime > 0.01f){
-            float size = (itemSize + Mathf.absin(Time.time, 5f, 1f)) * unit.itemTime;
+            float absin51 = Mathf.absin(Time.time, 5f, 1f);
+            float size = (itemSize + absin51) * unit.itemTime;
 
             Draw.mixcol(Pal.accent, Mathf.absin(Time.time, 5f, 0.1f));
             Draw.alpha(alpha);
@@ -1354,14 +1359,14 @@ public class UnitType extends UnlockableContent implements Senseable{
             size, size, unit.rotation);
             Draw.mixcol();
 
-            size = ((3f + Mathf.absin(Time.time, 5f, 1f)) * unit.itemTime + 0.5f) * 2;
+            size = ((3f + absin51) * unit.itemTime + 0.5f) * 2;
             Draw.color(Pal.accent, alpha);
             Draw.rect(itemCircleRegion,
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
             size, size);
 
-            if((drawAllItems || unit.isLocal()) && !renderer.pixelator.enabled()){
+            if((drawAllItems || unit.isLocal()) && !pixelated){
                 float z = Draw.z();
                 Draw.z(z + .01f); // Remove this if you enjoy 1000 texture swaps
                 Fonts.outline.draw(unit.stack.amount + "",

@@ -169,6 +169,8 @@ enum class CustomMode {
             super.enable()
             Time.mark()
 
+            if(!Server.current.ghost) Call.serverPacketReliable("flood", "999") // Imagine supporting multiple versions
+
             overwrites( // This system is awful but it (mostly) works and it wasn't hard to implement.
                 // Units
                 pulsar, "abilities", Seq<Ability>(0), // Pulsar shield regen field removed

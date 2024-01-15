@@ -15,7 +15,6 @@ buildscript{
             //skip to last submodule
             name = name.substring(name.lastIndexOf(':') + 1)
             return "com.github.mindustry-antigrief${localArc ? "" : ".Arc"}:$name:$arcHash"
-            // TODO: Merge recheck: Merge bala's arc
         }
     }
 

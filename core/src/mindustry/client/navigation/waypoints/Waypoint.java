@@ -1,9 +1,11 @@
 package mindustry.client.navigation.waypoints;
 
+import arc.math.geom.*;
+
 /**
  * A way of representing a waypoint.  You're probably looking for {@link PositionWaypoint}
  */
-public abstract class Waypoint {
+public abstract class Waypoint implements Position {
 
     /** Returns if the waypoint is finished. */
     public abstract boolean isDone();

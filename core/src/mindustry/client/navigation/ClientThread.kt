@@ -2,6 +2,7 @@ package mindustry.client.navigation
 
 import arc.*
 import arc.struct.*
+import arc.util.*
 import mindustry.game.EventType.*
 import java.util.concurrent.*
 import java.util.function.*
@@ -34,11 +35,19 @@ object clientThread {
     }
 
     @JvmStatic
-    fun post(task: Runnable): CompletableFuture<Void> = if (thread != null) CompletableFuture.runAsync(task, thread) else CompletableFuture()
+    fun post(task: Runnable): CompletableFuture<Void> = if (thread != null) CompletableFuture.runAsync(task, thread).exceptionHandler() else CompletableFuture()
 
     @JvmStatic
-    fun <T> submit(task: Supplier<T>): CompletableFuture<T> = if (thread != null) CompletableFuture.supplyAsync(task, thread) else CompletableFuture()
+    fun <T> submit(task: Supplier<T>): CompletableFuture<T> = if (thread != null) CompletableFuture.supplyAsync(task, thread).exceptionHandler() else CompletableFuture()
 
     @JvmStatic
     fun get() = thread
+
+    private fun <T> CompletableFuture<T>.exceptionHandler() = apply { exceptionally {
+        Core.app.post {
+            if (it is CancellationException) return@post
+            Log.err("Exception on client thread", it)
+        }
+        throw it
+    } }
 }

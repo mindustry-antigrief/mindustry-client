@@ -824,11 +824,8 @@ public class DesktopInput extends InputHandler{
         }
 
         if(Core.input.keyTap(Binding.schematic_menu) && !Core.scene.hasKeyboard()){
-            if (Core.input.shift()) {
-                ui.toggleSchematicBrowser();
-            } else {
-                ui.toggleSchematicMenu();
-            }
+            if(Core.input.shift()) ui.toggleSchematicBrowser();
+            else ui.toggleSchematicMenu();
         }
 
         if(Core.input.keyTap(Binding.clear_building) || isPlacing()){
