@@ -1437,7 +1437,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     var existingBuild = existing.build;
                     if (existingBuild != null && existing.block() == plan.block && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y) {
                         var existingConfig = existingBuild.config();
-                        boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || plan.config == existingConfig;
+                        boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || plan.config.equals(existingConfig);
                         if (!configEqual) configs.add(new ConfigRequest(existing.build, plan.config));
                     }
                     else { // Add build plans to remove block underneath
