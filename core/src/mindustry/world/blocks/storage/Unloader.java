@@ -280,6 +280,15 @@ public class Unloader extends Block{
         }
 
         @Override
+        public void pickedUp() {
+            super.pickedUp();
+
+            lastDumpFrom = null;
+            lastDumpTo = null;
+            lastItem = null;
+        }
+
+        @Override
         public Item config(){
             return sortItem;
         }

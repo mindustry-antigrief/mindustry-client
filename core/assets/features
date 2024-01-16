@@ -42,6 +42,7 @@
  * Player List Assist - None (Regular), Shift (Free Move), Ctrl (Follow Cursor), Alt (BuildPath)
  * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)
  * Shift {schematic_menu} - Schematic browser
+ * {force_place_modifier} {select} - Force places selection/schematics by marking overlapping buildings for deconstruction and placing overlapped plans into frozen queue.
 
 # Commands
  * If you're unfamiliar with mindustry command syntax, <name> indicates a required argument, and [name] an optional one
@@ -122,6 +123,7 @@
 # Vanilla Modifications
  * Shift click up/down in schematic tag list to send to top/bottom respectively
  * Shift click delete in schematic tag list to delete tag without prompt
+ * Alt {pickupCargo} pick up buildings but not units
 
 # Credits
  * Game by anuke, client by foo, buthed010203, Zxtej, SBytes, and BalaM314
