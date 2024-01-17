@@ -1438,19 +1438,20 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 var constructing = existingBuild instanceof ConstructBuild cb && cb.current == copy.block;
                 var built = existing.block() == plan.block;
 
-                if (!(force && !valid) || (aligned && constructing)) { // If block can be placed or is already constructing
+                // Freeze can ignore all validity checks
+                if (freeze || !(force && !valid) || (aligned && constructing)) { // If block can be placed or is already constructing
                     plan.block.onNewPlan(copy);
                     temp[added++] = copy;
                 }
 
-                if (aligned && !constructing && built) { // If block already exists and is not being constructed
+                if (!freeze && aligned && !constructing && built) { // If block already exists and is not being constructed
                     var existingConfig = existingBuild.config();
                     boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || Objects.equals(plan.config, existingConfig);
                     if (!configEqual) configs.add(new ConfigRequest(existing.build, plan.config));
                     continue; // Already built, no need to check to remove incorrect blocks
                 }
 
-                if (existingBuild == null || aligned && (built || constructing)) continue; // Whether to remove incorrect blocks underneath
+                if (valid || !force || freeze || aligned && (built || constructing)) continue; // Whether to remove incorrect blocks underneath
                 frozenPlans.add(copy);
                 plan.tile().getLinkedTilesAs(plan.block, tile -> {
                     if (tile.build == null) return;
