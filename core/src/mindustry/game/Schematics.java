@@ -205,9 +205,10 @@ public class Schematics implements Loadable{
     public FrameBuffer getBuffer(Schematic schematic){
         //dispose unneeded previews to prevent memory outage errors.
         //only runs every 2 seconds
-        if(mobile && Time.timeSinceMillis(lastClearTime) > 1000 * 2 && previews.size > maxPreviewsMobile){
+        int max = Core.settings.getInt("maxschematicpreviews", mobile ? maxPreviewsMobile : 0);
+        if(max > 0 && Time.timeSinceMillis(lastClearTime) > 1000 * 2 && previews.size > max){
             Seq<Schematic> keys = previews.orderedKeys().copy();
-            for(int i = 0; i < previews.size - maxPreviewsMobile; i++){
+            for(int i = 0; i < previews.size - max; i++){
                 //dispose and remove unneeded previews
                 previews.get(keys.get(i)).dispose();
                 previews.remove(keys.get(i));
