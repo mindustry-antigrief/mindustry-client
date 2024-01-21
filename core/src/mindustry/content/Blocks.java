@@ -1803,7 +1803,8 @@ public class Blocks{
         }};
 
         radar = new Radar("radar"){{
-            requirements(Category.effect, BuildVisibility.fogOnly, with(Items.silicon, 60, Items.graphite, 50, Items.beryllium, 10));
+//            requirements(Category.effect, BuildVisibility.fogOnly, with(Items.silicon, 60, Items.graphite, 50, Items.beryllium, 10));
+            requirements(Category.effect, with(Items.silicon, 60, Items.graphite, 50, Items.beryllium, 10));
             outlineColor = Color.valueOf("4a4b53");
             fogRadius = 34;
             researchCost = with(Items.silicon, 70, Items.graphite, 70);
