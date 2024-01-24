@@ -56,12 +56,8 @@ public class PlanConfigFragment {
 				Actions.scaleTo(1f, 1f, 0.07f, Interp.pow3Out));
 		table.update(() -> {
 			table.setOrigin(Align.center);
-			if (plan.isDone()) {
-				this.hide();
-				return;
-			}
-			boolean planExists = control.input.selectPlans.contains(plan) || player.unit().plans.contains(plan);
-			if (!planExists) {
+			if (plan.isDone() || !(control.input.selectPlans.contains(plan) || player.unit().plans.contains(plan))) {
+				Log.info("hiding");
 				this.hide();
 				return;
 			}
