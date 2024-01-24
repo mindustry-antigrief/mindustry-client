@@ -57,7 +57,6 @@ public class PlanConfigFragment {
 		table.update(() -> {
 			table.setOrigin(Align.center);
 			if (plan.isDone() || !(control.input.selectPlans.contains(plan) || player.unit().plans.contains(plan))) {
-				Log.info("hiding");
 				this.hide();
 				return;
 			}
