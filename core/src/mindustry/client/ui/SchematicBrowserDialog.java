@@ -355,12 +355,14 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     public void pruneTags() {
+        selectedTags.clear();
         tags.removeAll(t -> { // Remove tags not attached to any schematics
             for (var ss: loadedRepositories.values()) {
                 if (ss.find(s -> s.labels.contains(t)) != null) return false;
             }
             return true;
         });
+        tagsChanged();
     }
 
     void showAllTags(){

@@ -633,7 +633,9 @@ public class SchematicsDialog extends BaseDialog{
     }
 
     public void pruneTags() {
+        selectedTags.clear();
         tags.removeAll(t -> schematics.all().find(s -> s.labels.contains(t)) == null);
+        tagsChanged();
     }
 
     void deleteTag(String tag) {
