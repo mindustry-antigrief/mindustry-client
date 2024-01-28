@@ -314,7 +314,7 @@ public class SchematicsDialog extends BaseDialog{
                 t.button("@schematic.copy", Icon.copy, style, () -> {
                     dialog.hide();
                     ui.showInfoFade("@copied");
-                    Core.app.setClipboardText(schematics.writeBase64(s, false));
+                    Core.app.setClipboardText(schematics.writeBase64(s, Core.settings.getBool("schematicmenuexporttags")));
                 }).marginLeft(12f);
                 t.row();
                 t.button("@schematic.exportfile", Icon.export, style, () -> {
