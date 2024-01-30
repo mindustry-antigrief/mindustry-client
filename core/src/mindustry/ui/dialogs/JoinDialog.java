@@ -427,7 +427,8 @@ public class JoinDialog extends BaseDialog{
             t.button(Icon.zoom, Styles.emptyi, this::refreshCommunity).size(54f);
         }).width((targetWidth() + 5f) * columns()).height(70f).pad(4).row();
 
-        long[] last = {0, 0}; // last time, frame
+        long[] lastFrame = {0};
+        long[] start = {0};
         for(int i = 0; i < defaultServers.size; i ++){
             ServerGroup group = defaultServers.get((i + defaultServers.size/2) % defaultServers.size);
             boolean hidden = group.hidden();
@@ -450,12 +451,11 @@ public class JoinDialog extends BaseDialog{
                 };
                 net.pingHost(resaddress, resport, ref.cons = res -> {
                     var frame = Core.graphics.getFrameId();
-                    if (Time.timeSinceMillis(last[0]) < 1000 && last[1] != frame) {
-                        last[0] = Time.millis();
-                        last[1] = frame;
-                        Core.app.post(() -> ref.cons.get(res));
+                    if (lastFrame[0] == frame && Time.timeSinceMillis(start[0]) > 5) { // Limit frames to 5ms (arbitrary value)
                         return;
-                    }
+                    } else start[0] = Time.millis(); // Save the time on the first call each frame
+                    lastFrame[0] = frame;
+
                     if(refreshes != cur) return;
                     res.port = resport;
                     res.group = group.name;
