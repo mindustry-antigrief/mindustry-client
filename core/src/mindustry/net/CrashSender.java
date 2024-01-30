@@ -20,10 +20,14 @@ import static mindustry.Vars.*;
 public class CrashSender{
 
     public static String createReport(String error){
+        var lastHost = ui.join.lastHost;
+        var lastIp = Reflect.<String>get(ui.join, "lastIp");
+        var group = lastHost != null ? lastHost.group != null ? lastHost.group : ui.join.communityHosts.find(h -> h.equals(lastHost)) != null ? ui.join.communityHosts.find(h -> h.equals(lastHost)).group : null : null;
         String report = "Ohno, the game has crashed. Report this at: " + clientDiscord + "\n\n";
         report += "Copy paste the report below when reporting:\n```java\n";
-        return report
+        return Strings.stripColors(report
         + "Version: " + Version.combined() + (Vars.headless ? " (Server)" : "") + "\n"
+        + "Last Server: " + (lastHost != null ? lastHost.name + (group != null ? " (" + group + ") " : "(nogroup)") + " (" + lastHost.address + ":" + lastHost.port + ")" : lastIp != null && lastIp.startsWith("steam:") ? "steam" : "unknown/none") + "\n"
         + "Source: " + settings.getString("updateurl") + "\n"
         + "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"
         + ((OS.isAndroid || OS.isIos) && app != null ? "Android API level: " + Core.app.getVersion() + "\n" : "")
@@ -31,7 +35,7 @@ public class CrashSender{
         + "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n"
         + "Cores: " + Runtime.getRuntime().availableProcessors() + "\n"
         + (mods == null ? "<no mod init>" : "Mods: " + (!mods.list().contains(LoadedMod::enabled) ? "none (vanilla)" : mods.list().select(LoadedMod::shouldBeEnabled).toString(", ", mod -> mod.name + ":" + mod.meta.version)))
-        + "\n\n" + error + "```";
+        + "\n\n") + error + "```";
     }
 
     public static void log(Throwable exception){
