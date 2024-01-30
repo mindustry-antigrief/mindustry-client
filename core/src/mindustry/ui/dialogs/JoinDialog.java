@@ -429,6 +429,7 @@ public class JoinDialog extends BaseDialog{
 
         long[] lastFrame = {0};
         long[] start = {0};
+        long[] queued = {0};
         for(int i = 0; i < defaultServers.size; i ++){
             ServerGroup group = defaultServers.get((i + defaultServers.size/2) % defaultServers.size);
             boolean hidden = group.hidden();
@@ -446,14 +447,20 @@ public class JoinDialog extends BaseDialog{
                 String resaddress = address.contains(":") ? address.split(":")[0] : address;
                 int resport = address.contains(":") ? Strings.parseInt(address.split(":")[1]) : port;
 
-                var ref = new Object() { // The wonders of programming in java.
-                    Cons<Host> cons = null;
-                };
-                net.pingHost(resaddress, resport, ref.cons = res -> {
+                Cons<Host>[] cons = new Cons[]{null};
+                net.pingHost(resaddress, resport, cons[0] = res -> {
                     var frame = Core.graphics.getFrameId();
                     if (lastFrame[0] == frame && Time.timeSinceMillis(start[0]) > 5) { // Limit frames to 5ms (arbitrary value)
+                        queued[0]++;
+                        Core.app.post(() -> cons[0].get(res));
                         return;
-                    } else start[0] = Time.millis(); // Save the time on the first call each frame
+                    } else { // Save the time on the first call each frame
+                        start[0] = Time.millis();
+                        if (queued[0] > 0) {
+                            Log.debug("Queued server additions: @", queued[0]);
+                            queued[0] = 0;
+                        }
+                    }
                     lastFrame[0] = frame;
 
                     if(refreshes != cur) return;
