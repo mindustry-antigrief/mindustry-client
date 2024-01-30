@@ -1,6 +1,7 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.input.*;
 import arc.math.*;
@@ -426,6 +427,7 @@ public class JoinDialog extends BaseDialog{
             t.button(Icon.zoom, Styles.emptyi, this::refreshCommunity).size(54f);
         }).width((targetWidth() + 5f) * columns()).height(70f).pad(4).row();
 
+        long[] last = {0, 0}; // last time, frame
         for(int i = 0; i < defaultServers.size; i ++){
             ServerGroup group = defaultServers.get((i + defaultServers.size/2) % defaultServers.size);
             boolean hidden = group.hidden();
@@ -442,7 +444,18 @@ public class JoinDialog extends BaseDialog{
             for(String address : group.addresses){
                 String resaddress = address.contains(":") ? address.split(":")[0] : address;
                 int resport = address.contains(":") ? Strings.parseInt(address.split(":")[1]) : port;
-                net.pingHost(resaddress, resport, res -> {
+
+                var ref = new Object() { // The wonders of programming in java.
+                    Cons<Host> cons = null;
+                };
+                net.pingHost(resaddress, resport, ref.cons = res -> {
+                    var frame = Core.graphics.getFrameId();
+                    if (Time.timeSinceMillis(last[0]) < 1000 && last[1] != frame) {
+                        last[0] = Time.millis();
+                        last[1] = frame;
+                        Core.app.post(() -> ref.cons.get(res));
+                        return;
+                    }
                     if(refreshes != cur) return;
                     res.port = resport;
                     res.group = group.name;
