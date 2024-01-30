@@ -301,7 +301,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                 t.button("@schematic.copy", Icon.copy, style, () -> {
                     dialog.hide();
                     ui.showInfoFade("@copied");
-                    Core.app.setClipboardText(schematics.writeBase64(s));
+                    Core.app.setClipboardText(schematics.writeBase64(s, Core.settings.getBool("schematicmenuexporttags")));
                 }).marginLeft(12f);
                 t.row();
                 t.button("@schematic.exportfile", Icon.export, style, () -> {
@@ -354,6 +354,17 @@ public class SchematicBrowserDialog extends BaseDialog {
         Core.settings.putJson("schematic-tags", String.class, tags);
     }
 
+    public void pruneTags() {
+        selectedTags.clear();
+        tags.removeAll(t -> { // Remove tags not attached to any schematics
+            for (var ss: loadedRepositories.values()) {
+                if (ss.find(s -> s.labels.contains(t)) != null) return false;
+            }
+            return true;
+        });
+        tagsChanged();
+    }
+
     void showAllTags(){
         var dialog = new BaseDialog("@schematic.edittags");
         dialog.addCloseButton();
@@ -365,6 +376,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                 p.table(t -> {
                     t.left().defaults().fillX().height(tagh).pad(2);
                     t.button("@client.schematic.cleartags", Icon.refresh, selectedTags::clear).wrapLabel(false).get().getLabelCell().padLeft(5);
+                    t.button("@client.schematic.prunetags", Icon.trash, this::pruneTags).wrapLabel(false).get().getLabelCell().padLeft(5);
                 });
                 p.row();
 

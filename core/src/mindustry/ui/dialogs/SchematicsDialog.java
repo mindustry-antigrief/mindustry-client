@@ -314,7 +314,7 @@ public class SchematicsDialog extends BaseDialog{
                 t.button("@schematic.copy", Icon.copy, style, () -> {
                     dialog.hide();
                     ui.showInfoFade("@copied");
-                    Core.app.setClipboardText(schematics.writeBase64(s, false));
+                    Core.app.setClipboardText(schematics.writeBase64(s, Core.settings.getBool("schematicmenuexporttags")));
                 }).marginLeft(12f);
                 t.row();
                 t.button("@schematic.exportfile", Icon.export, style, () -> {
@@ -633,7 +633,9 @@ public class SchematicsDialog extends BaseDialog{
     }
 
     public void pruneTags() {
+        selectedTags.clear();
         tags.removeAll(t -> schematics.all().find(s -> s.labels.contains(t)) == null);
+        tagsChanged();
     }
 
     void deleteTag(String tag) {

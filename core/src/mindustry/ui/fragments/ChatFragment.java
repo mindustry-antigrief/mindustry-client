@@ -424,17 +424,20 @@ public class ChatFragment extends Table{
         return handleClientCommand(message, true);
     }
 
+    /** If send is false, only commands will be sent to the server */
     public static CommandHandler.CommandResponse handleClientCommand(String message, boolean send){
         //check if it's a command
         CommandHandler.CommandResponse response = ClientVars.clientCommandHandler.handleMessage(message, player);
         if(response.type == CommandHandler.ResponseType.noCommand){ //no command to handle
             String msg = Main.INSTANCE.sign(message);
             Events.fire(new ClientChatEvent(message));
-            if (send) Call.sendChatMessage(msg);
-            if (message.startsWith(netServer.clientCommands.getPrefix() + "sync")) { // /sync
-                ClientVars.syncing = true;
+            var prefix = netServer.clientCommands.getPrefix();
+            if(send || message.startsWith(prefix)){
+                Call.sendChatMessage(msg);
             }
-            if (!message.startsWith(netServer.clientCommands.getPrefix())) { // Only fire when not running any command
+            if(message.startsWith(prefix + "sync")){ // /sync
+                ClientVars.syncing = true;
+            }else if (!message.startsWith(prefix)){ // Only fire when not running any command
                 Events.fire(new EventType.SendChatMessageEvent(msg));
             }
         }else{

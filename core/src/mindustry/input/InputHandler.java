@@ -11,8 +11,8 @@ import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
 import arc.struct.Queue;
+import arc.struct.*;
 import arc.util.*;
 import kotlin.Pair;
 import mindustry.*;
@@ -1432,27 +1432,32 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null) { // Store the configs for logic blocks locally, they cause issues when sent to the server
                     copy.configLocal = net.client();
                 }
-                if (force && !valid) {
-                    var existing = world.tiles.get(plan.x, plan.y);
-                    var existingBuild = existing.build;
-                    if (existingBuild != null && existing.block() == plan.block && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y) {
-                        var existingConfig = existingBuild.config();
-                        boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || plan.config == existingConfig;
-                        if (!configEqual) configs.add(new ConfigRequest(existing.build, plan.config));
-                    }
-                    else { // Add build plans to remove block underneath
-                        frozenPlans.add(copy);
-                        plan.tile().getLinkedTilesAs(plan.block, tile -> {
-                            if (tile.build == null) return;
-                            var bt = tile.build.tile;
-                            if (toBreak.add(bt.pos())) player.unit().addBuild(new BuildPlan(bt.x, bt.y));
-                        });
-                    }
-                }
-                else {
+                var existing = world.tiles.get(plan.x, plan.y);
+                var existingBuild = existing.build;
+                var aligned = existingBuild != null && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y;
+                var constructing = existingBuild instanceof ConstructBuild cb && cb.current == copy.block;
+                var built = existing.block() == plan.block;
+
+                // Freeze can ignore all validity checks
+                if (freeze || !(force && !valid) || (aligned && constructing)) { // If block can be placed or is already constructing
                     plan.block.onNewPlan(copy);
                     temp[added++] = copy;
                 }
+
+                if (!freeze && aligned && !constructing && built) { // If block already exists and is not being constructed
+                    var existingConfig = existingBuild.config();
+                    boolean configEqual = (plan.config instanceof Array[] pa && existingConfig instanceof Array[] ea && Arrays.deepEquals(pa, ea)) || Objects.equals(plan.config, existingConfig);
+                    if (!configEqual) configs.add(new ConfigRequest(existing.build, plan.config));
+                    continue; // Already built, no need to check to remove incorrect blocks
+                }
+
+                if (valid || !force || freeze || aligned && (built || constructing)) continue; // Whether to remove incorrect blocks underneath
+                frozenPlans.add(copy);
+                plan.tile().getLinkedTilesAs(plan.block, tile -> {
+                    if (tile.build == null) return;
+                    var bt = tile.build.tile;
+                    if (toBreak.add(bt.pos())) player.unit().addBuild(new BuildPlan(bt.x, bt.y));
+                });
             }
         }
 
