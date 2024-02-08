@@ -817,7 +817,7 @@ fun setupCommands() {
         register("undo <player> [range]", "Undo Configs from a specific player (get rekt griefers)") { args, player ->
             val range: Float
             val id: Int
-            try {
+            try { // FINISHME: Strings.parseInt/Float
                 id = args[0].toInt()
                 range = if (args.size >= 2) args[1].toFloat() * tilesize else Float.MAX_VALUE
             }
@@ -842,31 +842,30 @@ fun setupCommands() {
                 sb.clear()
             }
 
-            schematics.all().each {
-                val b = schematics.writeBase64(it)
-                if (b.length + 1 > 8_000_000) { // Who in their right mind has a schematic that's over 8 million characters
-                    player.sendMessage("[scarlet]You have an insanely large schematic (${it.name()}) which will not be uploaded.")
-                    return@each
-                }
-                if (sb.length + b.length > 8_000_000) uploadSchematics()
-
-                sb.append(b).append('\n')
-            }
-
-            if (sb.isNotEmpty()) uploadSchematics() // Upload any leftovers
-            Threads.daemon { // This is terrible but whatever
-                Threads.await(pool) // Wait for all requests to finish before continuing
-                Core.app.post {
-                    sb.append("[accent]Your schematics have been uploaded: ")
-                    results.forEach {
-                        val json = Jval.read(it)
-                        sb.append(json.getString("url").substringAfterLast('/')).append(' ')
+            Threads.daemon { // Writing base64 is slow (plus we block to wait for requests)
+                schematics.all().each {
+                    val b = schematics.writeBase64(it)
+                    if (b.length + 1 > 8_000_000) { // Who in their right mind has a schematic that's over 8 million characters
+                        Core.app.post { player.sendMessage("[scarlet]You have an insanely large schematic (${it.name()}) which will not be uploaded.") }
+                        return@each
                     }
-                    sb.dropLast(1)
-                    sb.setLength(sb.length - 1) // Remove extra appended space
-                    val ids = sb.toString().substringAfter(": ")
-                    ui.chatfrag.addMsg(sb.toString()).addButton(0, sb.length) { Core.app.clipboardText = ids }
+                    if (sb.length + b.length > 8_000_000) uploadSchematics()
+
+                    sb.append(b).append('\n')
                 }
+
+                if (sb.isNotEmpty()) uploadSchematics() // Upload any leftovers
+                Threads.await(pool) // Wait for all requests to finish before continuing
+
+                sb.append("[accent]Your schematics have been uploaded: ")
+                results.forEach {
+                    val json = Jval.read(it)
+                    sb.append(json.getString("url").substringAfterLast('/')).append(' ')
+                }
+                sb.dropLast(1)
+                sb.setLength(sb.length - 1) // Remove extra appended space
+                val ids = sb.toString().substringAfter(": ")
+                Core.app.post { ui.chatfrag.addMsg(sb.toString()).addButton(0, sb.length) { Core.app.clipboardText = ids } }
             }
         }
 
@@ -883,10 +882,8 @@ fun setupCommands() {
                         return@submit
                     }
                     val out = Seq<Schematic>()
-                    str.split('\n').forEach {
-                        Log.info(it)
-                        out.add(Schematics.readBase64(it))
-                    }
+                    for (s in str.split('\n')) out.add(Schematics.readBase64(s))
+
                     Core.app.post { // Do this on the main thread
                         player.sendMessage("[accent]Finished loading $id")
                         dest.add(out)
@@ -895,7 +892,7 @@ fun setupCommands() {
                 }
             }
         }
-    }
+        }
 }
 
 /** Registers a command.
