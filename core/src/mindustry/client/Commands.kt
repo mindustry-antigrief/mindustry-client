@@ -837,44 +837,50 @@ fun setupCommands() {
 
             fun uploadSchematics() { // FINISHME: We really need to handle failed uploads
                 val str = sb.substring(0, sb.length - 1) // Drop the trailing \n
-                pool.execute { Http.post("https://cancer-co.de/upload", "text=" + Strings.encode(str)).block { results.add(it.resultAsString) } }
+                Log.debug("Uploading schematic list of length ${str.length}")
+                pool.execute { Http.post("https://cancer-co.de/upload", "text=" + Strings.encode(str)).timeout(60_000).block { results.add(it.resultAsString) } }
                 sb.clear()
             }
 
             schematics.all().each {
                 val b = schematics.writeBase64(it)
                 if (b.length + 1 > 8_000_000) { // Who in their right mind has a schematic that's over 8 million characters
-                    player.sendMessage("[scarlet]You have an insanely large schematic which will not be uploaded.")
+                    player.sendMessage("[scarlet]You have an insanely large schematic (${it.name()}) which will not be uploaded.")
                     return@each
                 }
-                if (sb.length + b.length> 8_000_000) uploadSchematics()
+                if (sb.length + b.length > 8_000_000) uploadSchematics()
 
                 sb.append(b).append('\n')
             }
 
-            if (sb.length > 0) uploadSchematics() // Upload any leftovers
-            sb.append("[accent]Your schematics have been uploaded: ")
-            Threads.await(pool) // Wait for all requests to finish before continuing
-            results.forEach {
-                val json = Jval.read(it)
-                sb.append(json.getString("url").substringAfterLast('/')).append(' ')
+            if (sb.isNotEmpty()) uploadSchematics() // Upload any leftovers
+            Threads.daemon { // This is terrible but whatever
+                Threads.await(pool) // Wait for all requests to finish before continuing
+                Core.app.post {
+                    sb.append("[accent]Your schematics have been uploaded: ")
+                    results.forEach {
+                        val json = Jval.read(it)
+                        sb.append(json.getString("url").substringAfterLast('/')).append(' ')
+                    }
+                    sb.dropLast(1)
+                    sb.setLength(sb.length - 1) // Remove extra appended space
+                    val ids = sb.toString().substringAfter(": ")
+                    ui.chatfrag.addMsg(sb.toString()).addButton(0, sb.length) { Core.app.clipboardText = ids }
+                }
             }
-            sb.setLength(sb.length - 1) // Remove extra appended space
-            val ids = sb.toString().substringAfter(": ")
-            ui.chatfrag.addMsg(sb.toString()).addButton(0, sb.length) { Core.app.clipboardText = ids }
         }
 
         register("view <name> <ids...>", "This is an equally terrible idea") { args, player -> // FINISHME: Why did I think this was a good idea?
-            val pool = Threads.unboundedExecutor("Schematic Download")
             val browser = ui.schematicBrowser
             val dest = browser.loadedRepositories.get(args[0]) { Seq() }.clear()
+            val split = args[1].split(' ')
 
-            args[1].split(' ').forEach { id ->
-                pool.execute { Http.get("https://cancer-co.de/raw/$id").block { r ->  // FINISHME: Add handling for failed http requests
+            split.forEach { id ->
+                Http.get("https://cancer-co.de/raw/$id").timeout(60_000).submit { r ->  // FINISHME: Add handling for failed http requests
                     val str = r.resultAsString
                     if (str == "Paste not found!") { // FINISHME: Improve messaging for failed loads
                         player.sendMessage("[scarlet]Failed to load https://cancer-co.de/raw/$id as it was not found.")
-                        return@block
+                        return@submit
                     }
                     val out = Seq<Schematic>()
                     str.split('\n').forEach {
@@ -886,7 +892,7 @@ fun setupCommands() {
                         dest.add(out)
                         browser.rebuildResults()
                     }
-                } }
+                }
             }
         }
     }
