@@ -43,7 +43,7 @@ abstract class Navigator {
         // Turrets and units FINISHME: Turrets should probably not use this system
         if (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit())) {
             for (turret in obstacles) {
-                if (turret.canHitPlayer() && turret.canShoot()) {
+                if (turret.isObstacle()) {
                     realObstacles.add(
                         Pools.obtain(Circle::class.java) { Circle() }.set(
                             turret.x(),

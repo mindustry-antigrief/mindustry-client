@@ -5,8 +5,10 @@ import arc.math.geom.*
 import arc.math.geom.QuadTree.*
 import arc.struct.*
 import mindustry.Vars.*
+import mindustry.content.UnitTypes
 import mindustry.gen.*
 import mindustry.logic.*
+import mindustry.type.UnitType
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
@@ -15,12 +17,21 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range:
 
     fun canShoot() = canShoot.get()
     fun canHitPlayer() = if (player.unit().isFlying) targetAir else targetGround
+    fun isObstacle() = canShoot() && canHitPlayer() && !ignoreDamageSource(player.unit().type, entity)
     fun x() = entity.x
     fun y() = entity.y
     @JvmField val turret = entity is Building
 
     companion object {
         private var nextId: Long = 0
+        fun ignoreDamageSource(unit: UnitType, damageSource: Ranged): Boolean {
+            return when(damageSource) {
+                UnitTypes.alpha, UnitTypes.horizon -> true
+                UnitTypes.beta, UnitTypes.nova, UnitTypes.flare -> unit.health >= 100
+                UnitTypes.gamma, UnitTypes.dagger, UnitTypes.crawler, UnitTypes.poly, UnitTypes.risso, UnitTypes.retusa, UnitTypes.atrax, UnitTypes.mega -> unit.health > 1000
+                else -> false
+            }
+        }
     }
 
     init {
