@@ -48,7 +48,7 @@ abstract class Navigator {
                         Pools.obtain(Circle::class.java) { Circle() }.set(
                             turret.x(),
                             turret.y(),
-                            turret.range + additionalRadius
+                            turret.range() + additionalRadius
                         )
                     )
                 }

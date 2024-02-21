@@ -125,7 +125,7 @@ object Client {
                             val valid = (flying && it.targetAir) || (!flying && it.targetGround)
                             val validInv = (!flying && it.targetAir) || (flying && it.targetGround)
                             Drawf.dashCircle(
-                                it.entity.x, it.entity.y, it.range,
+                                it.entity.x, it.entity.y, it.range(),
                                 if ((valid && showingTurrets) || (validInv && showingInvTurrets)) it.entity.team().color else Team.derelict.color)
                         }
                     }
@@ -136,7 +136,7 @@ object Client {
                 getAllyTree().use {
                     intersect(bounds) {
                         if ((allyunits || it.turret) && it.canShoot() && (it.targetAir || it.targetGround)) {
-                            Drawf.dashCircle(it.entity.x, it.entity.y, it.range, it.entity.team().color)
+                            Drawf.dashCircle(it.entity.x, it.entity.y, it.range(), it.entity.team().color)
                         }
                     }
                 }

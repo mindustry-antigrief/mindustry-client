@@ -155,7 +155,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                     for (var turret : Navigation.getEnts()) {
                         var canHit = turret.canHitPlayer();
                         if (!turret.canShoot() || !(turret.targetGround || canHit) || turret.entity.team() == Team.derelict) continue;
-                        Geometry.circle(World.toTile(turret.x()), World.toTile(turret.y()), Mathf.ceil(turret.range / tilesize) + tilesize, (x, y) -> {
+                        Geometry.circle(World.toTile(turret.x()), World.toTile(turret.y()), Mathf.ceil(turret.range() / tilesize) + tilesize, (x, y) -> {
                             if (Structs.inBounds(x, y, world.width(), world.height()) && turret.contains(x * tilesize, y * tilesize)) {
                                 temp.set(x, y);
                                 if (turret.targetGround) blocked.set(x, y);

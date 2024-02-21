@@ -12,9 +12,10 @@ import mindustry.type.UnitType
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range: Float, @JvmField val targetGround: Boolean, @JvmField val targetAir: Boolean, private val canShoot: Boolp) : QuadTreeObject {
+class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range: Floatp, @JvmField val targetGround: Boolean, @JvmField val targetAir: Boolean, private val canShoot: Boolp) : QuadTreeObject {
     var id = 0L
 
+    fun range() = range.get()
     fun canShoot() = canShoot.get()
     fun canHitPlayer() = if (player.unit().isFlying) targetAir else targetGround
     fun isObstacle() = canShoot() && canHitPlayer() && !ignoreDamageSource(player.unit().type, entity)
@@ -47,7 +48,7 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range:
     }
 
     override fun hitbox(out: Rect) {
-        out.setCentered(entity.x, entity.y, range * 2)
+        out.setCentered(entity.x, entity.y, range() * 2)
     }
 
     /**
@@ -59,7 +60,7 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range:
     fun contains(x: Float, y: Float): Boolean {
         val dx = entity.x - x
         val dy = entity.y - y
-        val range = range + tilesize / 2F
+        val range = range() + tilesize / 2F
         return dx * dx + dy * dy <= range * range
     }
 
