@@ -70,12 +70,10 @@ public class UnitPicker extends BaseDialog {
             if (unit.isPlayer()) {
                 Toast t = new Toast(3);
                 if (unit.isLocal()) {
-                    t.add("New method worked.");
-//                    t.add("@client.unitpicker.success");
+                    t.add("@client.unitpicker.success");
                 } else if (unit.getPlayer() != null && !unit.isLocal()) {
                     type = unit.type;
-                    t.add("Failed to pick unit with new method, already in use by: " + unit.getPlayer().name);
-//                    t.add(Core.bundle.format("client.unitpicker.alreadyinuse", unit.type, unit.getPlayer().name));
+                    t.add(Core.bundle.format("client.unitpicker.alreadyinuse", unit.type, unit.getPlayer().name));
                 }
             } else { // This happens sometimes, idk man FINISHME: Cleanup
                 Log.err("???");
