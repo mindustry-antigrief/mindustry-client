@@ -518,6 +518,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         game.checkPref("doubletapmine", false);
         game.checkPref("commandmodehold", true);
+        game.checkPref("unitboosthold", true);
 
         if(!ios){
             game.checkPref("modcrashdisable", true);

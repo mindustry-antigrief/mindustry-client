@@ -1133,7 +1133,12 @@ public class DesktopInput extends InputHandler{
 
             unit.aim(Core.input.mouseWorld());
 
-            player.boosting = unit.type.canBoost && Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost); // If auto-boost, invert the behavior of the boost key
+            if(settings.getBool("unitboosthold", true)){
+                // If auto-boost, invert the behavior of the boost key
+                player.boosting = unit.type.canBoost && Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost);
+            }else if(input.keyTap(Binding.boost)){
+                player.boosting = unit.type.canBoost && !player.boosting;
+            }
 
             if ((!Core.input.keyDown(Binding.select) || block != null) && shouldShoot) AutoShootKt.autoShoot();
         } else if (Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame() && !movement.isZero()) Navigation.stopFollowing(); // Stop automatic mining on player move
