@@ -26,12 +26,12 @@ class TurretPathfindingEntity(@JvmField val entity: Ranged, @JvmField val range:
     companion object {
         private var nextId: Long = 0
         fun ignoreDamageSource(unit: UnitType, damageSource: Ranged): Boolean {
-            return when(damageSource) {
+            return if(damageSource is Unitc) when(damageSource.type()) {
                 UnitTypes.alpha, UnitTypes.horizon -> true
                 UnitTypes.beta, UnitTypes.nova, UnitTypes.flare -> unit.health >= 100
                 UnitTypes.gamma, UnitTypes.dagger, UnitTypes.crawler, UnitTypes.poly, UnitTypes.risso, UnitTypes.retusa, UnitTypes.atrax, UnitTypes.mega -> unit.health > 1000
                 else -> false
-            }
+            } else false
         }
     }
 
