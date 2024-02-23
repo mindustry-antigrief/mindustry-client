@@ -67,7 +67,7 @@ public class ClientVars {
 
     // Networking
     public static final byte FOO_USER = (byte) 0b10101010, ASSISTING = (byte) 0b01010101;
-    @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f); // Encrypted = Blue, Verified = Green
+    @NotNull public static Color encrypted = Color.valueOf("#243266"), verified = Color.valueOf("#2c9e52"), invalid = Color.valueOf("#890800"), user = Color.coral.cpy().mul(0.6f), developerMsgBackground = Color.valueOf("#9E2C9E"); // Encrypted = Blue, Verified = Green
     @NotNull public static String lastCertName = "";
     public static boolean isBuildingLock; // Whether the building state is being controlled by networking
     public static float pluginVersion; // Version of the foo plugin that is found on the server
