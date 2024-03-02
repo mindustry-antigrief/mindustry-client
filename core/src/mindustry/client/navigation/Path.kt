@@ -9,6 +9,7 @@ import mindustry.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
 import java.util.concurrent.*
+import kotlin.math.abs
 
 /** A way of representing a path */
 abstract class Path {
@@ -41,48 +42,54 @@ abstract class Path {
                 if (job.isDone) {
                     job = clientThread.submit {
                         v1.set(Vars.player) // starting position
-                        if (targetPos.within(destX, destY, 1F) && Navigation.currentlyFollowing != null && waypoints.waypoints.any()) { // Same destination
-                            val point = waypoints.waypoints.first()
-                            if (v1.dst(point) < point.tolerance * 1.5) {
-                                v1.set(point)
-                            }
-                        }
+                        // what is this following code supposed to achieve?
+//                        if (targetPos.within(destX, destY, 1F) && Navigation.currentlyFollowing != null && waypoints.waypoints.any()) { // Same destination
+//                            val point = waypoints.waypoints.first()
+//                            if (v1.dst(point) < point.tolerance * 1.5) {
+//                                v1.set(point)
+//                            }
+//                        }
                         val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.getEnts())
                         Pools.freeAll(filter)
                         filter.clear()
+                        if (!Vars.player.unit().isNull) v1.set(Vars.player.unit())
                         if (path.isNotEmpty() && (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>))) { // Same destination
                             val relaxed = Navigation.navigator is AStarNavigatorOptimised
                             filter.addAll(*path)
-                            if (!relaxed) filter.removeAll { (it.dst2(destX, destY) < dist * dist).apply { if (this) Pools.free(it) } }
-                            else while(filter.size > 1 && filter[filter.size - 2].dst2(destX, destY) < dist * dist) Pools.free(filter.pop())
-                            if (filter.size > 1) {
-                                val m = filter.min(Vars.player::dst2) // from O(n^2) to O(n) (pog) (cool stuff)
-                                if (!relaxed || Vars.player.within(m, m.tolerance)) {
-                                    val i = filter.indexOf(m)
-                                    if (i > 0) { for (j in 0 until i) Pools.free(filter[j]); filter.removeRange(0, i - 1) }
-                                }
+                            if (dist > 0F) {
+                                if (!relaxed) filter.removeAll { (it.dst2(destX, destY) < dist * dist).apply { if (this) Pools.free(it) } }
+                                else while (filter.size > 1 && filter[filter.size - 2].dst2(destX, destY) < dist * dist) Pools.free(filter.pop())
                             }
                             if (!relaxed) {
+                                if (filter.size > 1) {
+                                    val m = filter.min(v1::dst2)
+                                    if (Vars.player.within(m, m.tolerance)) {
+                                        val i = filter.indexOf(m)
+                                        if (i > 0) { for (j in 0 until i) Pools.free(filter[j]); filter.removeRange(0, i - 1) }
+                                    }
+                                }
                                 if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize / 2f)) Pools.free(filter.remove(0))
                                 if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
                             } else if (filter.size > 1) {
-                                var prev: Position = v1 // startX, startY should be guaranteed to be behind the player?
+                                var prev: Position = filter.first()
                                 var removeTo = -1
-                                for (i in 0 until filter.size) {
+                                for (i in 1 until filter.size) {
                                     val curr = filter[i]
-                                    if (prev.dst2(curr) >= Vars.player.dst2(prev)) { // find the point where the path crosses through the player
+                                    if ((v1.x - prev.x) * (curr.x - v1.x) + (v1.y - prev.y) * (curr.y - v1.y) > 0) { // find the point where the path crosses through the player
+                                        // this uses the dot product of the vectors AP and PB (where P is player, A and B are points). If product > 0, P is "between" A and B
                                         removeTo = i - 1
                                         break
                                     }
                                     prev = curr
                                 }
                                 if (removeTo >= 0) { for (j in 0 .. removeTo) Pools.free(filter[j]); filter.removeRange(0, removeTo) }
-                                // if (filter[0].dst(filter[1]) >= Vars.player.dst(filter[0])) Pools.free(filter.remove(0))
-                                // by triangular inequality, we check if filter[i] and filter[i+1] are on opposing sides of the player
                             }
-                            if (filter.any()) {
-                                filter.peek().tolerance = 4f // greater accuracy when stopping
-                                filter.peek().stopOnFinish = true
+                            if (filter.any()) { // Modify the last waypoint to have greater accuracy when stopping
+                                val last = filter.peek()
+                                if (abs(destX - last.x) < Vars.world.unitWidth().toFloat() / 2f && abs(destY - last.y) < Vars.world.unitHeight().toFloat() / 2f)
+                                    last.set(destX, destY)
+                                last.tolerance = 4f
+                                last.stopOnFinish = true
                                 waypoints.set(filter)
                             } else {
                                 waypoint.set(destX, destY, 8f, dist)

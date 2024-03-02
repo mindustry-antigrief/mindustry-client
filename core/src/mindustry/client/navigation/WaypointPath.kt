@@ -70,7 +70,8 @@ class WaypointPath<T : Waypoint> : Path {
     @Synchronized
     override fun follow() {
         if (waypoints.isEmpty) return
-        while (waypoints.size > 1 && Core.settings.getBool("assumeunstrict")) waypoints.remove(0) // Only the last waypoint is needed when we are just teleporting there anyways.
+        // Only the last waypoint is needed when we are just teleporting there anyways.
+        if (Core.settings.getBool("assumeunstrict")) waypoints.peek().apply { waypoints.clear().add(this) }
         while (waypoints.any() && waypoints.first().isDone) {
             waypoints.first().onFinish()
             waypoints.remove(0)
