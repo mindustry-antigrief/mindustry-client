@@ -189,6 +189,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
     }
 
     private transient long lastFrame;
+    private transient float buildPlanAlpha = 1f;
     private transient final Seq<BuildPlan> visiblePlans = new Seq<>(1);
     private void getVisiblePlans(){
         lastFrame = graphics.getFrameId();
@@ -229,9 +230,12 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
     void drawPlanTop(BuildPlan plan, float alpha){
         if(!plan.breaking){
-            if(lastFrame != graphics.getFrameId()) getVisiblePlans();
+            if(lastFrame != graphics.getFrameId()) {
+                getVisiblePlans();
+                buildPlanAlpha = 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f);
+            }
             Draw.reset();
-            Draw.mixcol(Color.white, 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f));
+            Draw.mixcol(Color.white, buildPlanAlpha);
             Draw.alpha(alpha);
             plan.block.drawPlanConfigTop(plan, visiblePlans);
         }

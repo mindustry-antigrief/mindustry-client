@@ -56,8 +56,8 @@ public class OverflowGate extends Block{
                 inv = invert == enabled;
 
             if(!canForward || inv){
-                Building a = nearby(Mathf.mod(from - 1, 4));
-                Building b = nearby(Mathf.mod(from + 1, 4));
+                Building a = nearby((from + 3) & 3); // Math.mod(from - 1, 4)
+                Building b = nearby((from + 1) & 3); // Math.mod(from + 1, 4)
                 boolean ac = a != null && !(fromInst && a.block.instantTransfer) && a.team == team && a.acceptItem(this, item);
                 boolean bc = b != null && !(fromInst && b.block.instantTransfer) && b.team == team && b.acceptItem(this, item);
 
