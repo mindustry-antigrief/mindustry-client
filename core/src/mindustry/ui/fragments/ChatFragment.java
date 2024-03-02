@@ -109,11 +109,9 @@ public class ChatFragment extends Table{
     // FINISHME: Awful.
     void updateCompletion() {
         if (Autocomplete.matches(chatfield.getText())) {
-            Seq<Autocompleteable> oldCompletion = completion.copy();
+            Seq<Autocompleteable> oldCompletion = completion;
             completion = Autocomplete.closest(chatfield.getText()).retainAll(item -> item.matches(chatfield.getText()) > 0.5f);
-            completion.reverse();
-            completion.truncate(4);
-            completion.reverse();
+            if (completion.size > 4) completion.removeRange(0, completion.size - 5);
             if (!Arrays.equals(completion.items, oldCompletion.items)) {
                 completionPos = completion.size - 1;
             }
@@ -140,7 +138,20 @@ public class ChatFragment extends Table{
         fieldlabel.getStyle().font = font;
         fieldlabel.setStyle(fieldlabel.getStyle());
 
-        chatfield = new TextField("", new TextFieldStyle(scene.getStyle(TextFieldStyle.class)));
+        chatfield = new TextField("", new TextFieldStyle(scene.getStyle(TextFieldStyle.class))) {
+            // Another scuffed way to allow pasting long js
+            {
+                layout.ignoreMarkup = false;
+            }
+            @Override
+            public void paste(String content, boolean fireChangeEvent) {
+                if (content != null && content.startsWith("!js ") &&
+                    Math.min(hasSelection ? selectionStart : Integer.MAX_VALUE, cursor) == 0) // Only increase length if pasting into front of text
+                        chatfield.setMaxLength(0);
+                super.paste(content, fireChangeEvent);
+            }
+        };
+
         chatfield.updateVisibility();
         chatfield.setFocusTraversal(false);
         chatfield.setProgrammaticChangeEvents(true);
@@ -342,7 +353,7 @@ public class ChatFragment extends Table{
         }
 
         if (completion.any() && shown) {
-            float pos = Reflect.<FloatSeq>get(chatfield, "glyphPositions").peek() + chatfield.x;
+            float pos = Reflect.<FloatSeq>get(TextField.class, chatfield, "glyphPositions").peek() + chatfield.x;
             StringBuilder contents = new StringBuilder();
             int index = 0;
             for (Autocompleteable auto : completion) {
