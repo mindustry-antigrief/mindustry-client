@@ -405,7 +405,7 @@ public class ChatFragment extends Table{
         StringBuilder messageBuild = new StringBuilder(message);
 
         for (var entry : ClientVars.containsCommandHandler.entries()){ // s l o w
-            String prefix = entry.key;
+            var prefix = entry.key.toString();
             int pos = -1;
             while (true) {
                 pos = messageBuild.indexOf(prefix, pos + 1);

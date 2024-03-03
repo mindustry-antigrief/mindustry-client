@@ -341,7 +341,7 @@ private val foreshadowBulletFlood = LaserBulletType().apply {
     sideAngle = 15f
     sideWidth = 0f
     sideLength = 0f
-    colors = arrayOf(Pal.heal.cpy().a(0.4f), Pal.heal, Color.white)
+    colors = arrayOf(Color.clear, Color.clear, Color.clear) // FINISHME: Make this properly invisible
 }
 
 fun handleKick(reason: String) {

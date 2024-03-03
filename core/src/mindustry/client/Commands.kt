@@ -733,15 +733,15 @@ fun setupCommands() {
 
     // Symbol replacements
 
-    registerReplace("%", "c", "cursor") {
+    registerReplace('%', "c", "cursor") {
         "(${control.input.rawTileX()}, ${control.input.rawTileY()})"
     }
 
-    registerReplace("%", "s", "shrug") {
+    registerReplace('%', "s", "shrug") {
         "¯\\_(ツ)_/¯"
     }
 
-    registerReplace("%", "h", "here") {
+    registerReplace('%', "h", "here") {
         "(${player.tileX()}, ${player.tileY()})"
     }
 
@@ -927,14 +927,10 @@ fun replaceMsg(match: String, matchRegex: Boolean, from: String, fromRegex: Bool
     }
 }
 
-fun registerReplace(symbol: String = "%", vararg cmds: String, runner: Prov<String>) {
-    cmds.forEach { registerReplace(symbol, it, runner) }
-}
-fun registerReplace(symbol: String = "%", cmd: String, runner: Prov<String>) {
-    if(symbol.length != 1) throw IllegalArgumentException("Bad symbol in replace command")
+fun registerReplace(symbol: Char = '%', vararg cmds: String, runner: Prov<String>) = cmds.forEach { cmd ->
     val seq = containsCommandHandler.get(symbol) { Seq() }
     seq.add(Pair(cmd, runner))
-    seq.sort(Structs.comparingInt{ -it.first.length })
+    seq.sort(Structs.comparingInt { -it.first.length })
 }
 
 private fun connectTls(certname: String, onFinish: (Packets.CommunicationClient, X509Certificate) -> Unit) {

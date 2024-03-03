@@ -45,7 +45,7 @@ public class NetClient implements ApplicationListener{
     /** ticks between syncs, e.g. 5 means 60/5 = 12 syncs/sec*/
     private static final float playerSyncTime = 4;
     private static final Reads dataReads = new Reads(null);
-    private static final Pattern wholeCoordPattern = Pattern.compile("\\S*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)\\S*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
+    private static final Pattern wholeCoordPattern = Pattern.compile("[^]\\s]*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)[^\\[\\s]*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
     private static final Pattern coordPattern = Pattern.compile("(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)"); // Same as above, but without the surrounding text and https://regexr.com
     private static final Pattern linkPattern = Pattern.compile("(https?://)?[-a-zA-Z0-9@:%._\\\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b[-a-zA-Z0-9()@:%_\\\\+.~#?&/=]*");
 
@@ -368,7 +368,7 @@ public class NetClient implements ApplicationListener{
         if (setLastPos) try {
             ClientVars.lastSentPos.set(Float.parseFloat(matcher.group(1)), Float.parseFloat(matcher.group(2)));
         } catch (NumberFormatException ignored) {}
-        return matcher.replaceFirst(Matcher.quoteReplacement("[scarlet]" + Strings.stripColors(matcher.group()) + "[]")); // replaceFirst [scarlet]$0[] fails if $0 begins with a color, stripColors($0) isn't something that works.
+        return matcher.replaceFirst(Matcher.quoteReplacement("[scarlet]" + Strings.stripColors(matcher.group()) + "[]"));
     }
 
     //called when a server receives a chat message from a player

@@ -56,7 +56,7 @@ public class ClientVars {
 
     // Commands
     @NotNull public static CommandHandler clientCommandHandler = new CommandHandler(Core.settings.getString("fooprefix", "!"));
-    @NotNull public static final ObjectMap<String, Seq<Pair<String, Prov<String>>>> containsCommandHandler = new ObjectMap<>(); // Currently a naive implementation which just replaces all occurrences
+    @NotNull public static final ObjectMap<Character, Seq<Pair<String, Prov<String>>>> containsCommandHandler = new ObjectMap<>(); // Currently a naive implementation which just replaces all occurrences
     @NotNull public static Vec2 lastSentPos = new Vec2(), lastCorePos = new Vec2();
     public static final String MESSAGE_BLOCK_PREFIX = "IN USE FOR CHAT AUTHENTICATION, do not use";
     public static long lastJoinTime; // Last time WorldLoadEvent was fired

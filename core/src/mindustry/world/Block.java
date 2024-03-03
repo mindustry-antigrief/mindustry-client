@@ -579,7 +579,7 @@ public class Block extends UnlockableContent implements Senseable{
 
     public void setBars(){
         addBar("health", entity -> new Bar(() -> 
-            Strings.format("@ (@ / @)", Core.bundle.get("stat.health"), Mathf.round(entity.health, 0.1f), health)
+            Strings.format("@ (@ / @)", Core.bundle.get("stat.health"), Mathf.round(entity.health, 0.1f), Mathf.round(health, 0.1f))
         , () -> Pal.health, entity::healthf).blink(Color.white));
 
         if(consPower != null){

@@ -118,13 +118,11 @@ public class LogicDisplay extends Block{
             Draw.blend(Blending.disabled);
             Draw.draw(Draw.z(), () -> {
                 if(buffer != null){
-                    if (Core.settings.getBool("drawdisplayborder")) Draw.rect(Draw.wrap(buffer.getTexture()), x, y, (32 * size - 16) * Draw.scl, -(32 * size - 16) * Draw.scl);
+                    if (Core.settings.getBool("drawdisplayborder")) Draw.rect(Draw.wrap(buffer.getTexture()), x, y, buffer.getWidth() * scaleFactor * Draw.scl, -buffer.getHeight() * scaleFactor * Draw.scl);
                     else Draw.rect(Draw.wrap(buffer.getTexture()), x, y, 32 * size * Draw.scl, -32 * size * Draw.scl);
-//                  Line below is from v7-wip branch
-//                  Draw.rect(Draw.wrap(buffer.getTexture()), x, y, 32 * size * Draw.scl, -32 * size * Draw.scl);
 
 //                  FINISHME: Line below is vanilla, make it work with the client version above somehow.
-//                  Draw.rect(Draw.wrap(buffer.getTexture()), x, y, buffer.getWidth() * scaleFactor * Draw.scl, -buffer.getHeight() * scaleFactor * Draw.scl);
+//
                 }
             });
             Draw.blend();
