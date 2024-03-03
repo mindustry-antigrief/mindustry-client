@@ -219,6 +219,8 @@ public class UnitType extends UnlockableContent implements Senseable{
     naval = false,
     /** if false, RTS AI controlled units do not automatically attack things while moving. This is automatically assigned. */
     autoFindTarget = true,
+    /** If false, 'under' blocks like conveyors are not targeted. */
+    targetUnderBlocks = true,
     /** if true, this unit will always shoot while moving regardless of slowdown */
     alwaysShootWhenMoving = false,
 
@@ -300,6 +302,8 @@ public class UnitType extends UnlockableContent implements Senseable{
     public UnitCommand[] commands = {};
     /** Command to assign to this unit upon creation. Null indicates the first command in the array. */
     public @Nullable UnitCommand defaultCommand;
+    /** Stances this unit can have.  An empty array means stances will be assigned based on unit capabilities in init(). */
+    public UnitStance[] stances = {};
 
     /** color for outline generated around sprites */
     public Color outlineColor = Pal.darkerMetal;
@@ -436,10 +440,6 @@ public class UnitType extends UnlockableContent implements Senseable{
 
     public static float alpha = 1f; // FINISHME: Seriously, why the hell is this static? Shouldn't this be a variable tied to the unit?!?
     private static final Color accentCopy = Pal.accent.cpy(); // Used so we can set the alpha value without resetting it
-
-    static {
-        Events.run(EventType.Trigger.update, () -> pixelated = Core.settings.getBool("pixelate"));
-    }
 
     public UnitType(String name){
         super(name);
@@ -614,6 +614,8 @@ public class UnitType extends UnlockableContent implements Senseable{
         stats.add(Stat.size, StatValues.squared(hitSize / tilesize, StatUnit.blocks));
         stats.add(Stat.itemCapacity, itemCapacity);
         stats.add(Stat.range, (int)(maxRange / tilesize), StatUnit.blocks);
+        stats.add(Stat.targetsAir, targetAir);
+        stats.add(Stat.targetsGround, targetGround);
 
         if(abilities.any()){
             stats.add(Stat.abilities, StatValues.abilities(abilities));
@@ -707,7 +709,9 @@ public class UnitType extends UnlockableContent implements Senseable{
         }
 
         //if a status effects slows a unit when firing, don't shoot while moving.
-        autoFindTarget = !weapons.contains(w -> w.shootStatus.speedMultiplier < 0.99f) || alwaysShootWhenMoving;
+        if(autoFindTarget){
+            autoFindTarget = !weapons.contains(w -> w.shootStatus.speedMultiplier < 0.99f) || alwaysShootWhenMoving;
+        }
 
         clipSize = Math.max(clipSize, lightRadius * 1.1f);
         singleTarget = weapons.size <= 1 && !forceMultiTarget;
@@ -817,7 +821,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         if(commands.length == 0){
             Seq<UnitCommand> cmds = new Seq<>(UnitCommand.class);
 
-            cmds.add(UnitCommand.moveCommand);
+            cmds.add(UnitCommand.moveCommand, UnitCommand.enterPayloadCommand);
 
             if(canBoost){
                 cmds.add(UnitCommand.boostCommand);
@@ -836,9 +840,24 @@ public class UnitType extends UnlockableContent implements Senseable{
                 if(mineTier > 0){
                     cmds.add(UnitCommand.mineCommand);
                 }
+                if(example instanceof Payloadc){
+                    cmds.addAll(UnitCommand.loadUnitsCommand, UnitCommand.loadBlocksCommand, UnitCommand.unloadPayloadCommand);
+                }
             }
 
             commands = cmds.toArray();
+        }
+
+        if(stances.length == 0){
+            if(canAttack){
+                Seq<UnitStance> seq = Seq.with(UnitStance.stop, UnitStance.shoot, UnitStance.holdFire, UnitStance.pursueTarget, UnitStance.patrol);
+                if(crushDamage > 0){
+                    seq.add(UnitStance.ram);
+                }
+                stances = seq.toArray(UnitStance.class);
+            }else{
+                stances = new UnitStance[]{UnitStance.stop, UnitStance.patrol};
+            }
         }
 
         //dynamically create ammo capacity based on firing rate
@@ -944,7 +963,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     public void createIcons(MultiPacker packer){
         super.createIcons(packer);
 
-        if(constructor == null) throw new IllegalArgumentException("No constructor set up for unit '" + name + "'. Make sure you assign a valid value to `constructor`, e.g. `constructor = UnitEntity::new`");
+        if(constructor == null) throw new IllegalArgumentException("No constructor set up for unit '" + name + "', add this argument to your units field: `constructor = UnitEntity::create`");
 
         sample = constructor.get();
 
@@ -952,13 +971,14 @@ public class UnitType extends UnlockableContent implements Senseable{
         getRegionsToOutline(toOutline);
 
         for(var region : toOutline){
-            if(region instanceof AtlasRegion atlas){
+            if(region instanceof AtlasRegion atlas && !Core.atlas.has(atlas.name + "-outline")){
                 String regionName = atlas.name;
                 Pixmap outlined = Pixmaps.outline(Core.atlas.getPixmap(region), outlineColor, outlineRadius);
 
                 Drawf.checkBleed(outlined);
 
                 packer.add(PageType.main, regionName + "-outline", outlined);
+                outlined.dispose();
             }
         }
 
@@ -1011,7 +1031,9 @@ public class UnitType extends UnlockableContent implements Senseable{
                     }
 
                     packer.add(PageType.main, name + "-treads" + r + "-" + i, frame);
+                    frame.dispose();
                 }
+                slice.dispose();
             }
         }
     }
@@ -1348,10 +1370,10 @@ public class UnitType extends UnlockableContent implements Senseable{
 
         //draw back items
         if(unit.item() != null && unit.itemTime > 0.01f){
-            float absin51 = Mathf.absin(Time.time, 5f, 1f);
-            float size = (itemSize + absin51) * unit.itemTime;
+            float sin = Mathf.absin(Time.time, 5f, 1f);
+            float size = (itemSize + sin) * unit.itemTime;
 
-            Draw.mixcol(Pal.accent, Mathf.absin(Time.time, 5f, 0.1f));
+            Draw.mixcol(Pal.accent, sin * 0.1f);
             Draw.alpha(alpha);
             Draw.rect(unit.item().fullIcon,
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
@@ -1359,14 +1381,14 @@ public class UnitType extends UnlockableContent implements Senseable{
             size, size, unit.rotation);
             Draw.mixcol();
 
-            size = ((3f + absin51) * unit.itemTime + 0.5f) * 2;
+            size = ((3f + sin) * unit.itemTime + 0.5f) * 2;
             Draw.color(Pal.accent, alpha);
             Draw.rect(itemCircleRegion,
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
             size, size);
 
-            if((drawAllItems || unit.isLocal()) && !pixelated){
+            if((drawAllItems || unit.isLocal()) && !renderer.pixelate){
                 float z = Draw.z();
                 Draw.z(z + .01f); // Remove this if you enjoy 1000 texture swaps
                 Fonts.outline.draw(unit.stack.amount + "",

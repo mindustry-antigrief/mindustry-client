@@ -80,7 +80,9 @@ task steamtest(dependsOn: dist){
     doLast{
         copy{
             from "build/libs/Mindustry.jar"
-            if(System.getProperty("os.name").toLowerCase().contains("mac")){
+            if(project.hasProperty("destination")){
+                into project.property("destination")
+            }else if(System.getProperty("os.name").toLowerCase().contains("mac")){
                 into "/Users/nate/Library/Application Support/Steam/steamapps/common/Mindustry/Mindustry.app/Contents/Resources"
                 rename("Mindustry.jar", "desktop.jar")
             }else{

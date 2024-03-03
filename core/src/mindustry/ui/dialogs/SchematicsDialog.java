@@ -518,10 +518,13 @@ public class SchematicsDialog extends BaseDialog{
                 Table current = new Table().left();
 
                 for(var tag : tags){
+                    float si = 40f;
 
-                    var next = new Table(n -> {
-                        n.table(Tex.pane, move -> {
-                            move.margin(2);
+                    var next = new Table(Tex.whiteui, n -> {
+                        n.setColor(Pal.gray);
+                        n.margin(5f);
+
+                        n.table(move -> {
 
                             //move up
                             move.button(Icon.upOpen, Styles.emptyi, () -> {
@@ -535,7 +538,7 @@ public class SchematicsDialog extends BaseDialog{
                                     tagsChanged();
                                     rebuild[0].run();
                                 }
-                            }).tooltip("@editor.moveup").row();
+                            }).size(si).tooltip("@editor.moveup").row();
                             //move down
                             move.button(Icon.downOpen, Styles.emptyi, () -> {
                                 int idx = tags.indexOf(tag);
@@ -548,11 +551,10 @@ public class SchematicsDialog extends BaseDialog{
                                     tagsChanged();
                                     rebuild[0].run();
                                 }
-                            }).tooltip("@editor.movedown");
-                        }).fillY().margin(6f);
+                            }).size(si).tooltip("@editor.movedown");
+                        }).fillY();
 
-                        n.table(Tex.whiteui, t -> {
-                            t.setColor(Pal.gray);
+                        n.table(t -> {
                             t.add(tag).left().row();
                             final var count = schematics.all().count(s -> s.labels.contains(tag));
                             t.add(Core.bundle.format("schematic.tagged", count)).left()
@@ -563,9 +565,9 @@ public class SchematicsDialog extends BaseDialog{
                                 rebuildTags.run();
                                 rebuildPane.run();
                             });
-                        }).growX().fillY().margin(8f);
+                        }).growX().fillY();
 
-                        n.table(Tex.pane, b -> {
+                        n.table(b -> {
                             b.margin(2);
 
                             //rename tag
@@ -589,7 +591,7 @@ public class SchematicsDialog extends BaseDialog{
                                         rebuild[0].run();
                                     }
                                 });
-                            }).tooltip("@schematic.renametag").row();
+                            }).size(si).tooltip("@schematic.renametag").row();
                             //delete tag
                             b.button(Icon.trash, Styles.emptyi, () -> {
                                 if (Core.input.shift()) {
@@ -602,22 +604,21 @@ public class SchematicsDialog extends BaseDialog{
                                     deleteTag(tag);
                                     rebuild[0].run();
                                 });
-                            }).tooltip("@save.delete");
-                        }).fillY().margin(6f);
+                            }).size(si).tooltip("@save.delete");
+                        }).fillY();
                     });
 
                     next.pack();
-                    float w = next.getPrefWidth() + Scl.scl(6f);
+                    float w = next.getWidth() + Scl.scl(9f);
 
-                    if(w + sum >= Core.graphics.getWidth() * (Core.graphics.isPortrait() ? 1f : 0.8f)){
+                    if(w + sum >= Core.graphics.getWidth() * 0.9f){
                         p.add(current).row();
                         current = new Table();
                         current.left();
-                        current.add(next).minWidth(240).pad(4);
                         sum = 0;
-                    }else{
-                        current.add(next).minWidth(240).pad(4);
                     }
+
+                    current.add(next).minWidth(210).pad(4);
 
                     sum += w;
                 }

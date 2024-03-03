@@ -39,6 +39,7 @@ public class LaserBulletType extends BulletType{
         hittable = false;
         absorbable = false;
         removeAfterPierce = false;
+        delayFrags = true;
     }
 
     public LaserBulletType(){

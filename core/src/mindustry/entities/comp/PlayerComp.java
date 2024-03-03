@@ -204,7 +204,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
         // null these out to prevent long-lived player objects (for example, Moderation.leaves) from holding onto units with logic controllers that will hold all of their neighbors
         lastReadUnit = Nulls.unit;
-        justSwitchFrom = justSwitchTo = null;
+        justSwitchTo = justSwitchFrom = null;
     }
 
     public void team(Team team){

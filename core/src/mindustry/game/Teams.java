@@ -309,6 +309,8 @@ public class Teams{
 
             //convert all team tiles to neutral, randomly killing them
             for(var b : builds){
+                if(b.block.privileged) continue;
+
                 if(b instanceof CoreBuild){
                     b.kill();
                 }else{
@@ -333,7 +335,7 @@ public class Teams{
             }
 
             for(var build : builds){
-                if(build.within(x, y, range)){
+                if(build.within(x, y, range) && !build.block.privileged){
                     scheduleDerelict(build);
                 }
             }
@@ -347,7 +349,7 @@ public class Teams{
             }
 
             for(var build : builds){
-                if(build.within(x, y, range) && !cores.contains(c -> c.within(x, y, range))){
+                if(build.within(x, y, range) && !cores.contains(c -> c.within(build, range))){
                     //TODO GPU driver bugs?
                     build.kill();
                     //Time.run(Mathf.random(0f, 60f * 6f), build::kill);

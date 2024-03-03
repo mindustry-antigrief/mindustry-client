@@ -6,6 +6,7 @@ logs/
 /core/assets/.gifimages/
 /deploy/
 /out/
+ios/libs/
 /desktop/packr-out/
 /desktop/packr-export/
 /desktop/mindustry-saves/
@@ -42,6 +43,7 @@ steam_appid.txt
 ios/robovm.properties
 packr-out/
 config/
+buildSrc/
 *.gif
 /tests/out
 /buildSrc/build

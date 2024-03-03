@@ -33,6 +33,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void menu(int menuId, String title, String message, String[][] options){
         if(title == null) title = "";
+        if(message == null) message = "";
         if(options == null) options = new String[0][0];
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
@@ -47,6 +48,7 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void followUpMenu(int menuId, String title, String message, String[][] options){
         if(title == null) title = "";
+        if(message == null) message = "";
         if(options == null) options = new String[0][0];
         if(title.equals("Hello there") && Server.cn.b()) return; // Cn join popup
 
@@ -71,9 +73,16 @@ public class Menus{
 
     @Remote(variants = Variant.both)
     public static void textInput(int textInputId, String title, String message, int textLength, String def, boolean numeric){
-        if(title == null) title = "";
+        textInput(textInputId, title, message, textLength, def, numeric, false);
+    }
 
-        ui.showTextInput(title, message, textLength, def, numeric, (text) -> {
+    @Remote(variants = Variant.both)
+    public static void textInput(int textInputId, String title, String message, int textLength, String def, boolean numeric, boolean allowEmpty){
+        if(title == null) title = "";
+        if(message == null) message = "";
+        if(def == null) def = "";
+
+        ui.showTextInput(title, message, textLength, def, numeric, allowEmpty, (text) -> {
             Call.textInputResult(player, textInputId, text);
         }, () -> {
             Call.textInputResult(player, textInputId, null);
