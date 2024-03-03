@@ -21,6 +21,7 @@ import mindustry.ui.*;
 
 import java.util.*;
 
+import static arc.Core.scene;
 import static mindustry.Vars.*;
 
 public class LCanvas extends Table{
@@ -114,12 +115,27 @@ public class LCanvas extends Table{
         statements = new DragLayout();
         jumps = new WidgetGroup();
 
-        pane = pane(t -> {
-            t.center();
-            t.add(statements).pad(2f).center().width(targetWidth);
-            t.add(jumps);
-            jumps.cullable = false;
+        Table t = new Table();
+        t.center();
+        t.add(statements).pad(2f).center().width(targetWidth);
+        t.add(jumps);
+        jumps.cullable = false;
+        pane = add(new ScrollPane(t, scene.getStyle(ScrollPane.ScrollPaneStyle.class)){
+            private long lastScrollTime = 0L;
+            private long scrollDuration = 0L;
+            @Override
+            protected float getMouseWheelY() {
+                long currTime = Time.millis();
+                if (currTime - lastScrollTime > 300) scrollDuration = 0L;
+                else scrollDuration += (currTime - lastScrollTime);
+                lastScrollTime = currTime;
+                float fastSpeed = super.getMouseWheelY(), slowSpeed = getHeight() / 4f;
+                if (slowSpeed > fastSpeed) return fastSpeed;
+                return Mathf.lerp(slowSpeed, fastSpeed * 2f, // why 4 and 2? i just came up with it
+                        Mathf.clamp((float)scrollDuration / 3000f));
+            }
         }).grow().get();
+
         Element e = new Element();
         e.setColor(0, 0, 0, 0);
         e.setSize(0);
