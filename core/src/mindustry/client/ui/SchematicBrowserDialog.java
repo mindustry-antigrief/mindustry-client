@@ -501,7 +501,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             if (hiddenRepositories.contains(link)) continue; // Skip loading
             String fileName = link.replace("/","") + ".zip";
             Fi filePath = schematicRepoDirectory.child(fileName);
-            if (!filePath.exists() || filePath.length() == 0) return;
+            if (!filePath.exists() || filePath.length() == 0) continue;
             ZipFi zip;
             try {
                 zip = new ZipFi(filePath);
