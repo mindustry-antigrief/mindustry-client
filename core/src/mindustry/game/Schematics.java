@@ -343,15 +343,9 @@ public class Schematics implements Loadable{
         return result;
     }
 
-    /** Adds a schematic to the list, also copying it into the files.*/
-    public void add(Schematic schematic){
-        add(schematic, true);
-    }
-
     /** Adds a schematic to the list with the option to import tags. */
-    public void add(Schematic schematic, boolean importTags){
+    public void add(Schematic schematic){
         all.add(schematic);
-        if (!importTags) schematic.labels.clear();
         try{
             Fi file = findFile(Strings.sanitizeFilename(schematic.name()));
             write(schematic, file);

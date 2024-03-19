@@ -230,7 +230,12 @@ public class SchematicBrowserDialog extends BaseDialog {
                         buttons.button(Icon.upload, style, () -> showExport(s)).tooltip("@editor.export");
                         buttons.button(Icon.download, style, () -> {
                             ui.showInfoFade("@schematic.saved");
-                            schematics.add(s, Core.settings.getBool("schematicbrowserimporttags"));
+                            if (Core.settings.getBool("schematicbrowserimporttags")) schematics.add(s);
+                            else {
+                                Schematic cpy = new Schematic(s.tiles, s.tags, s.width, s.height);
+                                cpy.labels.clear();
+                                schematics.add(cpy);
+                            }
                             Reflect.invoke(ui.schematics, "checkTags", new Object[]{s}, Schematic.class); // Vars.ui.schematics.checkTags(s)
                         }).tooltip("@client.schematic.browser.download");
                     }).growX().height(50f);
