@@ -266,7 +266,7 @@ fun setupCommands() {
     register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
         val start = Time.nanos()
         val diodeLinks = PowerDiode.connections(player.team()) // Must be run on the main thread
-        val grids = Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.associate { it.graph().id to it.graph().all.copy() }
+        val grids = Groups.powerGraph.array.select { it.graph().all.first().team == player.team() }.associate { it.graph().getID() to it.graph().all.copy() }
         val confirmed = args.any() && args[0] == "c" // Don't configure by default
         val inProgress = !configs.isEmpty()
         var n = 0
@@ -279,15 +279,15 @@ fun setupCommands() {
                 val nodeBlock = nodeBuild.block as PowerNode
                 var links = nodeBuild.power.links.size
                 nodeBlock.getPotentialLinks(nodeBuild.tile, player.team()) { link ->
-                    val min = min(grid, link.power.graph.id)
-                    val max = max(grid, link.power.graph.id)
+                    val min = min(grid, link.power.graph.getID())
+                    val max = max(grid, link.power.graph.getID())
                     if (diodeLinks.any { it[0] == min && it[1] == max }) return@getPotentialLinks // Don't connect across diodes
                     if (++links > nodeBlock.maxNodes) return@getPotentialLinks // Respect max links
                     val t = newLinks.get(grid) { IntSet.with(grid) }
-                    val l = newLinks.get(link.power.graph.id, IntSet())
-                    if (l.add(grid) && t.add(link.power.graph.id)) {
+                    val l = newLinks.get(link.power.graph.getID(), IntSet())
+                    if (l.add(grid) && t.add(link.power.graph.getID())) {
                         l.addAll(t)
-                        newLinks.put(link.power.graph.id, l)
+                        newLinks.put(link.power.graph.getID(), l)
                         configCache.add(Point2(link.tileX() - nodeBuild.tileX(), link.tileY() - nodeBuild.tileY()))
                         n++
                     }

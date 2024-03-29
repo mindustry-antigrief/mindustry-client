@@ -118,7 +118,7 @@ public class Build{
                 //doesn't play a sound
             }
 
-            Events.fire(new BlockBuildEndEvent(tile, unit, team, false, config));
+            Events.fire(new BlockBuildEndEvent(tile, unit, team, false, config, Blocks.air)); // FINISHME: v147 addition, whats the proper previous block here?
             return;
         }
 

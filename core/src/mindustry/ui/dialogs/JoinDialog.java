@@ -535,8 +535,9 @@ public class JoinDialog extends BaseDialog{
             }else{
                 safeConnect(host.address, host.port, host.version);
             }
-        }).width(w).padBottom(7).padRight(4f).top().left().growY().uniformY().get()
-            .clicked(l -> l.setButton(KeyCode.mouseRight), () -> Core.app.setClipboardText(host.address)); // FINISHME: (Mar 2024) does this still work with the new changes here?
+        }).width(w).padBottom(7).padRight(4f).top().left().growY().uniformY().get();
+        button[0].clicked(l -> l.setButton(KeyCode.mouseRight), () -> Core.app.setClipboardText(host.address)); // FINISHME: (Mar 2024) does this still work with the new changes here?
+
 
         Table inner = new Table(Tex.whiteui);
         inner.setColor(Pal.gray);

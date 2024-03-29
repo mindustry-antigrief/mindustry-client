@@ -325,9 +325,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void checkTags(Schematic s){
         for(var tag : s.labels){
-            if(!tags.contains(tag)){
-                tags.add(tag);
-            }
+            tags.addUnique(tag);
         }
     }
 
@@ -492,8 +490,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             hiddenRepositories.addAll(Core.settings.getString("hiddenschematicrepositories").split(";"));
         }
 
-        tags.clear();
-        tags.addAll(Core.settings.getJson("schematic-browser-tags", Seq.class, String.class, Seq::new));
+        tags.set(Core.settings.getJson("schematic-browser-tags", Seq.class, String.class, Seq::new));
     }
 
     void loadRepositories(){
@@ -509,21 +506,26 @@ public class SchematicBrowserDialog extends BaseDialog {
                 Log.err("Error parsing repository zip " + filePath.name(), e);
                 continue;
             }
-            final Seq<Schematic> schems = new Seq<>();
-            zip.walk(f -> {
-                try {
-                    if (f.extEquals("msch")) {
-                        Schematic s = Schematics.read(f);
-                        schems.add(s);
-                        checkTags(s);
-                    }
-                } catch (Throwable e) {
-                    Log.err("Error parsing schematic " + link + " " + f.name(), e);
+
+            mainExecutor.execute(() -> { // Defer work to another thread
+                final Seq<Schematic> schems = new Seq<>();
+                zip.walk(f -> {
+                    try {
+                        if (f.extEquals("msch")) {
+                            Schematic s = Schematics.read(f);
+                            schems.add(s);
+                        }
+                    } catch (Throwable e) {
+                        Log.err("Error parsing schematic " + link + " " + f.name(), e);
 //                    ui.showErrorMessage(Core.bundle.format("client.schematic.browser.fail.parse", link, f.name())); // FINISHME: Find a better way to do this, currently it spams the screen with error messages
-                }
+                    }
+                });
+                schems.sort();
+                Core.app.post(() -> {
+                    schems.each(this::checkTags);
+                    loadedRepositories.get(link, () -> new Seq<>(schems.size)).clear().add(schems);
+                });
             });
-            schems.sort();
-            loadedRepositories.get(link, () -> new Seq<>(schems.size)).clear().add(schems);
         }
         unloadedRepositories.clear();
     }

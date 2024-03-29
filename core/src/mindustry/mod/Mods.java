@@ -322,8 +322,8 @@ public class Mods implements Loadable{
                 var type = PageType.all[i];
                 var typePacker = packer.getPacker(type);
                 tasks.add(mainExecutor.submit(() -> {
-                    //TODO is this in reverse order?
-                    new Sort().sort(rects, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
+                    // FINISHME: Is this in reverse order?
+                    rects.sort(Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
 
                     for(var entry : rects){
                         typePacker.pack(entry.name, entry.region, entry.splits, entry.pads);
@@ -385,6 +385,7 @@ public class Mods implements Loadable{
 
             Time.mark();
             //generate new icons
+            var await = new Seq<Future<?>>();
             for(Seq<Content> arr : content.getContentMap()){
                 arr.each(c -> {
                     //TODO this can be done in parallel
@@ -392,11 +393,12 @@ public class Mods implements Loadable{
                         u.load();
                         u.loadIcon();
                         if(u.generateIcons && !c.minfo.mod.meta.pregenerated){
-                            u.createIcons(packer);
+                            await.add(mainExecutor.submit(() -> u.createIcons(packer)));
                         }
                     }
                 });
             }
+            Threads.awaitAll(await);
             Log.debug("Time to generate icons: @ms", Time.elapsed());
 
             //dispose old atlas data
