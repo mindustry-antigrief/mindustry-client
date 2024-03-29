@@ -49,12 +49,13 @@ object Navigation {
     private var allyJob = CompletableFuture.completedFuture<Seq<TurretPathfindingEntity>>(null)
     private var updatingEnts = AtomicInteger(0)
     private var updatingAllyEnts = AtomicInteger(0)
-    private var lastFrame = 0L
+    private var lastEntFrame = 0L
+    private var lastAllyEntFrame = 0L
 
     /** Client thread only */
     private fun updateEnts(force: Boolean = false): Seq<TurretPathfindingEntity> {
-        if ((force || updatingEnts.get() <= 0) && Core.graphics.frameId > lastFrame) { // Update once per frame
-            lastFrame = Core.graphics.frameId
+        if ((force || updatingEnts.get() <= 0) && Core.graphics.frameId > lastEntFrame) { // Update once per frame
+            lastEntFrame = Core.graphics.frameId
             val tree = tmpTree
             obstacles = Seq()
             tree.use {
@@ -74,8 +75,8 @@ object Navigation {
 
     /** Client thread only */
     private fun updateAllyEnts(force: Boolean = false): Seq<TurretPathfindingEntity> {
-        if ((force || updatingAllyEnts.get() <= 0) && Core.graphics.frameId > lastFrame) { // Update once per frame
-            lastFrame = Core.graphics.frameId
+        if ((force || updatingAllyEnts.get() <= 0) && Core.graphics.frameId > lastAllyEntFrame) { // Update once per frame
+            lastAllyEntFrame = Core.graphics.frameId
             val tree = tmpTree
             allies = Seq()
             tree.use {
