@@ -110,7 +110,7 @@ object Client {
         }
 
         // Turret range
-        val bounds = Core.camera.bounds(Tmp.r3).grow(tilesize.toFloat())
+        val bounds = Core.camera.bounds(Tmp.r3).grow(tilesizeF)
         if (showingTurrets || showingInvTurrets || showingAllyTurrets) {
             if (showingTurrets || showingInvTurrets) {
                 val enemyunits = Core.settings.getBool("enemyunitranges")

@@ -9,7 +9,7 @@ import mindustry.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
 import java.util.concurrent.*
-import kotlin.math.abs
+import kotlin.math.*
 
 /** A way of representing a path */
 abstract class Path {
@@ -86,7 +86,7 @@ abstract class Path {
                             }
                             if (filter.any()) { // Modify the last waypoint to have greater accuracy when stopping
                                 val last = filter.peek()
-                                if (abs(destX - last.x) < Vars.tilesize.toFloat() / 2f && abs(destY - last.y) < Vars.tilesize.toFloat() / 2f)
+                                if (abs(destX - last.x) < Vars.tilesizeF / 2f && abs(destY - last.y) < Vars.tilesizeF / 2f)
                                     last.set(destX, destY) // Snap the last waypoint to cursor location
                                 last.tolerance = 4f
                                 last.stopOnFinish = true

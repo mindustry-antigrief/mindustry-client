@@ -297,7 +297,7 @@ object AStarNavigatorOptimised : Navigator() {
                 }
                 points.reverse()
                 if (hasBlocked) {
-                    val tileSize = tilesize.toFloat()
+                    val tileSize = tilesizeF
                     for (c in points) { // adjust tolerance values
                         val cx = World.toTile(c.x)
                         val cy = World.toTile(c.y)
