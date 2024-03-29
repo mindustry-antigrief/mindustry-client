@@ -862,7 +862,6 @@ fun setupCommands() {
                     val json = Jval.read(it)
                     sb.append(json.getString("url").substringAfterLast('/')).append(' ')
                 }
-                sb.dropLast(1)
                 sb.setLength(sb.length - 1) // Remove extra appended space
                 val ids = sb.toString().substringAfter(": ")
                 Core.app.post { ui.chatfrag.addMsg(sb.toString()).addButton(0, sb.length) { Core.app.clipboardText = ids } }
@@ -892,7 +891,7 @@ fun setupCommands() {
                 }
             }
         }
-        }
+    }
 }
 
 /** Registers a command.

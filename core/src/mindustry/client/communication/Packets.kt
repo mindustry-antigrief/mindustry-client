@@ -156,7 +156,7 @@ object Packets {
                 val packet = toSend.packets.poll() ?: run { outgoing.remove(toSend); toSend.onFinish?.run(); return }
 
                 lastSent.reset(0, 0f) // Sending a packet, reset the timer fully
-                try { communicationSystem.send(packet.bytes()) } catch (e: Exception) { outgoing.remove(toSend); toSend.onError?.invoke() }
+                try { communicationSystem.send(packet.bytes()) } catch (e: Exception) { outgoing.remove(toSend); toSend.onError?.invoke(); Log.debug("Error sending transmission") } // FINISHME: Add better debug logs
             }
             for (inc in incoming) {
                 if (inc.value.expirationTime.isBefore(Instant.now())) {
