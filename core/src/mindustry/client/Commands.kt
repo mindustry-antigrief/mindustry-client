@@ -126,12 +126,12 @@ fun setupCommands() {
 
     // FINISHME: Add unit control/select command(s)
 
-    register("spawn <type> [team] [x] [y] [count]", Core.bundle.get("client.command.spawn.description")) { args, player ->
+    register("spawn <type> [team|me] [count] [x|c] [y|c]", Core.bundle.get("client.command.spawn.description")) { args, player ->
         val type = findUnit(args[0])
-        val team = if (args.size < 2) player.team() else findTeam(args[1])
-        val x = if (args.size < 3 || !Strings.canParsePositiveFloat(args[2])) player.x else args[2].toFloat() * tilesizeF
-        val y = if (args.size < 4 || !Strings.canParsePositiveFloat(args[3])) player.y else args[3].toFloat() * tilesizeF
-        val count = if (args.size < 5 || !Strings.canParsePositiveInt(args[4])) 1 else args[4].toInt()
+        val team = if (args.size < 2) player.team() else if (args[1].lowercase() == "me") player.team() else findTeam(args[1])
+        val count = if (args.size < 3 || !Strings.canParsePositiveInt(args[2])) 1 else args[2].toInt() // FINISHME: When exactly two numbers given after team, treat them as x and y instead of count and x
+        val x = if (args.size >= 4 && args[3].lowercase() == "c") Core.input.mouseWorldX() else if (args.size >= 4 && Strings.canParsePositiveFloat(args[3])) args[3].toFloat() * tilesizeF else player.x
+        val y = if (args.size >= 5 && args[4].lowercase() == "c") Core.input.mouseWorldY() else if (args.size >= 5 && Strings.canParsePositiveFloat(args[4])) args[4].toFloat() * tilesizeF else player.y
 
         if (net.client()) Call.sendChatMessage("/js for(let i = 0; i < $count; i++) UnitTypes.$type.spawn(Team.all[${team.id}], $x, $y)")
         else repeat(count) {
