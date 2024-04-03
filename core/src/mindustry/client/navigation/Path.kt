@@ -9,7 +9,7 @@ import mindustry.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.*
 import java.util.concurrent.*
-import kotlin.math.abs
+import kotlin.math.*
 
 /** A way of representing a path */
 abstract class Path {
@@ -63,7 +63,7 @@ abstract class Path {
                             if (!relaxed) {
                                 if (filter.size > 1) {
                                     val m = filter.min(v1::dst2)
-                                    if (Vars.player.within(m, m.tolerance)) {
+                                    if (v1.within(m, m.tolerance)) {
                                         val i = filter.indexOf(m)
                                         if (i > 0) { for (j in 0 until i) Pools.free(filter[j]); filter.removeRange(0, i - 1) }
                                     }
@@ -86,8 +86,8 @@ abstract class Path {
                             }
                             if (filter.any()) { // Modify the last waypoint to have greater accuracy when stopping
                                 val last = filter.peek()
-                                if (abs(destX - last.x) < Vars.world.unitWidth().toFloat() / 2f && abs(destY - last.y) < Vars.world.unitHeight().toFloat() / 2f)
-                                    last.set(destX, destY)
+                                if (abs(destX - last.x) < Vars.tilesizeF / 2f && abs(destY - last.y) < Vars.tilesizeF / 2f)
+                                    last.set(destX, destY) // Snap the last waypoint to cursor location
                                 last.tolerance = 4f
                                 last.stopOnFinish = true
                                 waypoints.set(filter)

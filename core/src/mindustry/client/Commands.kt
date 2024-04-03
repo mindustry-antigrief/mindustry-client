@@ -143,7 +143,7 @@ fun setupCommands() {
         try {
             if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
             else throw IOException()
-            Navigation.navigateTo(lastSentPos.cpy().scl(tilesize.toFloat()))
+            Navigation.navigateTo(lastSentPos.cpy().scl(tilesizeF))
         } catch (e: Exception) {
             player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "go"))
         }
@@ -153,7 +153,7 @@ fun setupCommands() {
         try {
             (control.input as? DesktopInput)?.panning = true
             if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
-            Spectate.spectate(lastSentPos.cpy().scl(tilesize.toFloat()))
+            Spectate.spectate(lastSentPos.cpy().scl(tilesizeF))
         } catch (e: Exception) {
             player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "lookat"))
         }
@@ -163,8 +163,7 @@ fun setupCommands() {
         try {
             if (args.size == 2) lastSentPos.set(args[0].toFloat(), args[1].toFloat())
             NetClient.setPosition(
-                lastSentPos.cpy().scl(tilesize.toFloat()).x, lastSentPos.cpy().scl(
-                    tilesize.toFloat()).y)
+                lastSentPos.cpy().scl(tilesizeF).x, lastSentPos.cpy().scl(tilesizeF).y)
         } catch (e: Exception) {
             player.sendMessage(Core.bundle.format("client.command.coordsinvalid", clientCommandHandler.prefix + "tp"))
         }
