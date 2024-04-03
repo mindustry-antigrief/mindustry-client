@@ -162,25 +162,25 @@ public class StatValues{
                 c.clearChildren();
                 c.left();
 
-                if(state.isGame()){
-                    var blocks = Vars.content.blocks()
-                    .select(block -> (!checkFloors || block instanceof Floor) && indexer.isBlockPresent(block) && block.attributes.get(attr) != 0 && !((block instanceof Floor f && f.isDeep()) && !floating))
-                    .with(s -> s.sort(f -> f.attributes.get(attr)));
+                var blocks = Vars.content.blocks()
+                .select(block ->
+                    (!checkFloors || block instanceof Floor) &&
+                    (!state.isGame() || indexer.isBlockPresent(block)) &&
+                    block.attributes.get(attr) != 0 &&
+                    !((block instanceof Floor f && f.isDeep()) && !floating)
+                ).with(s -> s.sort(f -> f.attributes.get(attr)));
 
-                    if(blocks.any()){
-                        int i = 0;
-                        for(var block : blocks){
+                if(blocks.any()){
+                    int i = 0;
+                    for(var block : blocks){
 
-                            blockEfficiency(block, block.attributes.get(attr) * scale, startZero).display(c);
-                            if(++i % 5 == 0){
-                                c.row();
-                            }
+                        blockEfficiency(block, block.attributes.get(attr) * scale, startZero).display(c);
+                        if(++i % 5 == 0){
+                            c.row();
                         }
-                    }else{
-                        c.add("@none.inmap");
                     }
                 }else{
-                    c.add("@stat.showinmap");
+                    c.add("@none.inmap");
                 }
             };
 
