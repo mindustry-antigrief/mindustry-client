@@ -242,17 +242,19 @@ public class SchematicBrowserDialog extends BaseDialog {
                     b.stack(new SchematicsDialog.SchematicImage(s).setScaling(Scaling.fit), new Table(n -> {
                         n.top();
                         n.table(Styles.black3, c -> {
-                            Label label = c.add("").style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f)
-                                .update(l -> {
-                                    var txt = l.getText(); // Update the stringBuilder directly
-                                    if (txt.length() == 0 || (Core.graphics.getFrameId() + i[0]) % 60 == 0) { // update() is run every frame even when the element is culled out, the solution is to only update a portion every frame FINISHME: Do we want to hack this and update the text in the draw() method which is only called when the element isn't culled?
-                                        txt.setLength(0);
-                                        if (!player.team().rules().infiniteResources && !state.rules.infiniteResources && player.core() != null && !player.core().items.has(s.requirements(reusableItemSeq))) txt.append("[#dd5656]");
-                                        txt.append(s.name());
-                                        reusableItemSeq.clear();
-                                    }
-                                }).get();
-                            label.runUpdate(); // Update the text instantly
+                            Label label = c.add(new Label("[#dd5656]" + s.name()){
+                                @Override
+                                public void draw() { // Update the name in the draw method as update() is called even when culled
+                                    var txt = getText(); // Update the stringBuilder directly
+                                    var len = text.length();
+                                    txt.setLength(0);
+                                    if (!player.team().rules().infiniteResources && !state.rules.infiniteResources && player.core() != null && !player.core().items.has(s.requirements(reusableItemSeq))) txt.append("[#dd5656]");
+                                    txt.append(s.name());
+                                    reusableItemSeq.clear();
+                                    if (txt.length() != len) invalidate();
+                                    super.draw();
+                                }
+                            }).style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f).get();
                             label.setEllipsis(true);
                             label.setAlignment(Align.center);
                         }).growX().margin(1).pad(4).maxWidth(Scl.scl(200f - 8f)).padBottom(0);
