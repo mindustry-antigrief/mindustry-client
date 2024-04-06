@@ -87,7 +87,7 @@ public class ModsDialog extends BaseDialog{
             buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(modDirectory.absolutePath()));
         }
 
-        buttons.button("Update Active Mods", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled, m -> githubImportMod(m.getRepo(), m.isJava(), null, null)));
+        buttons.button("@mods.updateactive", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled && m.getRepo() != null, m -> githubImportMod(m.getRepo(), m.isJava(), null, null)));
 
         shown(this::setup);
         onResize(this::setup);
