@@ -152,8 +152,7 @@ object Main : ApplicationListener {
 
                 is ImageTransmission -> {
                     val msg = findMessage(transmission.message) ?: return@addListener
-                    msg.attachments.add(Texture(transmission.image))
-                    msg.attachments.shrink()
+                    msg.attachments.add(Texture(transmission.image)).shrink()
                     transmission.image.dispose()
                 }
 

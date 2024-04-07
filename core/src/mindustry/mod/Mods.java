@@ -233,7 +233,7 @@ public class Mods implements Loadable{
                     //this returns a *runnable* which actually packs the resulting pixmap; this has to be done synchronously outside the method
                     return () -> { // FINISHME: These shouldn't be handled on the main thread.
                         String fullName = (prefix ? mod.name + "-" : "") + baseName;
-                        packer.add(getPage(file), fullName, new PixmapRegion(pix));
+                        packer.add(getPage(file), fullName, pix);
                         if(textureScale != 1.0f){
                             textureResize.put(fullName, textureScale);
                         }

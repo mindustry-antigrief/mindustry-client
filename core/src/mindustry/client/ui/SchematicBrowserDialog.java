@@ -22,6 +22,7 @@ import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
+import java.util.concurrent.*;
 import java.util.function.*;
 import java.util.regex.*;
 
@@ -69,19 +70,16 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         hide(Actions.sequence(Actions.fadeOut(0.4f, Interp.fade), Actions.run(() -> { // Nuke previews to save ram FINISHME: Nuke the schematics as well and reload them on dialog open. Ideally, we should do that across all threads similar to how we load saves
             var previews = schematics.previews();
-            var removed = new Queue<FrameBuffer>();
+            var removed = new Seq<FrameBuffer>();
             for (var schems : loadedRepositories.values()) {
-                for (var schem : schems) {
-                    var rem = previews.remove(schem);
-                    if (rem != null) removed.add(rem);
-                }
+                removed.add(schems.map((previews::remove)));
             }
             Core.app.post(() -> disposeBuffers(removed)); // Start removing next frame as the process above may already take a few ms on slow cpus or in large repositories
         })));
     }
 
     /** Disposes a list of FrameBuffers over the course of multiple frames to not cause lag. */
-    void disposeBuffers(Queue<FrameBuffer> todo) {
+    void disposeBuffers(Seq<FrameBuffer> todo) {
         var start = Time.nanos();
         while (!todo.isEmpty()) {
             if (Time.millisSinceNanos(start) >= 5) {
@@ -89,7 +87,8 @@ public class SchematicBrowserDialog extends BaseDialog {
                 Core.app.post(() -> disposeBuffers(todo));
                 return;
             }
-            todo.removeFirst().dispose();
+            var buf = todo.pop();
+            if(buf != null) buf.dispose();
         }
         Log.debug("Finished disposing of FrameBuffers");
     }
@@ -175,7 +174,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                 t[0].getChildren().<Table>each(c -> c instanceof Table, c -> {
                     var area = t[0].getCullingArea();
                     c.getCullingArea().setSize(area.width, area.height) // Set the size (NOT scaled to child coordinates which it should be if either scale isn't 1)
-                            .setPosition(c.parentToLocalCoordinates(area.getPosition(Tmp.v1))); // Set the position (scaled correctly)
+                        .setPosition(c.parentToLocalCoordinates(area.getPosition(Tmp.v1))); // Set the position (scaled correctly)
                 });
             }
         };
@@ -230,7 +229,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                         buttons.button(Icon.upload, style, () -> showExport(s)).tooltip("@editor.export");
                         buttons.button(Icon.download, style, () -> {
                             ui.showInfoFade("@schematic.saved");
-                            if (Core.settings.getBool("schematicbrowserimporttags")) schematics.add(s);
+                            if (Core.settings.getBool("schematicbrowserimporttags")) schematics.add(s); // FINISHME: Why is this not an option that we can just choose here? Press shift to invert or smth
                             else {
                                 Schematic cpy = new Schematic(s.tiles, s.tags, s.width, s.height);
                                 cpy.labels.clear();
@@ -332,9 +331,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void checkTags(Schematic s){
         for(var tag : s.labels){
-            if(!tags.contains(tag)){
-                tags.add(tag);
-            }
+            tags.addUnique(tag);
         }
     }
 
@@ -503,8 +500,12 @@ public class SchematicBrowserDialog extends BaseDialog {
         tags.addAll(Core.settings.getJson("schematic-browser-tags", Seq.class, String.class, Seq::new));
     }
 
-    void loadRepositories(){
+    void loadRepositories(){ // FINISHME: Should we add a setting such as "largest repo to load on demand" and unload all repos smaller than that when the dialog is closed? Now that this is threaded it loads relatively fast and the memory leak is gone now as well
+        Time.mark();
+        var previews = schematics.previews();
+        var removed = new Seq<FrameBuffer>();
         for (String link : unloadedRepositories) {
+            Time.mark();
             if (hiddenRepositories.contains(link)) continue; // Skip loading
             String fileName = link.replace("/","") + ".zip";
             Fi filePath = schematicRepoDirectory.child(fileName);
@@ -516,22 +517,43 @@ public class SchematicBrowserDialog extends BaseDialog {
                 Log.err("Error parsing repository zip " + filePath.name(), e);
                 continue;
             }
-            final Seq<Schematic> schems = new Seq<>();
-            zip.walk(f -> {
-                try {
+            Seq<Schematic> schems = new Seq<>();
+            var exec = new ExecutorCompletionService<Schematic>(mainExecutor);
+            int[] count = {0};
+            Time.mark();
+            zip.walk(f -> { // Threaded schem loading FINISHME: We should load all the repos at once for maximum speed (though it will be super insignificant)
+                count[0]++;
+                exec.submit(() -> {
                     if (f.extEquals("msch")) {
-                        Schematic s = Schematics.read(f);
-                        schems.add(s);
-                        checkTags(s);
+                        try {
+                            return Schematics.read(f);
+                        } catch (Throwable e) {
+                            Log.err("Error parsing schematic " + link + " " + f.name(), e);
+//                            ui.showErrorMessage(Core.bundle.format("client.schematic.browser.fail.parse", link, f.name())); // FINISHME: Find a better way to do this, currently it spams the screen with error messages
+                        }
                     }
-                } catch (Throwable e) {
-                    Log.err("Error parsing schematic " + link + " " + f.name(), e);
-//                    ui.showErrorMessage(Core.bundle.format("client.schematic.browser.fail.parse", link, f.name())); // FINISHME: Find a better way to do this, currently it spams the screen with error messages
-                }
+                    return null;
+                });
             });
+            var walk = Time.elapsed();
+            try {
+                for (int i = 0; i < count[0]; i++) {
+                    var s = exec.take().get();
+                    if (s == null) continue;
+                    schems.add(s);
+                    checkTags(s);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
             schems.sort();
-            loadedRepositories.get(link, () -> new Seq<>(schems.size)).clear().add(schems);
+            var out = loadedRepositories.get(link, () -> new Seq<>(schems.size));
+            removed.add(out.map(previews::remove)); // If we're reloading this repo, we want to remove the previews from the list
+            out.set(schems);
+            Log.debug("Loaded @/@ schems from repo '@' in @ms. Walked in @ms", schems.size, count[0], link, Time.elapsed(), walk);
         }
+        disposeBuffers(removed); // Dispose of the removed textures
+        Log.debug("Loaded all repos in @ms", Time.elapsed());
         unloadedRepositories.clear();
     }
 
@@ -602,7 +624,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     protected static class SchematicRepositoriesDialog extends BaseDialog {
         public Table repoTable = new Table();
-        private final Pattern pattern = Pattern.compile("(https?://)?github\\.com/");
+        private final Pattern pattern = Pattern.compile("(?:https?://)?github\\.com/");
         private boolean refetch = false;
         private boolean rebuild = false;
 
@@ -677,6 +699,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             dialog.cont.row();
             dialog.cont.table(t -> {
                 t.defaults().width(194f).pad(3f);
+                t.button("@close", dialog::hide);
                 t.button("@client.schematic.browser.add", () -> {
                     String text = pattern.matcher(linkInput.getText().toLowerCase()).replaceAll("");
                     if (!text.equalsIgnoreCase(link)) {
@@ -685,18 +708,18 @@ public class SchematicBrowserDialog extends BaseDialog {
                     rebuild();
                     dialog.hide();
                 });
-                t.button("@close", dialog::hide);
             });
             dialog.show();
         }
 
         void addRepo(){
             editRepo("", l -> {
-                ui.schematicBrowser.repositoryLinks.add(l);
-                ui.schematicBrowser.unloadedRepositories.add(l);
-                ui.schematicBrowser.unfetchedRepositories.add(l);
-                refetch = true;
-                rebuild = true;
+                if (ui.schematicBrowser.repositoryLinks.addUnique(l)) { // FINISHME: Added this to prevent dupes, is this okay?
+                    ui.schematicBrowser.unloadedRepositories.add(l);
+                    ui.schematicBrowser.unfetchedRepositories.add(l);
+                    refetch = true;
+                    rebuild = true;
+                }
             });
         }
 
