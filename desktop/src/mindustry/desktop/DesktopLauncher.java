@@ -39,7 +39,6 @@ public class DesktopLauncher extends ClientLauncher{
     Throwable steamError;
 
     public static void main(String[] arg){
-        Events.debugType = ClientLoadEvent.class;
         System.out.println("Launching Mindustry! Arguments: " + Arrays.toString(arg));
         try{
             int[] aaSamples = new int[1];
