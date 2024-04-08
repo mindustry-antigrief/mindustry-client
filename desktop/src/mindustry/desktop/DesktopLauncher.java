@@ -39,6 +39,7 @@ public class DesktopLauncher extends ClientLauncher{
     Throwable steamError;
 
     public static void main(String[] arg){
+        Events.debugType = ClientLoadEvent.class;
         System.out.println("Launching Mindustry! Arguments: " + Arrays.toString(arg));
         try{
             int[] aaSamples = new int[1];
@@ -89,13 +90,7 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     private static String getWindowTitle() {
-        int enabled = 0;
-        if (mods != null) {
-            for (Mods.LoadedMod mod : mods.mods) {
-                if (mod.enabled()) enabled++;
-            }
-        }
-        return Strings.format("Mindustry (v@) | Foo's Client (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, enabled, mods == null ? 0 : mods.mods.size);
+        return Strings.format("Mindustry (v@) | Foo's Client (@) | @/@ Mods Enabled", Version.buildString(), Version.clientVersion.equals("v0.0.0") ? "Dev" : Version.clientVersion, mods == null ? 0 : mods.mods.count(Mods.LoadedMod::enabled), mods == null ? 0 : mods.mods.size);
     }
 
     @Override

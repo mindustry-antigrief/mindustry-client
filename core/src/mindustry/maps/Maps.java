@@ -368,17 +368,13 @@ public class Maps{
     }
 
     public void loadPreviews(){
-        var exec = new ExecutorCompletionService<Pair<Map, TextureLoader.TextureLoaderInfo>>(mainExecutor);
-        int[] count = {0};
-        long await = Time.nanos(), block = 0, sync = 0, delayed = 0;
+        var ecs = new ExecutorCompletionService<Pair<Map, TextureLoader.TextureLoaderInfo>>(mainExecutor);
         var loader = Threads.local(MapPreviewLoader::new);
+        var size = maps.size;
         for(Map map : maps){
-            //try to load preview
-            if(map.previewFile().exists()){
-                var fileName = (map.previewFile().path() + "." + mapExtension).replaceAll("\\\\", "/");
-
-                count[0]++;
-                exec.submit(() -> { // Load previews in parallel
+            ecs.submit(() -> { // Load previews in parallel
+                if(map.previewFile().exists()){
+                    var fileName = (map.previewFile().path() + "." + mapExtension).replaceAll("\\\\", "/");
                     var l = loader.get();
                     l.loadAsync(Core.assets, fileName, loader.get().resolve(fileName), new MapPreviewParameter(map));
                     try{
@@ -393,59 +389,43 @@ public class Maps{
                     info.data = l.info.data;
                     info.texture = l.info.texture;
                     return new Pair<>(map, info);
-                });
+                }else{
+                    queueNewPreview(map);
+                    return null;
+                }
+            });
 
-            }else{
-                queueNewPreview(map);
-            }
         }
 
-//        try{ // Finalize preview loading synchronously
-            var l = loader.get();
-            Threads.daemon(() -> {  // Don't want to post this to the mainExecutor as we could be here for a couple hundred millis and that could significantly slow down the loading of other stuff.
-                for(int i = 0; i < count[0]; i++){ // FINISHME: This code is all a mess as I opted to thread this portion too but never cleaned up the old code
-                    var s = Time.nanos();
-                    Pair<Map, TextureLoader.TextureLoaderInfo> res = null;
-                    try {
-                        res = exec.take().get();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    } catch (ExecutionException e) {
-                        throw new RuntimeException(e);
-                    }
-                    var map = res.getFirst();
-                    var info = res.getSecond();
-//                    block += Time.timeSinceNanos(s);
-//                s = Time.nanos();
-//                l.info = info;
-                    dumb.add(res);
-                    Core.app.post(this::nextSync);
-//                map.texture = l.loadSync(Core.assets, info.filename, Core.files.local(info.filename.substring(0, info.filename.length() - 5)), null); // Drop 5 to remove the .msav extension
-//                delayed = Time.timeSinceNanos(s);
-//                sync += delayed;
+        Threads.daemon(() -> { // Don't want to post this to the mainExecutor as we could be here for a couple hundred millis and that could significantly slow down the loading of other stuff.
+            for(int i = 0; i < size; i++){
+                try{
+                    var preview = ecs.take().get();
+                    if (preview != null) queuedPreviews.add(preview);
+                }catch(InterruptedException | ExecutionException e){
+                    throw new RuntimeException(e);
                 }
+                Core.app.post(this::nextSync);
+            }
 
-            });
-//            Log.debug("Awaited map previews for: @ms total | @ms block | @ms sync | @ms delayed", Time.millisSinceNanos(await), block/(double)Time.nanosPerMilli, sync/(double)Time.nanosPerMilli, delayed/(double)Time.nanosPerMilli);
-//        }catch(ExecutionException | InterruptedException e){
-//            throw new RuntimeException(e);
-//        }
+        });
     }
 
-    private final LinkedBlockingQueue<Pair<Map, TextureLoader.TextureLoaderInfo>> dumb = new LinkedBlockingQueue<>(); // FINISHME: This code is all a mess
-    private long lastSync;
+    private final LinkedBlockingQueue<Pair<Map, TextureLoader.TextureLoaderInfo>> queuedPreviews = new LinkedBlockingQueue<>();
+    private long lastPreview;
     private MapPreviewLoader loader;
+
     private void nextSync() {
-        if(lastSync == Core.graphics.getFrameId()) return;
-        if(dumb.isEmpty()){
+        if(lastPreview == Core.graphics.getFrameId()) return;
+        if(queuedPreviews.isEmpty()){
             loader = null;
             return;
         }
-        lastSync = Core.graphics.getFrameId();
+        lastPreview = Core.graphics.getFrameId();
         if(loader == null) loader = new MapPreviewLoader();
         Core.app.post(this::nextSync);
 
-        var pair = dumb.poll();
+        var pair = queuedPreviews.poll();
         var map = pair.getFirst();
         var info = pair.getSecond();
         loader.info = info;

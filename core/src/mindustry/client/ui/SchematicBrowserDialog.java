@@ -15,6 +15,7 @@ import arc.util.serialization.*;
 import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.client.navigation.*;
+import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -55,7 +56,6 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         getSettings();
         unloadedRepositories.addAll(repositoryLinks);
-        loadRepositories();
 
         shown(this::setup);
         onResize(this::setup);
@@ -95,6 +95,7 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void setup(){
         Time.mark();
+        loadRepositories();
         nameSearch = "";
         descSearch = "";
 
@@ -105,7 +106,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         buildTags();
         buildResults();
 
-        Log.info("Rebuilt Schematic Browser in @ms", Time.elapsed());
+        Log.info("Rebuilt schematic browser (including potential repo loading) in @ms", Time.elapsed());
     }
 
     void buildSearch() {
@@ -501,6 +502,7 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     void loadRepositories(){ // FINISHME: Should we add a setting such as "largest repo to load on demand" and unload all repos smaller than that when the dialog is closed? Now that this is threaded it loads relatively fast and the memory leak is gone now as well
+        if(unloadedRepositories.isEmpty()) return;
         Time.mark();
         var previews = schematics.previews();
         var removed = new Seq<FrameBuffer>();
@@ -518,28 +520,35 @@ public class SchematicBrowserDialog extends BaseDialog {
                 continue;
             }
             Seq<Schematic> schems = new Seq<>();
-            var exec = new ExecutorCompletionService<Schematic>(mainExecutor);
+            var ecs = new ExecutorCompletionService<Schematic>(mainExecutor);
             int[] count = {0};
             Time.mark();
             zip.walk(f -> { // Threaded schem loading FINISHME: We should load all the repos at once for maximum speed (though it will be super insignificant)
                 count[0]++;
-                exec.submit(() -> {
+                ecs.submit(() -> {
                     if (f.extEquals("msch")) {
                         try {
                             return Schematics.read(f);
                         } catch (Throwable e) {
                             Log.err("Error parsing schematic " + link + " " + f.name(), e);
+                            return null;
 //                            ui.showErrorMessage(Core.bundle.format("client.schematic.browser.fail.parse", link, f.name())); // FINISHME: Find a better way to do this, currently it spams the screen with error messages
                         }
                     }
-                    return null;
+                    Log.info(f.name());
+                    return Loadouts.basicShard; // So that we can count better.
                 });
             });
             var walk = Time.elapsed();
+            int nonSchem = 0;
             try {
                 for (int i = 0; i < count[0]; i++) {
-                    var s = exec.take().get();
+                    var s = ecs.take().get();
                     if (s == null) continue;
+                    if (s == Loadouts.basicShard) {
+                        nonSchem++;
+                        continue;
+                    }
                     schems.add(s);
                     checkTags(s);
                 }
@@ -550,7 +559,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             var out = loadedRepositories.get(link, () -> new Seq<>(schems.size));
             removed.add(out.map(previews::remove)); // If we're reloading this repo, we want to remove the previews from the list
             out.set(schems);
-            Log.debug("Loaded @/@ schems from repo '@' in @ms. Walked in @ms", schems.size, count[0], link, Time.elapsed(), walk);
+            Log.debug("Loaded @/@ schems from repo '@' in @ms. Walked in @ms", schems.size, count[0] - nonSchem, link, Time.elapsed(), walk);
         }
         disposeBuffers(removed); // Dispose of the removed textures
         Log.debug("Loaded all repos in @ms", Time.elapsed());
@@ -632,11 +641,11 @@ public class SchematicBrowserDialog extends BaseDialog {
             super("@client.schematic.browser.repo");
 
             buttons.defaults().size(width, 64f);
-            buttons.button("@back", Icon.left, this::close);
             buttons.button("@client.schematic.browser.add", Icon.add, this::addRepo);
             makeButtonOverlay();
-            addCloseListener();
+            addCloseButton();
             shown(this::setup);
+            hidden(this::close);
             onResize(this::setup);
         }
 

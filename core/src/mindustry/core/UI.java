@@ -187,7 +187,7 @@ public class UI implements ApplicationListener, Loadable{
     }
 
     @Override
-    public void init(){
+    public void init(){ // FINISHME: This takes quite some time, what can we do to optimize it?
         billions = Core.bundle.get("unit.billions");
         millions = Core.bundle.get("unit.millions");
         thousands = Core.bundle.get("unit.thousands");

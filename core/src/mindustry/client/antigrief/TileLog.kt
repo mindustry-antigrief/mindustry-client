@@ -14,7 +14,6 @@ import mindustry.gen.Unit
 import mindustry.ui.*
 import mindustry.world.*
 import java.time.*
-import kotlin.math.*
 
 // FINISHME: The string truncation is done in the most convoluted way imaginable
 data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int) : Iterable<Point2> { // Finishme: This class is entirely useless

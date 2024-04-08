@@ -334,7 +334,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void onLobbyMatchList(int matches){
-        Log.info("found @ matches", matches);
+        Log.debug("Found @ steam lobbies", matches);
 
         if(lobbyDoneCallback != null){
             Seq<Host> hosts = new Seq<>();

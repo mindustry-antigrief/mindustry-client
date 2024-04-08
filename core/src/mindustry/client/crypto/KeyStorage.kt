@@ -1,21 +1,21 @@
 package mindustry.client.crypto
 
 import arc.util.serialization.*
+import mindustry.*
 import mindustry.client.utils.*
-import mindustry.io.*
 import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
 
 open class KeyStorage(val directory: File) {
-    private val store: KeyStore = KeyStore.getInstance("BKS")
-    private val password = "password123".toCharArray() // FINISHME: probably don't bother fixing tbh
+    private val store by lazy { KeyStore.getInstance("BKS") }
+    private val password = "password123".toCharArray()
     private val aliases: HashMap<String, String> = hashMapOf()
-    val builtInCerts: List<X509Certificate>
-
-    init {
-        val certs = arrayOf(
+    @Volatile private var loaded = false
+    val builtInCerts by lazy {
+        val factory = CertificateFactory.getInstance("X509")
+        arrayOf(
             // foo
             "MIIBRzCByKADAgECAiCdhMB3qS0218EgXi0asK7io931Jjo2lWjYlL18rmoKxzAFBgMrZXEwDjEMMAoGA1UEAxMDZm9vMB4XDTIxMDgyMDAxNDYzOFoXDTM2MDgyNzAxNDYzOFowDjEMMAoGA1UEAxMDZm9vMEMwBQYDK2VxAzoAshx1nVePa4FkbLczm2Osp+IHU0ikU/+JyCUbs43klnP49tSybg1WS0NMCRINnEh30DzwOBKUs9+AoxMwETAPBgNVHRMBAf8EBTADAQH/MAUGAytlcQNzAE/uMei8ryVSW5l0GipNTko396syxdvdCQeUrlmwks1l5MNRkhjXHfYxlDow0KMM41K8r+w5HThPAAQFrzCMlKPVccZDdJy+xfLUUkmmjuO8q2TtDSmQw8cdXydPjPiK7t/l5WvJJFacO7QWJHUNl9QbAA==",
             // buthed
@@ -26,41 +26,45 @@ open class KeyStorage(val directory: File) {
             "MIIBPzCBwKADAgECAhRjpBHVpYocCsBspqpCG3Z0MNuRejAFBgMrZXEwEDEOMAwGA1UEAxMFU0J5dGUwHhcNMjMxMjIzMTUzNzAwWhcNMzgxMjMwMTUzNzAwWjAQMQ4wDAYDVQQDEwVTQnl0ZTBDMAUGAytlcQM6AOkvuvocpWgctfAOIoB2V3Ygkbgl6vNkdE7s5nwX8ohn+5ek0X0hnire8o8E1Jm9QFXCo+vMW7SqAKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwCLeeueP097rj8XBpsVzG3bcbf6edMpKUB7+YZNg9sPp2X0fupl6yJH5fxsEIz4P7fKTZlgtiLpUoD3aeqfka0WJCWDrn59SzHK2FjuG1iaLVQFGoCxo61AYc+KJnOIqaPDqPktd5vJ66dxKANZWgxdKgA=",
             // bala
             "MIIBRTCBxqADAgECAhTeD2MCcBrVQbkK5fxVGvtHBwMMyDAFBgMrZXEwEzERMA8GA1UEAxMIQmFsYU0zMTQwHhcNMjIwMjA4MTEzODI4WhcNMzcwMjE1MTEzODI4WjATMREwDwYDVQQDEwhCYWxhTTMxNDBDMAUGAytlcQM6AI5t3i1wE5UjzYMVYNfWMgrEycgfhCIwpENrMJr9EVBJSPdtxN7Agq+vv7xGnfTSD+pDnVsvtLDKgKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwCNmgB1xz7vM3a2EKfdgQgh5IOYqVqi+KYYnYjRUtB0sEoRRhN1qWc332+TwSqeP1rdljfNMdn9iwBr/LfxXaqrp+ud3IeFFFAtMkHrmdiy2TesLz3X9KfIWrRxP+m/uY/l5TXewUq74RG3eVD9xfA9CwA="
-        )
-        val factory = CertificateFactory.getInstance("X509")
-        builtInCerts = certs.map { factory.generateCertificate(it.base64()!!.inputStream()) as X509Certificate }
+        ).map { factory.generateCertificate(it.base64()!!.inputStream()) as X509Certificate }
     }
 
     init {
-        val file = directory.resolve("keys")
-        val aliasFile = directory.resolve("aliases")
-        if (file.exists()) {
-            try {
-                store.load(file.inputStream(), password)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                file.copyTo(directory.resolve("keys.backup${System.currentTimeMillis()}"))
-                save()
-            }
-        } else {
-            store.load(null)
-            save()
-        }
-
-        for (cert in builtInCerts) store.setCertificateEntry("trusted${cert.serialNumber}", cert)
-
-        if (aliasFile.exists()) {
-            try {
-                @Suppress("UNCHECKED_CAST")
-                aliases.putAll(JsonIO.json.fromJson(HashMap::class.java, String::class.java, aliasFile.reader()) as HashMap<String, String>)
-            } catch (_: SerializationException) { // Compatibility with old klaxon format FINISHME: Remove eventually
-                JsonReader().parse(aliasFile.bufferedReader()).forEach {
-                    aliases[it.get("first").asString()] = it.get("second").asString()
+        Vars.mainExecutor.execute {
+            val file = directory.resolve("keys")
+            val aliasFile = directory.resolve("aliases")
+            if (file.exists()) {
+                try {
+                    store.load(file.inputStream(), password)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    file.copyTo(directory.resolve("keys.backup${System.currentTimeMillis()}"))
+                    save(true)
                 }
-                save() // Overwrite the klaxon json
+            } else {
+                store.load(null)
+                save(true)
             }
+
+            for (cert in builtInCerts) store.setCertificateEntry("trusted${cert.serialNumber}", cert)
+
+            if (aliasFile.exists()) {
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    aliases.putAll(Json().fromJson(HashMap::class.java, String::class.java, aliasFile.reader()) as HashMap<String, String>)
+                } catch (_: SerializationException) { // Compatibility with old klaxon format FINISHME: Remove eventually
+                    JsonReader().parse(aliasFile.bufferedReader()).forEach {
+                        aliases[it.get("first").asString()] = it.get("second").asString()
+                    }
+                    save(true) // Overwrite the klaxon json
+                }
+            }
+            loaded = true
         }
     }
+
+
+    fun loaded() = loaded
 
     fun aliases() = aliases.toList()
 
@@ -78,18 +82,18 @@ open class KeyStorage(val directory: File) {
 
     fun removeAlias(certificate: X509Certificate) = alias(certificate, null)
 
-    fun save() {
+    fun save(force: Boolean = false) {
+        if (!loaded && !force) return
         try {
             store.store(directory.resolve("keys").outputStream(), password)
-            JsonIO.json.toJson(aliases, HashMap::class.java, String::class.java, directory.resolve("aliases").writer())
+            Json().toJson(aliases, HashMap::class.java, String::class.java, directory.resolve("aliases").writer())
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
     fun key(): PrivateKey? {
-//        val public  = store.getKey("public",  password) as? PublicKey
-        return try {
+        return if (!loaded) null else try {
             store.getKey("private", password) as? PrivateKey
         } catch (e: UnrecoverableKeyException) {
             directory.resolve("keys").copyTo(directory.resolve("keys.backup${System.currentTimeMillis()}"))
