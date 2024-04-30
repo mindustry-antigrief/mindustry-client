@@ -437,7 +437,24 @@ public class Mods implements Loadable{
 
             //dispose old atlas data
             Time.mark();
-            Core.atlas = packer.flush(Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest, new TextureAtlas());
+            Core.atlas = packer.flush(Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest, new TextureAtlas(){
+                final PixmapRegion fake = new PixmapRegion(new Pixmap(1, 1));
+                boolean didWarn = false;
+
+                @Override
+                public PixmapRegion getPixmap(AtlasRegion region){
+                    var other = super.getPixmap(region);
+                    if(other.pixmap.isDisposed()){
+                        if(!didWarn){
+                            Log.err(new RuntimeException("Calling getPixmap outside of createIcons is not supported! This will be a crash in the future."));
+                            didWarn = true;
+                        }
+                        return fake;
+                    }
+
+                    return other;
+                }
+            });
             Log.debug("Sprite flush took: @ms", Time.elapsed());
 
             Time.mark();
