@@ -102,10 +102,7 @@ public class MultiPacker implements Disposable{
     public void dispose(){
         for(int i = 0; i < PageType.all.length; i ++){
             var packer = packers[i];
-            //the UI packer's image is later used when merging with the font, don't dispose it
-            if(i != PageType.ui.ordinal()){
-                packer.forceDispose();
-            }
+            packer.dispose();
         }
     }
 
