@@ -1200,6 +1200,16 @@ public class Mods implements Loadable{
             }
         }
 
+        /** Whether this mod should auto update */
+        public String autoUpdateString() {
+            return "mod-" + name + "-autoupdate";
+        }
+
+        /** Whether this mod should be updated when clicking "update active mods" */
+        public String massUpdateString() {
+            return "mod-" + name + "-massupdate";
+        }
+
         @Override
         public String getSteamID(){
             return Core.settings.getString(name + "-steamid", null);

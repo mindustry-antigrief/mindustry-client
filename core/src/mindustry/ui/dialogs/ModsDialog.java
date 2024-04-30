@@ -87,7 +87,7 @@ public class ModsDialog extends BaseDialog{
             buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(modDirectory.absolutePath()));
         }
 
-        buttons.button("@mods.updateactive", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled && m.getRepo() != null, m -> githubImportMod(m.getRepo(), m.isJava(), null, null)));
+        buttons.button("@client.mods.updateactive", Icon.download, () -> mods.mods.each(m -> m.state == ModState.enabled && m.getRepo() != null && settings.getBool(m.massUpdateString(), true), m -> githubImportMod(m.getRepo(), m.isJava(), null, null)));
 
         shown(this::setup);
         onResize(this::setup);
@@ -105,7 +105,7 @@ public class ModsDialog extends BaseDialog{
             }
         });
 
-        // Client mod updater
+        // Client mod auto updater
         Events.on(EventType.ClientLoadEvent.class, event -> {
             long hour = 1000 * 60 * 60;
             if (mods.mods.contains(LoadedMod::enabled) && Core.settings.getInt("modautoupdate") != 0 && (Time.timeSinceMillis(settings.getLong("lastmodupdate", hour + 1)) > hour)) {
@@ -113,7 +113,7 @@ public class ModsDialog extends BaseDialog{
                 Log.debug("Checking for mod updates @", Time.timeSinceMillis(settings.getLong("lastmodupdate", hour + 1)) / (60*1000f));
                 Core.settings.put("lastmodupdate", Time.millis());
                 for (Mods.LoadedMod mod : mods.mods.copy().shuffle()) { // Use shuffled mod list, if the user has more than 30 active mods, this will ensure that each is checked at least somewhat frequently
-                    if (!mod.enabled() || mod.getRepo() == null) continue;
+                    if (!mod.enabled() || mod.getRepo() == null || !settings.getBool(mod.autoUpdateString(), true)) continue;
                     if (expected++ >= 30) continue; // Only make up to 30 api requests
 
                     githubImportMod(mod.getRepo(), mod.isJava(), null, mod.meta.version);
@@ -348,7 +348,7 @@ public class ModsDialog extends BaseDialog{
         if(item.isOutdated()){
             return "@mod.incompatiblemod";
         }else if(item.clientBlacklisted()){
-            return "@mod.clientblacklisted";
+            return "@client.mod.clientblacklisted";
         }else if(item.isBlacklisted()){
             return "@mod.blacklisted";
         }else if(!item.isSupported() || !Version.isAtLeast(item.meta.minGameVersion)){
@@ -371,7 +371,7 @@ public class ModsDialog extends BaseDialog{
         if(item.isOutdated()){
             return "@mod.outdatedv7.details";
         }else if(item.clientBlacklisted()){
-            return "@mod.clientblacklisted.details";
+            return "@client.mod.clientblacklisted.details";
         }else if(item.isBlacklisted()){
             return "@mod.blacklisted.details";
         }else if(!item.isSupported()){
@@ -405,6 +405,17 @@ public class ModsDialog extends BaseDialog{
         if(!mobile){
             dialog.buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(mod.file.absolutePath()));
         }
+        // Foo's client mod auto/mass update toggles
+        dialog.buttons.defaults().reset(); // Remove hardcoded width of 210
+        dialog.buttons.defaults().pad(3); // Restore default padding of 3
+        dialog.buttons.table(Tex.button, t ->
+            t.check("@client.mod.autoupdate", settings.getBool(mod.autoUpdateString(), true), b -> { if(b) settings.remove(mod.autoUpdateString()); else settings.put(mod.autoUpdateString(), false); })
+                .fill().get().getLabelCell().fillX()
+        );
+        dialog.buttons.table(Tex.button, t ->
+            t.check("@client.mod.massupdate", settings.getBool(mod.massUpdateString(), true), b -> { if(b) settings.remove(mod.massUpdateString()); else settings.put(mod.massUpdateString(), false); })
+                .fill().padTop(4f).padBottom(4f).get().getLabelCell().fillX()
+        );
 
         if(mod.getRepo() != null){
             boolean showImport = !mod.hasSteamID();
@@ -680,8 +691,8 @@ public class ModsDialog extends BaseDialog{
             modError(e);
         }
 
-        if (++prompted == expected) { // FINISHME: Awful
-            Core.app.post(() -> { // THIS DOES NOT RUN ON THE MAIN THREAD OTHERWISE
+        Core.app.post(() -> { // THIS DOES NOT RUN ON THE MAIN THREAD OTHERWISE
+            if (++prompted == expected) { // FINISHME: Awful
                 autoUpdating = false;
                 if (mods.requiresReload()){
                     if (Core.settings.getInt("modautoupdate") == 2) {
@@ -690,8 +701,8 @@ public class ModsDialog extends BaseDialog{
                     }
                     new Toast(5f).add("[accent]Mod updates found, they will be installed after restart.");
                 } else new Toast(5f).add("[accent]No mod updates found.");
-            });
-        }
+            }
+        });
     }
 
     private void importFail(Throwable t){
