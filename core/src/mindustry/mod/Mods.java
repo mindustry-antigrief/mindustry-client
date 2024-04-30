@@ -179,8 +179,8 @@ public class Mods implements Loadable{
                             var pix = p.getSecond();
                             packer.add(page, p.getFirst(), pix);
                             pix.dispose();
-                            synchronized (count){
-                                if (--count[0] == 0){
+                            synchronized(count){
+                                if(--count[0] == 0){
                                     Log.debug("Shutting down packer pool");
                                     time += Time.timeSinceNanos(s);
                                     pool.shutdownNow();
@@ -207,7 +207,7 @@ public class Mods implements Loadable{
         }
     }
 
-    private void loadIcons(){
+    private void loadIcons(){ // FINISHME: Do this after the menu loads, its slow. Ideally there should be a unified way to queue textures for loading after the game starts so that we only load one per frame instead of one mod icon + one map preview etc.
         Time.mark();
         for(LoadedMod mod : mods){
             loadIcon(mod);

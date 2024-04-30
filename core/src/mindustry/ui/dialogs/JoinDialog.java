@@ -554,7 +554,7 @@ public class JoinDialog extends BaseDialog{
             t.add().growX();
             t.button(Icon.refresh, this::refreshLocal).pad(-12f).padLeft(0).width(70f).fillY();
             local.row();
-            local.add(t).colspan(3).fillX();
+            local.add(t).colspan(columns()).fillX();
         }
         local.background(null);
     }
