@@ -17,7 +17,6 @@ import mindustry.ai.*;
 import mindustry.ai.Pathfinder.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
-import mindustry.client.*;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -1179,11 +1178,6 @@ public class UnitType extends UnlockableContent implements Senseable{
         boolean isPayload = !unit.isAdded();
 
         Mechc mech = unit instanceof Mechc ? (Mechc)unit : null;
-        alpha =
-            ClientVars.hidingUnits || ClientVars.hidingAirUnits && unit.isFlying() ? 0 :
-            (unit.controller() instanceof Player p && p.assisting && !p.isLocal()) ? formationAlpha :
-            1;
-        if (alpha == 0) return; // Don't bother drawing what we can't see.
         float z = isPayload ? Draw.z() : unit.elevation > 0.5f ? (lowAltitude ? Layer.flyingUnitLow : Layer.flyingUnit) : groundLayer + Mathf.clamp(hitSize / 4000f, 0, 0.01f);
 
         if(unit.controller().isBeingControlled(player.unit())){

@@ -11,6 +11,7 @@ import arc.util.*;
 import mindustry.ai.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.*;
 import mindustry.client.navigation.*;
 import mindustry.content.*;
 import mindustry.core.*;
@@ -747,6 +748,12 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     @Override
     public void draw(){
+        UnitType.alpha =
+            ClientVars.hidingUnits || ClientVars.hidingAirUnits && isFlying() ? 0 :
+            (controller() instanceof Player p && p.assisting && !p.isLocal() && !type.isModded()) ? UnitType.formationAlpha : // Don't draw modded units with partial transparency as it won't apply to custom UnitType.draw() code
+            1;
+        if (UnitType.alpha == 0) return; // Don't bother drawing what we can't see.
+
         type.draw(self());
     }
 
