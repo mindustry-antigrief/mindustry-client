@@ -745,7 +745,6 @@ public class SchematicBrowserDialog extends BaseDialog {
                 ui.schematicBrowser.fetch(ui.schematicBrowser.unfetchedRepositories);
                 refetch = false;
             }
-            hide();
         }
     }
 }
