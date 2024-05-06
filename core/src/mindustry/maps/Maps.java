@@ -100,11 +100,7 @@ public class Maps{
     }
 
     public Maps(){
-        Events.on(ClientLoadEvent.class, event -> {
-            loadPreviews();
-
-            maps.sort();
-        });
+        Events.on(ClientLoadEvent.class, event -> loadPreviews());
     }
 
     /**
@@ -419,6 +415,7 @@ public class Maps{
         if(lastPreview == Core.graphics.getFrameId()) return;
         if(queuedPreviews.isEmpty()){
             loader = null;
+            maps.sort();
             return;
         }
         lastPreview = Core.graphics.getFrameId();
