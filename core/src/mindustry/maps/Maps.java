@@ -234,11 +234,16 @@ public class Maps{
                 }
 
                 Pixmap pix = MapIO.generatePreview(world.tiles);
-                mainExecutor.submit(() -> map.previewFile().writePng(pix));
-                writeCache(map);
-
                 map.texture = new Texture(pix);
-                pix.dispose();
+                mainExecutor.submit(() -> {
+                    try{
+                        writeCache(map);
+                    }catch(IOException e){
+                        throw new RuntimeException(e);
+                    }
+                    map.previewFile().writePng(pix);
+                    pix.dispose();
+                });
             }
             maps.add(map);
             maps.sort();
