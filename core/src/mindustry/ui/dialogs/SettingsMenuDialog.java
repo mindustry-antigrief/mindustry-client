@@ -34,7 +34,7 @@ import mindustry.logic.*;
 import mindustry.service.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.ui.fragments.ChatFragment;
+import mindustry.ui.fragments.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.power.*;
@@ -149,6 +149,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
             t.button("@settings.clearcampaignsaves", Icon.trash, style, () -> {
                 ui.showConfirm("@confirm", "@settings.clearcampaignsaves.confirm", () -> {
+                    control.saves.load(true);
                     for(var planet : content.planets()){
                         for(var sec : planet.sectors){
                             sec.clearInfo();
@@ -159,12 +160,14 @@ public class SettingsMenuDialog extends BaseDialog{
                         }
                     }
 
-                    control.saves.load(true);
-                    for(var slot : control.saves.getSaveSlots().copy()){
-                        if(slot.isSector()){
-                            slot.delete();
+                    if (control.saves.loadedSaveCount() > 0){ // If we don't explicitly check for loaded saves, getSaveSlots() will load *all* saves when there are 0 sectors loaded which we don't want as it's needlessly slow.
+                        for(var slot : control.saves.getSaveSlots().copy()){
+                            if(slot.isSector()){
+                                slot.delete();
+                            }
                         }
                     }
+                    control.saves.unload();
                 });
             }).marginLeft(4);
 
@@ -808,12 +811,21 @@ public class SettingsMenuDialog extends BaseDialog{
         protected Seq<Setting> list = new Seq<>();
         private static Seq<Setting> listSorted = new Seq<>();
         private String search = "";
-        private Table searchBarTable;
+        private final Table searchBarTable = makeSearchBar();
         private TextField searchBar;
 
         public SettingsTable(){
             left();
-            makeSearchBar();
+        }
+
+        private Table makeSearchBar(){
+            return new Table(s -> {
+                s.image(Icon.zoom);
+                searchBar = s.field(search, res -> {
+                    search = res;
+                    rebuild();
+                }).growX().get();
+            });
         }
 
         public Seq<Setting> getSettings(){
@@ -823,17 +835,6 @@ public class SettingsMenuDialog extends BaseDialog{
         public void pref(Setting setting){
             list.add(setting);
             rebuild();
-        }
-
-        private void makeSearchBar(){
-            searchBarTable = table(s -> {
-                s.image(Icon.zoom);
-                searchBar = s.field(search, res -> {
-                    search = res;
-                    rebuild();
-                }).growX().get();
-            }).get();
-            row();
         }
 
         public SliderSetting sliderPref(String name, int def, int min, int max, StringProcessor s){
@@ -885,16 +886,56 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         private long lastRebuild;
-        public void rebuild(){
-            if (lastRebuild == -1) return; // Can't run more than twice per frame
-            if (lastRebuild == 0 || lastRebuild == Core.graphics.getFrameId()) { // First ever run and second run per frame
-                lastRebuild = -1;
-                Core.app.post(() -> {
-                    lastRebuild = -2; // Allows rebuild to run
-                    rebuild(); // This will set lastRebuild to the current frame
-                });
-                return;
+        /** True while in rebuild(). If the add() method is called on the settings table while this is false, we know that a mod is doing something unsupported and will disable the search bar */
+        private boolean isRebuilding;
+        /** Whether this table is safe to rebuild. A table is safe unless a mod has added a non Setting element. When this is false, rebuild() will always return immediately, even when called from the mod this table was created by */
+        private boolean canRebuild = true;
+        /** Horrible way to force a rebuild right before a mod adds a non Setting */
+        private boolean forceRebuild = false;
+
+        /** Scuffed way of detecting mods adding non Setting elements to tables */
+        @Override
+        public <T extends Element> Cell<T> add(T element){
+            // FINISHME: Do we also want to maybe get the stacktrace and check if this is being called from Setting.add()? It would be slow but some mod probably does something weird like this somewhere. This suggestion applies to row() as well
+            if(isRebuilding || !canRebuild) return super.add(element); // Normal behavior as long as we're adding stuff using the rebuild() method or once we've already disabled our optimizations
+            // Force the table to be rebuilt *before* adding the first non setting as this is how vanilla would behave (there's a good chance that the last rebuild was delayed to the next frame for performance reasons)
+            Log.warn(bundle.format("client.settings.search.disabled.log.add", Threads.getTrace(1)));
+            forceRebuild = true;
+            rebuild();
+            return super.add(element);
+        }
+
+        /** Scuffed way of detecting mods trying to add rows before we have rebuilt() at least once (this happens since foo's normally delays the first rebuild to the frame after setting creation) */
+        @Override
+        public Table row(){
+            if (hasChildren() || !canRebuild || isRebuilding) return super.row();
+            // If we haven't yet seen a non setting, but they're trying to add a row, they're probably just adding it after the Reset to Defaults button which would be here normally. Trigger a rebuild so its there properly
+            Log.warn(bundle.format("client.settings.search.disabled.log.row", Threads.getTrace(1)));
+            forceRebuild = true;
+            rebuild();
+            return super.row();
+        }
+
+        public void rebuild(){ // FINISHME: Ideally, we should still be able to search for settings even if a mod has added non settings to the table. Perhaps we could have a Setting type that just wraps a runnable that adds the element being added in add()?
+            if(!canRebuild) return;
+            if(!forceRebuild){
+                // This optimization breaks some mods that add content to the table as non Settings, it is automatically bypassed rebuilding() is blocked entirely when non Settings are detected
+                if (lastRebuild == -1) return; // Can't run more than twice per frame
+                if (lastRebuild == 0 || lastRebuild == Core.graphics.getFrameId()) { // First ever run and second run per frame
+                    lastRebuild = -1;
+                    Core.app.post(() -> {
+                        lastRebuild = -2; // Allows rebuild to run
+                        rebuild(); // This will set lastRebuild to the current frame
+                    });
+                    return;
+                }
+            }else{ // A rebuild was forced, this means that we can no longer rebuild this due to a mod adding a non Setting
+                canRebuild = false;
+                searchBar.setDisabled(true);
+                searchBar.addListener(Tooltip.Tooltips.getInstance().create("@client.settings.search.disabled.tooltip"));
             }
+
+            isRebuilding = true;
             lastRebuild = Core.graphics.getFrameId();
             boolean hasFocus = searchBar.hasKeyboard();
             clearChildren();
@@ -915,7 +956,7 @@ public class SettingsMenuDialog extends BaseDialog{
 //                    var desc = u.description == null ? "" : Strings.stripColors(u.description).toLowerCase();
                     var weight = title.isEmpty() /*&& desc.isEmpty()*/ ? Float.POSITIVE_INFINITY : 0f;
 
-                    if (!title.isEmpty()) weight += ClientUtils.biasedLevenshtein(searchLower, title, false, true) / (Structs.count(title.split(" "), searchSplit::contains) + 1);
+                    if (!title.isEmpty()) weight += ClientUtils.biasedLevenshtein(searchLower, title, true, true) / (Structs.count(title.split(" "), searchSplit::contains) + 1); // Case-sensitive as a minor optimization so that search query is only lowercased once
 //                    Line below doesn't work great since a lot of the settings don't have descriptions
 //                    if (!desc.isEmpty()) weight += .5f * ClientUtils.biasedLevenshtein(searchLower, desc, false, true) / (Structs.count(desc.split(" "), searchSplit::contains) + 1);
 
@@ -938,6 +979,7 @@ public class SettingsMenuDialog extends BaseDialog{
             if(hasFocus){
                 searchBar.requestKeyboard();
             }
+            isRebuilding = false;
         }
 
         public abstract static class Setting{

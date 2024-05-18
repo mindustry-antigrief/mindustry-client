@@ -324,13 +324,13 @@ public class Mods implements Loadable{
                     });
                 }
             }
-                synchronized(numTasks){
-                    try{
-                        if(numTasks[0] != 0) numTasks.wait();
-                    }catch(InterruptedException e){
-                        throw new RuntimeException(e);
-                    }
+            synchronized(numTasks){
+                try{
+                    if(numTasks[0] != 0) numTasks.wait();
+                }catch(InterruptedException e){
+                    throw new RuntimeException(e);
                 }
+            }
             Log.debug("Prepared page pixmap cache: @ms", Time.elapsed());
 
             Time.mark();

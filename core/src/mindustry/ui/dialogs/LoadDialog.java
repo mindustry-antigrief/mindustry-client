@@ -83,9 +83,8 @@ public class LoadDialog extends BaseDialog{
         cont.add(pane).growY();
     }
 
-    private int count = 0;
     public void rebuild(){
-        count = 0;
+        int[] count = {0};
         slots.clear();
         slots.marginRight(24).marginLeft(20f);
 
@@ -93,17 +92,17 @@ public class LoadDialog extends BaseDialog{
 
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(470)), 1);
 
-        if(control.saves.loadedSaveCount() == 0){
+        if(!control.saves.loading){ // Start an async load if we haven't yet done so
             control.saves.load(false, s -> {
                 if(!visible) return;
-                if(s != null && addSlot(s, count, maxwidth)) count++;
+                if(s != null && addSlot(s, count[0], maxwidth)) count[0]++;
                 else if (s == null) rebuild(); // Ensures that ordering is correct based on last played timestamp and not file last modified timestamp.
             });
         }else{
             for(SaveSlot slot : control.saves.getSaveSlots().sort(s -> -s.getTimestamp())){
-                if(addSlot(slot, count, maxwidth)) count++;
+                if(addSlot(slot, count[0], maxwidth)) count[0]++;
             }
-            if(count == 0) slots.add("@save.none");
+            if(count[0] == 0) slots.add("@save.none");
         }
     }
 
