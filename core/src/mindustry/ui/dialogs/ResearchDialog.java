@@ -351,7 +351,7 @@ public class ResearchDialog extends BaseDialog{
         }
     }
 
-    void checkNodes(TechTreeNode node){
+    public void checkNodes(TechTreeNode node){
         boolean locked = locked(node.node);
         if(!locked && (node.parent == null || node.parent.visible)) node.visible = true;
         node.selectable = selectable(node.node);
@@ -721,10 +721,10 @@ public class ResearchDialog extends BaseDialog{
             addChild(infoTable);
 
             checkMargin();
-            Core.app.post(() -> checkMargin());
+            Core.app.post(ResearchDialog.this::checkMargin);
 
-            infoTable.pack();
-            infoTable.act(Core.graphics.getDeltaTime());
+            infoTable.layout(); // layout all the children
+            infoTable.pack(); // set the size to fit all the children
         }
 
         @Override
