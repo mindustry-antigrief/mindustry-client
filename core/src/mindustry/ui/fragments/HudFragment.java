@@ -508,8 +508,16 @@ public class HudFragment{
             : Strings.format("@ [yellow](@)", text, Core.keybinds.get(binding).key.toString());
         var clicklayer = new Label("");
         clicklayer.clicked(toggle);
-        var wrapper = table.stack(
+        Color gray = new Color(0.4f, 0.4f, 0.4f, 0.4f);
+        var disabledIcon = icon instanceof SlashTextureRegionDrawable s ? new SlashTextureRegionDrawable(s.getRegion(), gray) {{
+            slashColor = gray;
+            slashColorBack = gray;
+        }}
+            : icon instanceof TextureRegionDrawable d ? d.tint(gray)
+            : null;
+        table.stack(
             new Image(icon).visible(cond),
+            new Image(disabledIcon).visible(() -> !cond.get()),
             clicklayer
         ).size(25f).padRight(8f).padBottom(2f)
         .tooltip(t ->
