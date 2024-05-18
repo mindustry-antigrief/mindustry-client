@@ -431,7 +431,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.sliderPref("pingexecutorthreads", OS.isWindows && !OS.is64Bit ? 5 : 65, 5, 105, 5, s -> s > 100 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("maxschematicslisted", 300, 0, 3000, 150, s -> s == 0 ? "Unlimited" : String.valueOf(s));
-        client.textPref("defaultbuildpathargs", "self"); // Keep it to just self. Skill issue players going afk make this too problematic otherwise.
+        client.textPref("defaultbuildpathargs", "self"); // Keep it to just self. Skill issue players going afk make this too problematic otherwise. FINISHME: Add an afk detection system and revert this once we can reliably detect afk players and allow others to stop their pathing
         client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "");
