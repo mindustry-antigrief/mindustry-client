@@ -400,28 +400,28 @@ public class ModsDialog extends BaseDialog{
     private void showMod(LoadedMod mod){
         BaseDialog dialog = new BaseDialog(mod.meta.displayName);
 
-        dialog.addCloseButton();
+        // Manually add a close button/listener and set the default height as we don't want to set a default width which addCloseButton() does
+        dialog.buttons.defaults().height(64).minWidth(120);
+        dialog.buttons.button("@back", Icon.left, this::hide).wrapLabel(false);
+        dialog.addCloseListener();
+
+        // Foo's client mod auto/mass update toggles
+        dialog.buttons.table(Tex.button, t ->
+            t.check("@client.mod.autoupdate", settings.getBool(mod.autoUpdateString(), true), b -> { if(b) settings.remove(mod.autoUpdateString()); else settings.put(mod.autoUpdateString(), false); }).fill().get().getLabelCell().fillX()
+        );
+        dialog.buttons.table(Tex.button, t ->
+            t.check("@client.mod.massupdate", settings.getBool(mod.massUpdateString(), true), b -> { if(b) settings.remove(mod.massUpdateString()); else settings.put(mod.massUpdateString(), false); }).fill().padTop(4f).padBottom(4f).get().getLabelCell().fillX()
+        );
 
         if(!mobile){
-            dialog.buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(mod.file.absolutePath()));
+            dialog.buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(mod.file.absolutePath())).wrapLabel(false);
         }
-        // Foo's client mod auto/mass update toggles
-        dialog.buttons.defaults().reset(); // Remove hardcoded width of 210
-        dialog.buttons.defaults().pad(3); // Restore default padding of 3
-        dialog.buttons.table(Tex.button, t ->
-            t.check("@client.mod.autoupdate", settings.getBool(mod.autoUpdateString(), true), b -> { if(b) settings.remove(mod.autoUpdateString()); else settings.put(mod.autoUpdateString(), false); })
-                .fill().get().getLabelCell().fillX()
-        );
-        dialog.buttons.table(Tex.button, t ->
-            t.check("@client.mod.massupdate", settings.getBool(mod.massUpdateString(), true), b -> { if(b) settings.remove(mod.massUpdateString()); else settings.put(mod.massUpdateString(), false); })
-                .fill().padTop(4f).padBottom(4f).get().getLabelCell().fillX()
-        );
 
         if(mod.getRepo() != null){
             boolean showImport = !mod.hasSteamID();
-            dialog.buttons.button("@mods.github.open", Icon.link, () -> Core.app.openURI("https://github.com/" + mod.getRepo()));
+            dialog.buttons.button("@mods.github.open", Icon.link, () -> Core.app.openURI("https://github.com/" + mod.getRepo())).wrapLabel(false);
             if(mobile && showImport) dialog.buttons.row();
-            if(showImport) dialog.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava(), null, null));
+            if(showImport) dialog.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava(), null, null)).wrapLabel(false);
         }
 
         dialog.cont.pane(desc -> {

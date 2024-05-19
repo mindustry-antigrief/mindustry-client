@@ -1433,6 +1433,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     copy.configLocal = net.client();
                 }
                 var existing = world.tiles.get(plan.x, plan.y);
+                if(existing == null) continue; // Frozen plan outside of world bounds
                 var existingBuild = existing.build;
                 var aligned = existingBuild != null && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y;
                 var constructing = existingBuild instanceof ConstructBuild cb && cb.current == copy.block;

@@ -112,16 +112,7 @@ fun setupCommands() {
             }
         }
 
-        player.sendMessage(
-            """
-            [accent]${type.localizedName}:
-            Total(Cap): $total($cap)
-            Free(Free Flagged): $free($freeFlagged)
-            Flagged(Unflagged): $flagged($unflagged)
-            Players(Command): $players($command)
-            Logic(Logic Flagged): $logic($logicFlagged)
-            """.trimIndent()
-        )
+        player.sendMessage("client.command.count.success"[type.localizedName, total, cap, free, freeFlagged, flagged, unflagged, players, command, logic, logicFlagged])
     }
 
     // FINISHME: Add unit control/select command(s)
