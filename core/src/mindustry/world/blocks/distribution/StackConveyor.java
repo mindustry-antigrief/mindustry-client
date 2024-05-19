@@ -271,6 +271,7 @@ public class StackConveyor extends Block implements Autotiler{
             if(!enabled) return;
 
             if(state == stateUnload){ //unload
+                int i = 0;
                 while(lastItem != null && (!outputRouter ? moveForward(lastItem) : dump(lastItem))){
                     if(!outputRouter){
                         items.remove(lastItem, 1);
@@ -279,6 +280,13 @@ public class StackConveyor extends Block implements Autotiler{
                     if(items.empty()){
                         poofOut();
                         lastItem = null;
+                    }
+                    if(i > 2 * itemCapacity){
+                        if(player != null){
+                            ui.chatfrag.addMessage(Strings.format("[scarlet]Foo's prevented a client crash!!!!! [orange]Stack router at (@,@), trying to unload item @, current items:@, too many loops! Please report how you got this error, including a screenshot of the surroundings!", x / 8, y / 8, lastItem.name, items.toString()));
+                        }
+                        items.clear();
+                        break;
                     }
                 }
             }else{ //transfer
