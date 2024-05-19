@@ -1,7 +1,6 @@
 package mindustry.client.utils
 
 import arc.struct.*
-import arc.util.*
 import mindustry.gen.*
 import mindustry.ui.*
 

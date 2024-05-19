@@ -79,7 +79,7 @@ public class Schematics implements Loadable{
     public void load(){
         all.clear();
 
-        var await = Seq.<Future<?>>with(mainExecutor.submit(this::loadLoadouts));
+        var await = Seq.<Future<?>>with();
 
         for(Fi file : schematicDirectory.list()){
             await.add(mainExecutor.submit(() -> loadFile(file)));
@@ -90,11 +90,10 @@ public class Schematics implements Loadable{
         //mod-specific schematics, cannot be removed
         mods.listFiles("schematics", (mod, file) -> await.add(mainExecutor.submit(() -> {
             Schematic s = loadFile(file);
-            if(s != null){
-                s.mod = mod;
-            }
+            if(s != null) s.mod = mod;
         })));
 
+        loadLoadouts();
         await.each(Threads::await);
         all.sort();
 
@@ -138,10 +137,10 @@ public class Schematics implements Loadable{
 
         try{
             Schematic s = read(file);
-            synchronized(this){
+            synchronized(all){
                 all.add(s);
-                checkLoadout(s, true);
             }
+                checkLoadout(s, true);
 
             //external file from workshop
             if(!s.file.parent().equals(schematicDirectory)){
@@ -317,12 +316,14 @@ public class Schematics implements Loadable{
         if((customSchem && (s.width > maxSize || s.height > maxSize
             || s.tiles.contains(t -> t.block.buildVisibility == BuildVisibility.sandboxOnly || !t.block.unlocked()) || cores > 1))) return;
 
-        //place in the cache
-        loadouts.get((CoreBlock)core.block, Seq::new).add(s);
+        synchronized(this){
+            //place in the cache
+            loadouts.get((CoreBlock)core.block, Seq::new).add(s);
 
-        //save non-custom loadout
-        if(!customSchem){
-            defaultLoadouts.put((CoreBlock)core.block, s);
+            //save non-custom loadout
+            if(!customSchem){
+                defaultLoadouts.put((CoreBlock)core.block, s);
+            }
         }
     }
 

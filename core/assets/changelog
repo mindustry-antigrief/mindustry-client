@@ -188,7 +188,7 @@
  * Mentioning names in chat (@person) or copying them from player list (clicking username) no longer copies colors, they were a waste of space and were generally annoying
  * Logic jump statements can jump to themselves (good for making timers and such)
  * Repair path works better with formations
- 
+
 # Version 6.3.5
  * Added a button to easily switch between stable and unstable
  * Fixed turret ranges hiding incorrectly

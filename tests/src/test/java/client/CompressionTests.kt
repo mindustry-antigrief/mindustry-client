@@ -1,9 +1,7 @@
 package client
 
-import mindustry.client.utils.compress
-import mindustry.client.utils.inflate
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import mindustry.client.utils.*
+import org.junit.jupiter.api.*
 import kotlin.random.*
 
 class CompressionTests {

@@ -1,13 +1,13 @@
 package mindustry.client.communication
 
 import arc.*
-import arc.files.Fi
+import arc.files.*
 import arc.scene.ui.*
-import arc.scene.ui.layout.Scl
+import arc.scene.ui.layout.*
 import mindustry.Vars.*
 import mindustry.game.*
 import mindustry.gen.*
-import mindustry.ui.fragments.ChatFragment.ChatMessage
+import mindustry.ui.fragments.ChatFragment.*
 import java.io.*
 import kotlin.random.*
 

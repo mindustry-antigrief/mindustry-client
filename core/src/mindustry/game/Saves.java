@@ -34,7 +34,7 @@ public class Saves{
     public boolean hasLoaded;
 
     /** Whether we are currently loading or cancelling loading */
-    private boolean loading, cancelling;
+    public boolean loading, cancelling;
 
     long totalPlaytime;
     private long lastTimestamp;
@@ -112,18 +112,7 @@ public class Saves{
         }else if(!loading){ // Non-blocking async
             cancelling = false;
             loading = true;
-            int i = 0;
-            for(; i < tasks.size; i++){ // Run sync until at least one save is added (very horrid)
-                var s = Threads.await(tasks.get(i));
-                if(s != null){
-                    processSave(s);
-                    cons.get(s);
-                    i++;
-                    break;
-                }
-            }
-            for(; i < tasks.size; i++){
-                var task = tasks.get(i);
+            for(var task : tasks){
                 previewQueue.add(() -> {
                     if(cancelling){
                         previewQueue.pop().run(); // Saves were cleared before loading finished, cancel all loading tasks now (jank)

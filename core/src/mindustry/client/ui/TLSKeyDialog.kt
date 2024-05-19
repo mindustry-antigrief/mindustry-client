@@ -17,9 +17,10 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     private val keys = Table()
     private lateinit var importDialog: Dialog
     private lateinit var aliasDialog: Dialog
+    private var built = false
 
     init {
-        build()
+        shown(::build)
     }
 
     private fun regenerate() {
@@ -73,10 +74,16 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     }
 
     private fun build() {
-        addCloseListener()
-
+        if (built) return
         val store = Main.keyStorage
 
+        if (!store.loaded()) {
+            Core.app.post {
+                Vars.ui.showText("Keys Still Loading", "Keys have not loaded yet. Please try again soon. If it doesn't load after a few retries please report it in the foo's discord") // FINISHME: Bundle
+            }
+            hide()
+            return
+        }
         if (store.cert() == null || store.key() == null || store.chain() == null) {
             hide()
             Core.app.post {
@@ -107,6 +114,8 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
             return
         }
 
+        built = true
+        addCloseButton()
         regenerate()
 
         cont.table{ t ->
@@ -170,7 +179,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
         keyDown {
             if(it == KeyCode.escape || it == KeyCode.back){
                 if (this::importDialog.isInitialized && importDialog.isShown) Core.app.post(importDialog::hide) // This game hates being not dumb so this is needed
-                if (this::aliasDialog.isInitialized && aliasDialog.isShown) Core.app.post(aliasDialog::hide) // Same as above
+                else if (this::aliasDialog.isInitialized && aliasDialog.isShown) Core.app.post(aliasDialog::hide) // Same as above
                 else Core.app.post(this::hide)
             }
         }

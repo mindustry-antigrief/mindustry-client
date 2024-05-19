@@ -58,7 +58,7 @@ class Migrations {
     }
 
     private fun migration3() { // Finally changed Binding.navigate_to_camera to navigate_to_cursor
-        InputDevice.DeviceType.values().forEach { device ->
+        InputDevice.DeviceType.entries.forEach { device ->
             if (!settings.has("keybind-default-$device-navigate_to_camera-key")) return@forEach
             val saved = settings.getInt("keybind-default-$device-navigate_to_camera-key")
             settings.remove("keybind-default-$device-navigate_to_camera-key")
@@ -94,4 +94,8 @@ class Migrations {
             settings.remove(it)
         }
     }
+
+//    private fun migration10() { Uncomment this when new stuff is added
+//        settings.remove("displaydef")
+//    }
 }

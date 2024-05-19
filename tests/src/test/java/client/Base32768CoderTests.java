@@ -1,12 +1,10 @@
 package client;
 
-import mindustry.client.communication.Base32768Coder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Random;
+import mindustry.client.communication.*;
+import org.junit.jupiter.api.*;
+
+import java.io.*;
+import java.util.*;
 
 public class Base32768CoderTests {
 

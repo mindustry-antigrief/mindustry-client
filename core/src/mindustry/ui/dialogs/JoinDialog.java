@@ -427,9 +427,6 @@ public class JoinDialog extends BaseDialog{
             t.button(Icon.zoom, Styles.emptyi, this::refreshCommunity).size(54f);
         }).width((targetWidth() + 5f) * columns()).height(70f).pad(4).row();
 
-        long[] lastFrame = {0};
-        long[] start = {0};
-        long[] queued = {0};
         for(int i = 0; i < defaultServers.size; i ++){
             ServerGroup group = defaultServers.get((i + defaultServers.size/2) % defaultServers.size);
             boolean hidden = group.hidden();
@@ -554,7 +551,7 @@ public class JoinDialog extends BaseDialog{
             t.add().growX();
             t.button(Icon.refresh, this::refreshLocal).pad(-12f).padLeft(0).width(70f).fillY();
             local.row();
-            local.add(t).colspan(3).fillX();
+            local.add(t).colspan(columns()).fillX();
         }
         local.background(null);
     }

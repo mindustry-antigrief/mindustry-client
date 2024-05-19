@@ -11,7 +11,7 @@ import kotlin.math.*
 
 class Signatures(private val store: KeyStorage, private val ntp: AtomicReference<Clock>) {
     companion object {
-        private val signature = Signature.getInstance("ed448", "BC")
+        private val signature by lazy { Signature.getInstance("ed448", "BC") }
         const val SIGNATURE_LENGTH = 114
         const val SIGNATURE_EXPIRY_SECONDS = 10
 

@@ -1,9 +1,7 @@
 import arc.struct.StringMap
 import arc.util.io.PropertiesUtils
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 buildscript{
     ext{
@@ -322,12 +320,9 @@ project(":core"){
         }
     }
 
-    tasks.withType(KotlinCompile).configureEach {
-        compilerOptions {
-            freeCompilerArgs.add("-Xjdk-release=1.8")
-            jvmTarget.set(JvmTarget.JVM_1_8)
-            languageVersion = KotlinVersion.KOTLIN_1_9
-        }
+    kotlin.compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+        freeCompilerArgs.add("-Xjdk-release=1.8")
     }
 
     tasks.withType(KaptWithoutKotlincTask.class).configureEach {
@@ -413,7 +408,7 @@ project(":server"){
 }
 
 project(":tests"){
-    apply plugin: "java"
+    apply plugin: "kotlin"
 
     dependencies{
         testImplementation project(":core")
@@ -436,6 +431,11 @@ project(":tests"){
             exceptionFormat = 'full'
             showStandardStreams = true
         }
+    }
+
+    kotlin.compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+        freeCompilerArgs.add("-Xjdk-release=1.8")
     }
 }
 

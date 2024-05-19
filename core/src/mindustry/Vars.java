@@ -521,6 +521,25 @@ public class Vars implements Loadable{
                     Log.warn("END BUNDLE DIFF");
                 });
             }
+
+            if(OS.hasProp("extrabundles")){ // When -Dextrabundles is passed, logs all extra keys for all bundles
+                Events.on(ClientLoadEvent.class, event -> {
+                    I18NBundle parent = bundle;
+                    while(parent.getParent() != null) parent = parent.getParent();
+
+                    Log.warn("BEGIN BUNDLE EXTRAS");
+                    for(var l : locales){
+                        if(l == parent.getLocale()) continue;
+                        var b = I18NBundle.createBundle(Core.files.internal("bundles/bundle"), l);
+                        Log.warn("#############\n\tBundle: " + b.getLocale().toString());
+                        for(var k : b.getKeys()){
+                            if(!parent.has(k)) Log.info(k);
+                        }
+                    }
+                    Log.warn("END BUNDLE EXTRAS");
+                });
+
+            }
         }
     }
 }

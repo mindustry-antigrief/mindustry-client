@@ -25,6 +25,7 @@ object ResearchAssistant : Table() {
 
                 // Run until no new nodes are unlocked
                 var any = autoResearch
+                if (any) ui.research.checkNodes(ui.research.root) // Set visibility for each node (needed in case the research dialog hasn't been opened yet)
                 while (any) {
                     any = ui.research.nodes.any { it.visible && it.node.content.locked() && ui.research.view.canSpend(it.node) && spend(it.node) }
                 }
@@ -67,24 +68,30 @@ object ResearchAssistant : Table() {
     }
 
     private fun spend(node: TechNode): Boolean {
+        var complete = true
         for (sector in state.planet.sectors) {
             if (!sector.hasBase()) continue
+
             val items = sector.items()
 
+            complete = true
             for (i in 0 until node.requirements.size) { // I don't know how slow indices is
                 val req = node.requirements[i]
                 val completed = node.finishedRequirements[i]
                 if (completed.amount >= req.amount) continue
                 val used = (req.amount - completed.amount).coerceAtMost(items.get(node.requirements[i].item) - 1000) // Actual used quantity
-                if (used <= 0) continue
+                if (used <= 0) {
+                    complete = false
+                    continue
+                }
                 sector.removeItem(req.item, used)
                 completed.amount += used
+                complete = complete && completed.amount >= req.amount
             }
+            if (complete) break // Break early if research is already complete
         }
-        //disable completion if not all requirements are met
-        val completed = node.requirements.withIndex().all { node.finishedRequirements[it.index].amount >= it.value.amount }
-        if (completed) ui.research.view.unlock(node)
+        if (complete) ui.research.view.unlock(node)
         node.save()
-        return completed
+        return complete
     }
 }

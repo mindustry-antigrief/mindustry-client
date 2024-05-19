@@ -34,7 +34,7 @@ import mindustry.logic.*;
 import mindustry.service.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.ui.fragments.ChatFragment;
+import mindustry.ui.fragments.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.power.*;
@@ -149,6 +149,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
             t.button("@settings.clearcampaignsaves", Icon.trash, style, () -> {
                 ui.showConfirm("@confirm", "@settings.clearcampaignsaves.confirm", () -> {
+                    control.saves.load(true);
                     for(var planet : content.planets()){
                         for(var sec : planet.sectors){
                             sec.clearInfo();
@@ -159,12 +160,14 @@ public class SettingsMenuDialog extends BaseDialog{
                         }
                     }
 
-                    control.saves.load(true);
-                    for(var slot : control.saves.getSaveSlots().copy()){
-                        if(slot.isSector()){
-                            slot.delete();
+                    if (control.saves.loadedSaveCount() > 0){ // If we don't explicitly check for loaded saves, getSaveSlots() will load *all* saves when there are 0 sectors loaded which we don't want as it's needlessly slow.
+                        for(var slot : control.saves.getSaveSlots().copy()){
+                            if(slot.isSector()){
+                                slot.delete();
+                            }
                         }
                     }
+                    control.saves.unload();
                 });
             }).marginLeft(4);
 
@@ -376,12 +379,12 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.sliderPref("beamdrillopacity", 100, 0, 100, 1, s -> s + "%");
-        client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "On left side" : s == 1 ? "On right side" : "Do not show"; });
-        client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; if (Vars.pathfinder.thread == null) Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "Disabled" : String.valueOf(s); });
-        client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "Disabled" : String.valueOf(s); });
+        client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "@client.left" : s == 1 ? "@client.right" : "Do not show"; });
+        client.sliderPref("spawntime", 5, -1, 60, s -> { ClientVars.spawnTime = 60 * s; if (Vars.pathfinder.thread == null) Vars.pathfinder.start(); return s == -1 ? "Solid Line" : s == 0 ? "@off" : String.valueOf(s); });
+        client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "@off" : String.valueOf(s); });
         client.sliderPref("formationopacity", 30, 10, 100, 5, s -> { UnitType.formationAlpha = s / 100f; return s + "%"; });
-        client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "Disabled" : s + "%"; });
-        client.sliderPref("transferrangeopacity", 30, 0, 100, 5, s -> s + "%");
+        client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "@off" : s + "%"; });
+        client.sliderPref("transferrangeopacity", 30, 0, 100, 5, s -> s == 0 ? "@off" : s + "%");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("placementfragmentsearch", true);
@@ -413,6 +416,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("useiconslogs", false);
         client.checkPref("colorizelogs", false);
         client.checkPref("showmassdriverdistance", false);
+        client.checkPref("enableunderwaterenv", false);
 
         client.category("misc");
         client.updatePref();
@@ -422,12 +426,12 @@ public class SettingsMenuDialog extends BaseDialog{
         client.textPref("keybind1command", "");
         client.sliderPref("minepathcap", 5000, -100, 5000, 100, s -> s == 0 ? "Unlimited" : s == -100 ? "Never" : String.valueOf(s));
         client.sliderPref("defaultbuildpathradius", 0, 0, 250, 5, s -> s == 0 ? "Unlimited" : String.valueOf(s));
-        client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "Disabled" : s == 1 ? "In Background" : "Restart Game");
+        client.sliderPref("modautoupdate", 1, 0, 2, s -> s == 0 ? "@off" : s == 1 ? "In Background" : "Restart Game");
         client.sliderPref("processorstatementscale", 80, 10, 100, 1, s -> String.format("%.2fx", s/100f)); // This is the most scuffed setting you have ever seen
         client.sliderPref("automapvote", 0, 0, 4, s -> s == 0 ? "Never" : s == 4 ? "Random vote" : "Always " + new String[]{"downvote", "novote", "upvote"}[--s]);
         client.sliderPref("pingexecutorthreads", OS.isWindows && !OS.is64Bit ? 5 : 65, 5, 105, 5, s -> s > 100 ? "Unlimited" : String.valueOf(s));
         client.sliderPref("maxschematicslisted", 300, 0, 3000, 150, s -> s == 0 ? "Unlimited" : String.valueOf(s));
-        client.textPref("defaultbuildpathargs", "self"); // Keep it to just self. Skill issue players going afk make this too problematic otherwise.
+        client.textPref("defaultbuildpathargs", "self"); // Keep it to just self. Skill issue players going afk make this too problematic otherwise. FINISHME: Add an afk detection system and revert this once we can reliably detect afk players and allow others to stop their pathing
         client.textPref("defaultminepathargs", "all");
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "");
@@ -807,12 +811,21 @@ public class SettingsMenuDialog extends BaseDialog{
         protected Seq<Setting> list = new Seq<>();
         private static Seq<Setting> listSorted = new Seq<>();
         private String search = "";
-        private Table searchBarTable;
+        private final Table searchBarTable = makeSearchBar();
         private TextField searchBar;
 
         public SettingsTable(){
             left();
-            makeSearchBar();
+        }
+
+        private Table makeSearchBar(){
+            return new Table(s -> {
+                s.image(Icon.zoom);
+                searchBar = s.field(search, res -> {
+                    search = res;
+                    rebuild();
+                }).growX().get();
+            });
         }
 
         public Seq<Setting> getSettings(){
@@ -822,17 +835,6 @@ public class SettingsMenuDialog extends BaseDialog{
         public void pref(Setting setting){
             list.add(setting);
             rebuild();
-        }
-
-        private void makeSearchBar(){
-            searchBarTable = table(s -> {
-                s.image(Icon.zoom);
-                searchBar = s.field(search, res -> {
-                    search = res;
-                    rebuild();
-                }).growX().get();
-            }).get();
-            row();
         }
 
         public SliderSetting sliderPref(String name, int def, int min, int max, StringProcessor s){
@@ -884,16 +886,56 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         private long lastRebuild;
-        public void rebuild(){
-            if (lastRebuild == -1) return; // Can't run more than twice per frame
-            if (lastRebuild == 0 || lastRebuild == Core.graphics.getFrameId()) { // First ever run and second run per frame
-                lastRebuild = -1;
-                Core.app.post(() -> {
-                    lastRebuild = -2; // Allows rebuild to run
-                    rebuild(); // This will set lastRebuild to the current frame
-                });
-                return;
+        /** True while in rebuild(). If the add() method is called on the settings table while this is false, we know that a mod is doing something unsupported and will disable the search bar */
+        private boolean isRebuilding;
+        /** Whether this table is safe to rebuild. A table is safe unless a mod has added a non Setting element. When this is false, rebuild() will always return immediately, even when called from the mod this table was created by */
+        private boolean canRebuild = true;
+        /** Horrible way to force a rebuild right before a mod adds a non Setting */
+        private boolean forceRebuild = false;
+
+        /** Scuffed way of detecting mods adding non Setting elements to tables */
+        @Override
+        public <T extends Element> Cell<T> add(T element){
+            // FINISHME: Do we also want to maybe get the stacktrace and check if this is being called from Setting.add()? It would be slow but some mod probably does something weird like this somewhere. This suggestion applies to row() as well
+            if(isRebuilding || !canRebuild) return super.add(element); // Normal behavior as long as we're adding stuff using the rebuild() method or once we've already disabled our optimizations
+            // Force the table to be rebuilt *before* adding the first non setting as this is how vanilla would behave (there's a good chance that the last rebuild was delayed to the next frame for performance reasons)
+            Log.warn(bundle.format("client.settings.search.disabled.log.add", Threads.getTrace(1)));
+            forceRebuild = true;
+            rebuild();
+            return super.add(element);
+        }
+
+        /** Scuffed way of detecting mods trying to add rows before we have rebuilt() at least once (this happens since foo's normally delays the first rebuild to the frame after setting creation) */
+        @Override
+        public Table row(){
+            if (hasChildren() || !canRebuild || isRebuilding) return super.row();
+            // If we haven't yet seen a non setting, but they're trying to add a row, they're probably just adding it after the Reset to Defaults button which would be here normally. Trigger a rebuild so its there properly
+            Log.warn(bundle.format("client.settings.search.disabled.log.row", Threads.getTrace(1)));
+            forceRebuild = true;
+            rebuild();
+            return super.row();
+        }
+
+        public void rebuild(){ // FINISHME: Ideally, we should still be able to search for settings even if a mod has added non settings to the table. Perhaps we could have a Setting type that just wraps a runnable that adds the element being added in add()?
+            if(!canRebuild) return;
+            if(!forceRebuild){
+                // This optimization breaks some mods that add content to the table as non Settings, it is automatically bypassed rebuilding() is blocked entirely when non Settings are detected
+                if (lastRebuild == -1) return; // Can't run more than twice per frame
+                if (lastRebuild == 0 || lastRebuild == Core.graphics.getFrameId()) { // First ever run and second run per frame
+                    lastRebuild = -1;
+                    Core.app.post(() -> {
+                        lastRebuild = -2; // Allows rebuild to run
+                        rebuild(); // This will set lastRebuild to the current frame
+                    });
+                    return;
+                }
+            }else{ // A rebuild was forced, this means that we can no longer rebuild this due to a mod adding a non Setting
+                canRebuild = false;
+                searchBar.setDisabled(true);
+                searchBar.addListener(Tooltip.Tooltips.getInstance().create("@client.settings.search.disabled.tooltip"));
             }
+
+            isRebuilding = true;
             lastRebuild = Core.graphics.getFrameId();
             boolean hasFocus = searchBar.hasKeyboard();
             clearChildren();
@@ -914,7 +956,7 @@ public class SettingsMenuDialog extends BaseDialog{
 //                    var desc = u.description == null ? "" : Strings.stripColors(u.description).toLowerCase();
                     var weight = title.isEmpty() /*&& desc.isEmpty()*/ ? Float.POSITIVE_INFINITY : 0f;
 
-                    if (!title.isEmpty()) weight += ClientUtils.biasedLevenshtein(searchLower, title, false, true) / (Structs.count(title.split(" "), searchSplit::contains) + 1);
+                    if (!title.isEmpty()) weight += ClientUtils.biasedLevenshtein(searchLower, title, true, true) / (Structs.count(title.split(" "), searchSplit::contains) + 1); // Case-sensitive as a minor optimization so that search query is only lowercased once
 //                    Line below doesn't work great since a lot of the settings don't have descriptions
 //                    if (!desc.isEmpty()) weight += .5f * ClientUtils.biasedLevenshtein(searchLower, desc, false, true) / (Structs.count(desc.split(" "), searchSplit::contains) + 1);
 
@@ -937,6 +979,7 @@ public class SettingsMenuDialog extends BaseDialog{
             if(hasFocus){
                 searchBar.requestKeyboard();
             }
+            isRebuilding = false;
         }
 
         public abstract static class Setting{
@@ -1047,7 +1090,7 @@ public class SettingsMenuDialog extends BaseDialog{
         }
 
         private void updatePref(){
-            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client");
+            settings.defaults("updateurl", "mindustry-antigrief/mindustry-client-v7-builds");
             if (!Version.updateUrl.isEmpty()) settings.put("updateurl", Version.updateUrl); // overwrites updateurl on every boot, shouldn't be a real issue
             pref(new Setting("updateurl") {
                 boolean urlChanged;
@@ -1076,7 +1119,7 @@ public class SettingsMenuDialog extends BaseDialog{
                             becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
                             urlChanged = true;
                             settings.put(name, text);
-                        }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client");
+                        }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client-v7-builds");
                     }).left().expandX().padTop(3).height(32).padBottom(3);
                     table.row();
                 }

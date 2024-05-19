@@ -36,11 +36,14 @@ class SignatureTest {
         val tmpDir = Files.createTempDirectory("signatureTest")
         val tmpDir2 = Files.createTempDirectory("signatureTest2")
         val store = KeyStorage(tmpDir.toFile())
+        val store2 = KeyStorage(tmpDir2.toFile())
+        while (!(store.loaded() && store2.loaded())) { // These are loaded on mainExecutor, we can't use them until they load
+            Thread.yield()
+        }
 
         store.cert(cert)
         store.key(keyPair, listOf(cert))
 
-        val store2 = KeyStorage(tmpDir2.toFile())
         store2.trust(cert)
 
         val signatures  = Signatures(store,  AtomicReference(Clock.fixed(Instant.now(), ZoneId.of("UTC"))))

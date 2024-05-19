@@ -149,48 +149,70 @@ public class Mods implements Loadable{
             Core.atlas.find("rubble-1-0").pid, PageType.rubble
         );
 
-//        for(var t : Core.atlas.getTextures()){
-//            Log.debug("Matches: @ @ @ @ @", Core.atlas.find("white").texture == t,  Core.atlas.find("stone1").texture == t, Core.atlas.find("whiteui").texture == t, Core.atlas.find("rubble-1-0").texture == t, Core.atlas.find("clear-editor").texture == t);
-//        }
-
         packer = new MultiPacker();
-        //all packing tasks to await
-        var tasks = new Seq<Future<Runnable>>();
+        var queues = new LinkedBlockingQueue[PageType.all.length];
+        for(int i = 0; i < queues.length; i++) queues[i] = new LinkedBlockingQueue<Pair<String, Pixmap>>();
 
+        final int[] count = {0};
         eachEnabled(mod -> {
             Seq<Fi> sprites = mod.root.child("sprites").findAll(f -> f.extension().equals("png"));
             Seq<Fi> overrides = mod.root.child("sprites-override").findAll(f -> f.extension().equals("png"));
 
-            packSprites(sprites, mod, true, tasks);
-            packSprites(overrides, mod, false, tasks);
+            count[0] += packSprites(sprites, mod, true, queues);
+            count[0] += packSprites(overrides, mod, false, queues);
 
             Log.debug("Packed @ images for mod '@'.", sprites.size + overrides.size, mod.meta.name);
             totalSprites += sprites.size + overrides.size;
         });
 
-        for(var result : tasks){ // FINISHME: Parallelize by page
-            try{
-                var packRun = result.get(); // Blocks until task finish if needed
-                if(packRun != null){ //can be null for very strange reasons, ignore if that's the case
-                    try{
-                        //actually pack the image
-                        packRun.run();
-                    }catch(Exception e){ //the image can fail to fit in the spritesheet
-                        Log.err("Failed to fit image into the spritesheet, skipping", e);
+        if(count[0] != 0){
+            var pool = Threads.unboundedExecutor("Sprite Page Packer"); // Ensure we dont end up with deadlocks due to queue count > core count
+            for(int i = 0; i < queues.length; i++){
+                var q = (LinkedBlockingQueue<Pair<String, Pixmap>>)queues[i];
+                var page = PageType.all[i];
+                pool.execute(() -> {
+                    long time = 0;
+                    while(true){
+                        try{
+                            var p = q.take(); //actually pack the image
+                            var s = Time.nanos();
+                            var pix = p.getSecond();
+                            packer.add(page, p.getFirst(), pix);
+                            pix.dispose();
+                            synchronized(count){
+                                if(--count[0] == 0){
+                                    Log.debug("Shutting down packer pool");
+                                    time += Time.timeSinceNanos(s);
+                                    pool.shutdownNow();
+                                }
+                            }
+                            time += Time.timeSinceNanos(s);
+                        }catch(InterruptedException ignored){ //handle interrupts from shutdownNow
+                            Log.info("Page @ in @ms", page.name(), time/(float)Time.nanosPerMilli);
+                            break;
+                        }catch(Exception e){ //this means loading the image failed, log it and move on
+                            Log.err("Failed to pack mod image", e);
+                        }
                     }
-                }
-            }catch(Exception e){ //this means loading the image failed, log it and move on
-                Log.err(e);
+                });
             }
-        }
+            var s = Time.nanos();
+            try{
+                pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS); //wait for the pool to be shutdown
+            }catch(InterruptedException e){
+                throw new RuntimeException(e);
+            }
 
-        Log.debug("Time to pack mod textures: @ms", Time.millisSinceNanos(startAsync));
+            Log.debug("Time to pack mod textures: @ms (awaited @ms)", Time.millisSinceNanos(startAsync), Time.millisSinceNanos(s));
+        }
     }
 
-    private void loadIcons(){
+    private void loadIcons(){ // FINISHME: Do this after the menu loads, its slow. Ideally there should be a unified way to queue textures for loading after the game starts so that we only load one per frame instead of one mod icon + one map preview etc.
+        Time.mark();
         for(LoadedMod mod : mods){
             loadIcon(mod);
         }
+        Log.info("Loaded mod icons in @", Time.elapsed());
     }
 
     private void loadIcon(LoadedMod mod){
@@ -205,10 +227,11 @@ public class Mods implements Loadable{
         }
     }
 
-    private void packSprites(Seq<Fi> sprites, LoadedMod mod, boolean prefix, Seq<Future<Runnable>> tasks){
+    private int packSprites(Seq<Fi> sprites, LoadedMod mod, boolean prefix, LinkedBlockingQueue<Pair<String, Pixmap>>[] queues){
         boolean bleed = Core.settings.getBool("linear", true) && !mod.meta.pregenerated;
         float textureScale = mod.meta.texturescale;
 
+        int count = 0;
         for(Fi file : sprites){
             String
             baseName = file.nameWithoutExtension(),
@@ -222,29 +245,30 @@ public class Mods implements Loadable{
             }
 
             //read and bleed pixmaps in parallel
-            tasks.add(mainExecutor.submit(() -> {
-
+            count++;
+            mainExecutor.execute(() -> {
                 try{
                     Pixmap pix = new Pixmap(file.readBytes());
                     //only bleeds when linear filtering is on at startup
                     if(bleed){
                         Pixmaps.bleed(pix, 2);
                     }
-                    //this returns a *runnable* which actually packs the resulting pixmap; this has to be done synchronously outside the method
-                    return () -> { // FINISHME: These shouldn't be handled on the main thread.
-                        String fullName = (prefix ? mod.name + "-" : "") + baseName;
-                        packer.add(getPage(file), fullName, new PixmapRegion(pix));
-                        if(textureScale != 1.0f){
+
+                    var page = getPage(file);
+                    String fullName = (prefix ? mod.name + "-" : "") + baseName;
+                    queues[page.ordinal()].offer(new Pair<>(fullName, pix)); //add the pixmap to the page queue. each pages queue is packed in parallel
+                    if(textureScale != 1.0f){
+                        synchronized(textureResize){
                             textureResize.put(fullName, textureScale);
                         }
-                        pix.dispose();
-                    };
+                    }
                 }catch(Exception e){
                     //rethrow exception with details about the cause of failure
-                    throw new Exception("Failed to load image " + file + " for mod " + mod.name, e);
+                    throw new RuntimeException("Failed to load image " + file + " for mod " + mod.name, e);
                 }
-            }));
+            });
         }
+        return count;
     }
 
     @Override
@@ -283,20 +307,31 @@ public class Mods implements Loadable{
                 entries[i] = new Seq<>();
             }
 
-            var tasks = new Seq<Future<?>>();
 
             Time.mark();
-            for (Texture texture : Core.atlas.getTextures()) {
-                if (!Core.atlas.getPixmaps().containsKey(texture)) { // Create pixmaps for each page in parallel
-                    tasks.add(mainExecutor.submit(() -> new Pair<>(texture, texture.getTextureData().getPixmap())));
+            int[] numTasks = {0};
+            for(Texture texture : Core.atlas.getTextures()){
+                if(!Core.atlas.getPixmaps().containsKey(texture)){ // Create pixmaps for each page in parallel
+                    synchronized(numTasks){
+                        numTasks[0]++;
+                    }
+                    mainExecutor.execute(() -> {
+                        var pix = texture.getTextureData().getPixmap();
+                        synchronized(numTasks){
+                            Core.atlas.getPixmaps().put(texture, pix);
+                            if(--numTasks[0] == 0) numTasks.notify();
+                        }
+                    });
                 }
             }
-            for (var task : tasks.<Future<Pair<Texture, Pixmap>>>as()) { // Put the newly created pixmaps into the cache (we make the pixmaps here to avoid making them all on the main thread later as that is slow)
-                var pair = Threads.await(task);
-                Core.atlas.getPixmaps().put(pair.getFirst(), pair.getSecond());
+            synchronized(numTasks){
+                try{
+                    if(numTasks[0] != 0) numTasks.wait();
+                }catch(InterruptedException e){
+                    throw new RuntimeException(e);
+                }
             }
-            tasks.clear();
-            Log.debug("Prepared page pixmap cache in: @ms", Time.elapsed());
+            Log.debug("Prepared page pixmap cache: @ms", Time.elapsed());
 
             Time.mark();
             int had = 0, missing = 0;
@@ -316,6 +351,7 @@ public class Mods implements Loadable{
 
 
             Time.mark();
+            var tasks = new Seq<Future<?>>();
             //sort each page type by size first, for optimal packing. packs each page in parallel
             for(int i = 0; i < PageType.all.length; i++){
                 var rects = entries[i];
@@ -323,7 +359,7 @@ public class Mods implements Loadable{
                 var typePacker = packer.getPacker(type);
                 tasks.add(mainExecutor.submit(() -> {
                     //TODO is this in reverse order?
-                    new Sort().sort(rects, Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
+                    rects.sort(Structs.comparingInt(o -> -Math.max(o.region.width, o.region.height)));
 
                     for(var entry : rects){
                         typePacker.pack(entry.name, entry.region, entry.splits, entry.pads);
@@ -401,11 +437,29 @@ public class Mods implements Loadable{
 
             //dispose old atlas data
             Time.mark();
-            Core.atlas = packer.flush(Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest, new TextureAtlas());
+            Core.atlas = packer.flush(Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest, new TextureAtlas(){
+                final PixmapRegion fake = new PixmapRegion(new Pixmap(1, 1));
+                boolean didWarn = false;
+
+                @Override
+                public PixmapRegion getPixmap(AtlasRegion region){
+                    var other = super.getPixmap(region);
+                    if(other.pixmap.isDisposed()){
+                        if(!didWarn){
+                            Log.err(new RuntimeException("Calling getPixmap outside of createIcons is not supported! This will be a crash in the future."));
+                            didWarn = true;
+                        }
+                        return fake;
+                    }
+
+                    return other;
+                }
+            });
             Log.debug("Sprite flush took: @ms", Time.elapsed());
 
             Time.mark();
             textureResize.each(e -> Core.atlas.find(e.key).scale = e.value);
+            textureResize = null;
             Log.debug("Texture resize took: @ms", Time.elapsed());
 
 
@@ -1144,6 +1198,16 @@ public class Mods implements Loadable{
                 iconTexture.dispose();
                 iconTexture = null;
             }
+        }
+
+        /** Whether this mod should auto update */
+        public String autoUpdateString() {
+            return "mod-" + name + "-autoupdate";
+        }
+
+        /** Whether this mod should be updated when clicking "update active mods" */
+        public String massUpdateString() {
+            return "mod-" + name + "-massupdate";
         }
 
         @Override

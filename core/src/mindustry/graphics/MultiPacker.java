@@ -100,7 +100,8 @@ public class MultiPacker implements Disposable{
 
     @Override
     public void dispose(){
-        for(PixmapPacker packer : packers){
+        for(int i = 0; i < PageType.all.length; i ++){
+            var packer = packers[i];
             packer.dispose();
         }
     }

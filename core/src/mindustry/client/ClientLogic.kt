@@ -120,7 +120,7 @@ class ClientLogic {
             ui.join.lastHost = null // Not needed unless connected
         }
 
-        Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading
+        Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading FINISHME: Look into optimizing this, it takes half of the entire ClientLoadEvent, ~250ms on my machine
             mainExecutor.execute {
                 Log.debug("Loaded sound & music in @ms", measureTimeMillis {
                     Musics.load(true) // Loading music isn't very important
@@ -128,7 +128,7 @@ class ClientLogic {
                 })
             }
 
-            val changeHash = files.internal("changelog").readString().hashCode() // Display changelog if the file contents have changed & on first run. (this is really scuffed lol)
+            val changeHash = files.internal("changelog").readString().replace("\r\n", "\n").hashCode() // Display changelog if the file contents have changed as well as on first run
             if (settings.getInt("changeHash") != changeHash) {
                 ChangelogDialog.show()
                 settings.put("changeHash", changeHash)
@@ -184,7 +184,7 @@ class ClientLogic {
                 if (settings.getBool("savemaponend")) control.saves.addSave(state.map.name())
             }
 
-            // TODO: Make this work in singleplayer
+            // FINISHME: Make this work in singleplayer
             if (it.winner == player.team()) {
                 if (settings.getString("gamewintext")?.isNotBlank() == true) Call.sendChatMessage(settings.getString("gamewintext"))
             } else {

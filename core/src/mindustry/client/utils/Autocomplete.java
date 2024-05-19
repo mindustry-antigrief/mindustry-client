@@ -1,7 +1,7 @@
 package mindustry.client.utils;
 
 import arc.struct.*;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 
 public class Autocomplete { // FINISHME: Rewrite the entire autocompletion system to not suck as much
     public static Seq<Autocompleter> autocompleters = new Seq<>();

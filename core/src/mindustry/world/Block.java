@@ -1283,6 +1283,8 @@ public class Block extends UnlockableContent implements Senseable{
             }
         }
 
+        Seq<Pixmap> toDispose = new Seq<>();
+
         //generate paletted team regions
         if(teamRegion != null && teamRegion.found()){
             for(Team team : Team.all){
@@ -1307,6 +1309,7 @@ public class Block extends UnlockableContent implements Senseable{
                     Drawf.checkBleed(out);
 
                     packer.add(PageType.main, name + "-team-" + team.name, out);
+                    toDispose.add(out);
                 }
             }
 
@@ -1326,6 +1329,7 @@ public class Block extends UnlockableContent implements Senseable{
             Pixmap out = last = Pixmaps.outline(region, outlineColor, outlineRadius);
             Drawf.checkBleed(out);
             packer.add(PageType.main, atlasRegion.name, out);
+            toDispose.add(out);
         }
 
         var toOutline = new Seq<TextureRegion>();
@@ -1339,6 +1343,7 @@ public class Block extends UnlockableContent implements Senseable{
                 Drawf.checkBleed(outlined);
 
                 packer.add(PageType.main, regionName + "-outline", outlined);
+                toDispose.add(outlined);
             }
         }
 
@@ -1356,12 +1361,15 @@ public class Block extends UnlockableContent implements Senseable{
             packer.add(PageType.main, "block-" + name + "-full", base);
 
             editorBase = new PixmapRegion(base);
+            toDispose.add(base);
         }else{
             if(gen[0] != null) packer.add(PageType.main, "block-" + name + "-full", Core.atlas.getPixmap(gen[0]));
             editorBase = gen[0] == null ? Core.atlas.getPixmap(fullIcon) : Core.atlas.getPixmap(gen[0]);
         }
 
         packer.add(PageType.editor, name + "-icon-editor", editorBase);
+
+        toDispose.each(Pixmap::dispose);
     }
 
     public int planRotation(int rot){
