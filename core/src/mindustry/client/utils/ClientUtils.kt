@@ -220,7 +220,7 @@ fun <T> Iterable<T>.unescape(escapement: T, vararg escape: T): List<T> {
 }
 
 fun String.bundle(): String = Core.bundle[removePrefix("@")]
-operator fun String.get(vararg args: Any?): String = Core.bundle.format(removePrefix("@"), args)
+operator fun String.get(vararg args: Any?): String = Core.bundle.formatKt(removePrefix("@"), args)
 
 val X509Certificate.readableName: String
     get() = subjectX500Principal.name.removePrefix("CN=")
