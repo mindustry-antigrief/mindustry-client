@@ -27,7 +27,7 @@ import static mindustry.Vars.*;
 
 public class BuildPath extends Path { // FINISHME: Dear god, this file does not belong on this planet, its so bad.
     private boolean show, activeVirus;
-    Interval timer = new Interval(2);
+    private final Interval timer = new Interval(2);
     public Queue<BuildPlan> broken = new Queue<>(), boulders = new Queue<>(), assist = new Queue<>(), unfinished = new Queue<>(), cleanup = new Queue<>(), networkAssist = new Queue<>(), virus = new Queue<>(), drills = new Queue<>(), belts = new Queue<>(), overdrives = new Queue<>();
     public Seq<Queue<BuildPlan>> queues = new Seq<>();
     public Seq<Item> mineItems;
@@ -152,6 +152,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
 
             if (timer.get(1, 300)) {
                 clientThread.post(() -> {
+                    var start = Time.millis();
                     for (var turret : Navigation.getEnts()) {
                         var canHit = turret.canHitPlayer();
                         if (!turret.canShoot() || !(turret.targetGround || canHit) || turret.entity.team() == Team.derelict) continue;
@@ -170,6 +171,7 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
                         }
                     }
                     temp.clear();
+                    Log.debug("BuildPath grid update in @ms", Time.timeSinceMillis(start));
                 });
             }
 

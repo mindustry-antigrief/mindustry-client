@@ -25,11 +25,6 @@ class MinePath @JvmOverloads constructor(
     var tile: Tile? = null
 
     init {
-        if (AutoTransfer.enabled) { // AutoTransfer breaks MinePath
-            AutoTransfer.enabled = false
-            Core.settings.put("autotransfer", false)
-        }
-
         val split = args.lowercase().split("\\s".toRegex())
         if (items.isEmpty) {
             for (a in split) {
@@ -49,6 +44,8 @@ class MinePath @JvmOverloads constructor(
         } else {
             player.sendMessage(Core.bundle.format("client.path.miner.toidle", items.joinToString(), player.closestCore()?.storageCapacity ?: "-∞"))
         }
+
+        addListener { AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && Server.io()) } // Re-enable autoTransfer if we turned it off during the path
     }
 
     companion object {
@@ -65,6 +62,8 @@ class MinePath @JvmOverloads constructor(
     override fun getShow() = false
 
     override fun follow() {
+        if (AutoTransfer.enabled) AutoTransfer.enabled = false // AutoTransfer doesn't play well with MinePath
+
         val core = player.closestCore() ?: return
         val maxCap = if (cap <= 0) core.storageCapacity else core.storageCapacity.coerceAtMost(cap)
         bestItem = items.min({ player.unit().canMine(it) && it.found() }) { core.items[it].toFloat() } ?: return
