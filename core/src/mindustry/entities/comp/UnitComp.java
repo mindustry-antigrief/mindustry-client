@@ -79,7 +79,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     /** Move based on preferred unit movement type. */
     public void movePref(Vec2 movement){
-        if(type.omniMovement){
+        if(type.omniMovement || isLocal()){ // Foo's adds || isLocal() to allow the player to ignore omniMovement and move in the desired direction instantly (see prefRotation) FINISHME: Add a setting that controls both this and the similar change in prefRotation
             moveAt(movement);
         }else{
             rotateMove(movement);
@@ -148,7 +148,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             return angleTo(buildPlan());
         }else if(mineTile != null){
             return angleTo(mineTile);
-        }else if(moving() && type.omniMovement){ // FINISHME: Why did I comment omniMovement again?
+        }else if(moving() && (type.omniMovement || isLocal())){ // Foo's adds || isLocal() to allow water units controlled by the player to move in the right direction instantly (see movePref)
             return vel().angle();
         }
         return rotation;

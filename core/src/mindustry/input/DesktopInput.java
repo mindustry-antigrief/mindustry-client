@@ -1129,7 +1129,7 @@ public class DesktopInput extends InputHandler{
 
             if (Core.settings.getBool("zerodrift") && movement.epsilonEquals(0, 0)) unit.vel().setZero();
             else if (Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5 && movement.epsilonEquals(0, 0)) unit.vel().scl(0.95f);
-            else unit.moveAt(movement);
+            else unit.movePref(movement);
 
             unit.aim(Core.input.mouseWorld());
 
