@@ -416,15 +416,17 @@ public class EntityProcess extends BaseProcessor{
 
                 //add all methods from components
                 for(ObjectMap.Entry<String, Seq<Smethod>> entry : methods){
-                    if(entry.value.contains(m -> m.has(Replace.class))){
-                        //check replacements
-                        if(entry.value.count(m -> m.has(Replace.class)) > 1){
-                            err("Type " + type + " has multiple components replacing method " + entry.key + ".");
+                    Smethod replacement = null;
+                    for(Smethod method : entry.value){
+                        if(method.has(Replace.class)){
+                            if(replacement == null) replacement = method;
+                            else{ //multiple replacements for one method
+                                err("Type " + type + " has multiple components replacing method " + entry.key + ".");
+                                break;
+                            }
                         }
-                        Smethod base = entry.value.find(m -> m.has(Replace.class));
-                        entry.value.clear();
-                        entry.value.add(base);
                     }
+                    if(replacement != null) entry.value.clear().add(replacement);
 
                     //check multi return
                     if(entry.value.count(m -> !m.isAny(Modifier.NATIVE, Modifier.ABSTRACT) && !m.isVoid()) > 1){

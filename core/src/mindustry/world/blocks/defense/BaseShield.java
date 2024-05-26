@@ -4,6 +4,7 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.content.*;
@@ -19,6 +20,8 @@ public class BaseShield extends Block{
     //TODO game rule? or field? should vary by base.
     public float radius = 200f;
     public int sides = 24;
+
+    public static Seq<BaseShield> baseShields = new Seq<>(2);
 
     protected static BaseShieldBuild paramBuild;
     //protected static Effect paramEffect;
@@ -60,6 +63,9 @@ public class BaseShield extends Block{
         hasPower = true;
         update = solid = true;
         rebuildable = false;
+
+        baseShields.add(this);
+        if(baseShields.size > 2) baseShields.shrink(); // Modded shields will grow the seq, we may as well just keep it as small as we can
     }
 
     @Override

@@ -1241,15 +1241,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.color(Pal.freeze);
         Lines.stroke(1f);
 
-        for(BuildPlan plan: player.unit().plans()){
-            if(plan.breaking) continue;
-            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+        for(BuildPlan plan : player.unit().plans()){
+            if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 drawFreezing(plan);
             }
         }
-        for(BuildPlan plan: selectPlans){
-            if(plan.breaking) continue;
-            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+        for(BuildPlan plan : selectPlans){
+            if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 drawFreezing(plan);
             }
         }
@@ -1276,15 +1274,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Lines.stroke(1f);
 
         for(var plan : player.unit().plans()){
-            if(plan.breaking) continue;
-            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+            if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 drawBreaking(plan);
             }
         }
 
         for(var plan : selectPlans){
-            if(plan.breaking) continue;
-            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+            if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 drawBreaking(plan);
             }
         }
@@ -1385,10 +1381,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if (plan.block == null) continue;
 
             if (removeFrozen) {
+                plan.bounds(Tmp.r1);
                 Iterator<BuildPlan> it = frozenPlans.iterator();
                 while(it.hasNext()){
                     BuildPlan frz = it.next();
-                    if(plan.bounds(Tmp.r1, true).overlaps(frz.bounds(Tmp.r2, true))){
+                    if(Tmp.r1.overlaps(frz.bounds(Tmp.r2))){
                         it.remove();
                     }
                 }
@@ -1594,7 +1591,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Iterator<BuildPlan> it = player.unit().plans().iterator();
         while(it.hasNext()){
             BuildPlan plan = it.next();
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 it.remove();
             }
         }
@@ -1602,7 +1599,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         it = selectPlans.iterator();
         while(it.hasNext()){
             BuildPlan plan = it.next();
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 it.remove();
             }
         }
@@ -1611,7 +1608,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             it = frozenPlans.iterator();
             while (it.hasNext()) {
                 BuildPlan plan = it.next();
-                if (plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) it.remove();
+                if (plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
             }
         }
     }
@@ -1637,25 +1634,23 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
 
         for(BuildPlan plan : player.unit().plans()){
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
         }
 
         for(BuildPlan plan : selectPlans){
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
         }
 
         Seq<BuildPlan> unfreeze = new Seq<>();
         for(BuildPlan plan : frozenPlans){
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) unfreeze.add(plan);
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)) unfreeze.add(plan);
         }
 
-        Iterator<BuildPlan> it1, it2;
-        if(unfreeze.size > tmpFrozenPlans.size) flushPlans(unfreeze, false, false, true);
-        else{
-            it1 = player.unit().plans().iterator();
-            it2 = selectPlans.iterator();
-            for (BuildPlan frz : tmpFrozenPlans) {
-                if(checkFreezeSelectionHasNext(frz, it1)) continue;
+        if(unfreeze.size > tmpFrozenPlans.size) flushPlans(unfreeze, false, false, true); // Unfreeze the selection when there's more frozen blocks in the area
+        else{ // If there's fewer frozen blocks than unfrozen ones, we freeze the selection
+            Iterator<BuildPlan> it1 = player.unit().plans().iterator(), it2 = selectPlans.iterator();
+            for(BuildPlan frz : tmpFrozenPlans){
+                if(checkFreezeSelectionHasNext(frz, it1)) continue; // Player plans contains frz: remove it and continue.
                 if(/*!itHasNext implied*/ it2 != null){
                     it1 = it2;
                     it2 = null; // swap it2 into it1, continue iterating through without changing frz

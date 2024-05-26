@@ -13,7 +13,7 @@ import kotlin.math.*
 // and modified
 
 object AStarNavigator : Navigator() {
-    private val pool = Pools.get(PositionWaypoint::class.java) { PositionWaypoint() }
+    private val pool = Pools.get(PositionWaypoint::class.java, ::PositionWaypoint)
     private var grid: Array<Cell> = emptyArray()
     private var gridSize = Point2()
     private var open = BinaryHeap<Cell>(65_536, false)

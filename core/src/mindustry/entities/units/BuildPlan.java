@@ -233,16 +233,8 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         }
     }
     
-    public Rect bounds(Rect rect) {
-        return bounds(rect, false);
-    }
-    
-    public Rect bounds(Rect rect, boolean allowBreak){
-        if(breaking && !allowBreak){
-            return rect.set(-100f, -100f, 0f, 0f);
-        }else{
-            return block.bounds(x, y, rect);
-        }
+    public Rect bounds(Rect rect){
+        return block.bounds(x, y, rect);
     }
 
     @Override
