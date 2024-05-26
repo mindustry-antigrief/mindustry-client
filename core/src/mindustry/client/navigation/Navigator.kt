@@ -57,7 +57,7 @@ abstract class Navigator {
 
         // Spawns
         if (state.hasSpawns()) {
-            for (spawn in spawner.spawns) {
+            spawner.spawns.each { spawn -> // Use .each() as this is on the client thread and the iterator isn't thread safe. Each works fine as this Seq should never be edited at runtime. This might actually be a bad assumption to make? Idk
                 realObstacles.add(
                     Pools.obtain(Circle::class.java) { Circle() }.set(
                         spawn.worldx(),
