@@ -90,10 +90,10 @@ public class Sector{
     /** Displays threat as a formatted string. */
     public String displayThreat(){
         float step = 0.25f;
-        String color = Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.round(threat, step)).toString();
         String[] threats = {"low", "medium", "high", "extreme", "eradication"};
-        int index = Math.min((int)(threat / step), threats.length - 1);
-        return "[#" + color + "]" + Core.bundle.get("threat." + threats[index]);
+        String threatName = threats[Math.min((int)(threat / step), threats.length - 1)];
+        String color = threatName.equals("eradication") ? "ff00ff" : Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.round(threat, step)).toString();
+        return "[#" + color + "]" + Core.bundle.get("threat." + threatName);
     }
 
     /** @return whether this sector can be landed on at all.
