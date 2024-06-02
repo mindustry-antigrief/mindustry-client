@@ -1471,6 +1471,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawOverPlan(BuildPlan plan, boolean valid){
+        drawOverPlan(plan, valid, 1f); // FINISMHE: Add a default alpha setting? Would need to cache the value in a field for performance reasons
+    }
+
+    protected void drawOverPlan(BuildPlan plan, boolean valid, float alpha){
         if(!plan.isVisible()) return;
         Draw.reset();
         final long frameId = graphics.getFrameId();
@@ -1480,7 +1484,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             BuildPlan.getVisiblePlans(allSelectLines, visiblePlanSeq);
         }
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
-        Draw.alpha(1f);
+        Draw.alpha(alpha);
         plan.block.drawPlanConfigTop(plan, visiblePlanSeq);
         Draw.reset();
     }
@@ -1490,7 +1494,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawPlan(BuildPlan plan, boolean valid){
-        plan.block.drawPlan(plan, allPlans(), valid);
+        drawPlan(plan, valid, 1); // FINISHME: Add a default alpha setting? Would need to cache the value in a field for performance reasons
+    }
+
+    protected void drawPlan(BuildPlan plan, boolean valid, float alpha){
+        plan.block.drawPlan(plan, allPlans(), valid, alpha, false);
     }
 
     /** Draws a placement icon for a specific block. */

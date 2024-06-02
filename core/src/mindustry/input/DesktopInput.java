@@ -218,19 +218,20 @@ public class DesktopInput extends InputHandler{
 
         var items = selectPlans.items;
         int size = selectPlans.size;
+        var alpha = Core.settings.getInt("schemalpha", 100) / 100f;
 
         //draw schematic plans
         for(int i = 0; i < size; i++){
             var plan = items[i];
             plan.animScale = 1f;
-            drawPlan(plan);
+            drawPlan(plan, plan.cachedValid = validPlace(plan.x, plan.y, plan.block, plan.rotation), alpha);
         }
 
         //draw schematic plans - over version, cached results
         for(int i = 0; i < size; i++){
             var plan = items[i];
             //use cached value from previous invocation
-            drawOverPlan(plan, plan.cachedValid);
+            drawOverPlan(plan, plan.cachedValid, alpha);
         }
 
 //        if(player.isBuilder()){
