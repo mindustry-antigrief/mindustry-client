@@ -72,7 +72,6 @@ class CommandTransmission : Transmission {
 
     override var id: Long
 
-    @OptIn(ExperimentalStdlibApi::class)
     constructor(input: ByteArray, id: Long, @Suppress("UNUSED_PARAMETER") senderID: Int) {
         val buf = input.buffer()
         type = Commands.entries.getOrNull(buf.int)
