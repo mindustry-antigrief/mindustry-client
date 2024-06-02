@@ -61,9 +61,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                             hide()
                         }
 
-                        ta.button("@close") {
-                            hide()
-                        }
+                        ta.button("@close", ::hide)
                     }
                 }.show()
             }.padRight(10f).tooltip("@client.editcert")
@@ -78,20 +76,19 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
         val store = Main.keyStorage
 
         if (!store.loaded()) {
-            Core.app.post {
-                Vars.ui.showText("Keys Still Loading", "Keys have not loaded yet. Please try again soon. If it doesn't load after a few retries please report it in the foo's discord") // FINISHME: Bundle
-            }
-            hide()
+            Core.app.post(::hide)
+            Vars.ui.showText("Keys Still Loading", "Keys have not loaded yet. Please try again soon. If it doesn't load after a few retries please report it in the foo's discord") // FINISHME: Bundle
             return
         }
+
         if (store.cert() == null || store.key() == null || store.chain() == null) {
-            hide()
-            Core.app.post {
-                Vars.ui.showTextInput(
-                    "@client.certname.title",
-                    "@client.certname.text",
-                    Core.settings.getString("name", "")
-                ) { text ->
+            Vars.ui.showTextInput(
+                "@client.certname.title",
+                "@client.certname.text",
+                32,
+                Core.settings.getString("name", ""),
+                false,
+                { text -> // On submission
                     if (text.length < 2) {
                         hide()
                         return@showTextInput
@@ -109,8 +106,9 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                     store.key(key, listOf(cert))
 
                     build()
-                }
-            }
+                },
+                ::hide
+            )
             return
         }
 
