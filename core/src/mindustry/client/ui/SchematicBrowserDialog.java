@@ -316,7 +316,7 @@ public class SchematicBrowserDialog extends BaseDialog {
                     platform.export(s.name(), schematicExtension, file -> Schematics.write(s, file));
                 }).marginLeft(12f);
                 t.row();
-                t.button("@schematic.chatshare", Icon.bookOpen, style, () -> {
+                t.button("@client.schematic.chatshare", Icon.bookOpen, style, () -> {
                     if (!state.isPlaying()) return;
                     dialog.hide();
                     clientThread.post(() -> Main.INSTANCE.send(new SchematicTransmission(s), () -> Core.app.post(() ->
