@@ -254,6 +254,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 Time.mark();
                 Events.fire(new ClientLoadEvent());
                 Log.debug("Total time to load including ClientLoadEvent: @ms | ClientLoadEvent: @ms", Time.timeSinceMillis(beginTime), Time.elapsed());
+                Core.app.post(() -> Log.debug("Total time to load including ClientLoadEvent and 1 extra frame: @ms", Time.timeSinceMillis(beginTime)));
+
                 clientLoaded = true;
                 super.resize(graphics.getWidth(), graphics.getHeight());
                 app.post(() -> app.post(() -> app.post(() -> app.post(() -> {
