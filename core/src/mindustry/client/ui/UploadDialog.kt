@@ -28,8 +28,9 @@ object UploadDialog : BaseDialog("@client.uploadtitle") { // FINISHME: Somehow s
                     addImage(Pixmap(it))
                 } catch (e: Exception) {
                     Vars.ui.showInfoToast(Core.bundle["client.failedtoloadimage"], 3f)
+                    Log.err("Error loading image", e)
                 }
-            }, "png", "jpg", "jpeg")
+            }, true, "png", "jpg", "jpeg")
         }
 
         keyDown {
