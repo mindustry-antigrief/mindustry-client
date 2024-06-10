@@ -15,7 +15,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import kotlin.collections.*;
-import mindustry.Vars;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.antigrief.*;
@@ -36,8 +36,10 @@ import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 
-import static mindustry.client.ClientVars.*;
+import java.lang.reflect.*;
+
 import static mindustry.Vars.*;
+import static mindustry.client.ClientVars.*;
 import static mindustry.gen.Tex.*;
 
 public class HudFragment{
@@ -325,7 +327,23 @@ public class HudFragment{
                 if(android){
                     info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
                 }else{
-                    info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)((Runtime.getRuntime().maxMemory() - Core.app.getJavaHeap()) / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
+                    Object[] memBean = {null};
+                    Method[] getNonHeapUsage = {null};
+                    try{
+                        if(Core.settings.getBool("offheapmemorydisplay")){ // FINISHME: This is very much a work in progress
+                            memBean[0] = Class.forName("java.lang.management.ManagementFactory").getMethod("getMemoryMXBean").invoke(null);
+                            getNonHeapUsage[0] = Class.forName("java.lang.management.MemoryMXBean").getMethod("getNonHeapMemoryUsage");
+                        }
+                    } catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+                        Log.err("Failed to get memBean", e);
+                    }
+                    info.label(() -> {
+                        try {
+                            return mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)((Runtime.getRuntime().maxMemory() - Core.app.getJavaHeap()) / 1024 / 1024)) + (memBean[0] == null ? "" : " | Off-heap: " + Reflect.<Long>invoke(getNonHeapUsage[0].invoke(memBean[0]), "getUsed") / 1024 / 1024  + " mb");
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }).left().style(Styles.outlineLabel).name("memory");
                 }
                 info.row();
 
