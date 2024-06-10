@@ -105,14 +105,17 @@ public class LoadingFragment{
 
         CharSequence realText = nameLabel.getText();
 
-        //fallback to the default font if characters are missing
-        //TODO this should happen everywhere
-        for(int i = 0; i < realText.length(); i++){
-            if(Fonts.tech.getData().getGlyph(realText.charAt(i)) == null){
-                nameLabel.setStyle(Styles.defaultLabel);
-                return;
+        // FINISHME: Add a setting to enable this horrible font? FINISHME: (a second one, i know) It would make a lot more sense to just toggle whether Fonts.text is loaded at all considering that its not used anywhere else
+        if(false){
+            //fallback to the default font if characters are missing
+            //TODO this should happen everywhere
+            for(int i = 0; i < realText.length(); i++){
+                if(Fonts.tech.getData().getGlyph(realText.charAt(i)) == null){
+                    nameLabel.setStyle(Styles.defaultLabel);
+                    return;
+                }
             }
-        }
-        nameLabel.setStyle(Styles.techLabel);
+            nameLabel.setStyle(Styles.techLabel);
+        }else nameLabel.setStyle(Styles.outlineLabel);
     }
 }

@@ -18,6 +18,7 @@ import mindustry.ui.*;
 
 import java.io.*;
 
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class LoadDialog extends BaseDialog{
@@ -44,8 +45,20 @@ public class LoadDialog extends BaseDialog{
         });
         onResize(this::setup);
 
-        addCloseButton();
+        // Manually add a close button/listener and set the default height as we don't want to set a default width which addCloseButton() does
+        buttons.defaults().height(64).minWidth(210);
+        buttons.button("@back", Icon.left, this::hide);
+        addCloseListener();
+
         addSetup();
+
+        buttons.button("@client.save.createpreviews.now", Vars.control.saves::createMissingPreviews);
+        buttons.table(Tex.button, t ->
+            t.check("@client.save.createpreviews.async", settings.getBool("createmissingsavepreviews"), b -> { if(b) settings.put("createmissingsavepreviews", true); else settings.remove("createmissingsavepreviews"); }).fill()
+                .tooltip("@client.save.createpreviews.async.tooltip").get().getLabelCell().fillX()
+        );
+
+        buttons.getCells().each(c -> c.wrapLabel(false)); // Need to do this due to our hacky buttons.defaults stuff above
     }
 
     protected void setup(){
@@ -153,18 +166,23 @@ public class LoadDialog extends BaseDialog{
         String color = "[lightgray]";
         TextureRegion def = Core.atlas.find("nomap");
 
-        button.left().add(new BorderImage(def, 4f)).update(im -> {
-            TextureRegionDrawable draw = (TextureRegionDrawable)im.getDrawable();
-            if(draw.getRegion().texture.isDisposed()){
-                draw.setRegion(def);
-            }
+        button.left().add(new BorderImage(def, 4f){
+            @Override
+            public void draw(){
+                TextureRegionDrawable draw = (TextureRegionDrawable)getDrawable();
+                if(draw.getRegion().texture.isDisposed()){
+                    draw.setRegion(def);
+                    invalidate();
+                }
 
-            var reg = slot.previewTexture();
-            if(draw.getRegion() != reg){
-                draw.setRegion(reg);
+                var reg = slot.previewTexture();
+                if(draw.getRegion() != reg){
+                    draw.setRegion(reg);
+                    invalidate();
+                }
+                super.draw();
             }
-            im.setScaling(Scaling.fit);
-        }).left().size(160f).padRight(6);
+        }).left().size(160f).padRight(6).get().setScaling(Scaling.fit);
 
         button.table(meta -> {
             meta.left().top();

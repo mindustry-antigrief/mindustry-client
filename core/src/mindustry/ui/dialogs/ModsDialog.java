@@ -401,7 +401,7 @@ public class ModsDialog extends BaseDialog{
         BaseDialog dialog = new BaseDialog(mod.meta.displayName);
 
         // Manually add a close button/listener and set the default height as we don't want to set a default width which addCloseButton() does
-        dialog.buttons.defaults().height(64).minWidth(120);
+        dialog.buttons.defaults().height(64).minWidth(210);
         dialog.buttons.button("@back", Icon.left, this::hide).wrapLabel(false);
         dialog.addCloseListener();
 
