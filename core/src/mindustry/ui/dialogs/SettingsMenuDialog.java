@@ -813,6 +813,9 @@ public class SettingsMenuDialog extends BaseDialog{
         private String search = "";
         private final Table searchBarTable = makeSearchBar();
         private TextField searchBar;
+        private Category lastCategory;
+
+        private static SettingsTable tempTable = new SettingsTable();
 
         public SettingsTable(){
             left();
@@ -943,10 +946,30 @@ public class SettingsMenuDialog extends BaseDialog{
             add(searchBarTable).fillX().padBottom(4);
             row();
 
+            lastCategory = null;
             if(search.trim().isEmpty()){
+                tempTable.clearChildren(); // This may look useless, but I assure you it isn't. If you remove this the game will explode
+                tempTable.canRebuild = false; // Disable the hack that we use for mods
                 for(Setting setting : list){
-                    setting.add(this);
+                    if(setting instanceof Category c){
+                        if(lastCategory != null){
+                            tempTable.getCells().each(ce -> {
+                                lastCategory.children.add(ce.get()).set(ce);
+                                if(ce.isEndRow()) lastCategory.children.row();
+                            });
+                        }
+                        tempTable.clearChildren();
+                        lastCategory = c;
+                        setting.add(this);
+                    }else setting.add(lastCategory == null ? this : tempTable);
                 }
+                if(lastCategory != null){ // Handle final category for table
+                    tempTable.getCells().each(ce -> {
+                        lastCategory.children.add(ce.get()).set(ce);
+                        if(ce.isEndRow()) lastCategory.children.row();
+                    });
+                }
+                tempTable.clearChildren();
             }else{
                 listSorted.selectFrom(list, s -> !(s instanceof Category));
                 var searchLower = search.toLowerCase();
@@ -989,6 +1012,12 @@ public class SettingsMenuDialog extends BaseDialog{
 
             public Setting(String name){
                 this.name = name;
+                String fooKey = "client.setting." + name + ".name";
+                if(bundle.has(fooKey)){ // Client keys are in the format client.setting.name.__ as we name all client settings this way and its cleaner. We also don't support winkey as we don't need it.
+                    title = bundle.get(fooKey);
+                    description = bundle.getOrNull("client.setting." + name + ".description");
+                    return;
+                }
                 String winkey = "setting." + name + ".name.windows";
                 title = OS.isWindows && bundle.has(winkey) ? bundle.get(winkey) : bundle.get("setting." + name + ".name", name);
                 description = bundle.getOrNull("setting." + name + ".description");
@@ -1075,16 +1104,20 @@ public class SettingsMenuDialog extends BaseDialog{
 
         // Elements are actually added below
         public static class Category extends Setting{
+            protected Table children = new Table();
+            private final Collapser collapser = new Collapser(children, settings.getBool("settingscategory-" + name + "-enabled", true));
+
             Category(String name){
                 super(name);
-                this.name = name;
-                this.title = bundle.get("setting." + name + ".category");
+                title = bundle.get("client.setting." + name + ".category");
             }
 
             @Override
             public void add(SettingsTable table){
                 table.add("").row(); // Add a cell first as .row doesn't work if there are no cells in the current row.
-                table.add("[accent]" + title);
+                table.check("[accent]" + title, !collapser.isCollapsed(), b -> { collapser.setCollapsed(!b); settings.put("settingscategory-" + name + "-enabled", !b); });
+                table.row();
+                table.add(collapser).left();
                 table.row();
             }
         }
@@ -1097,8 +1130,6 @@ public class SettingsMenuDialog extends BaseDialog{
 
                 @Override
                 public void add(SettingsTable table) { // Update URL with update button FINISHME: Move this to TextPref when i decide im willing to spend 6 hours doing so
-                    name = "updateurl";
-                    title = bundle.get("setting." + name + ".name");
 
                     table.table(t -> {
                         t.button(Icon.refresh, Styles.settingTogglei, 32, () -> {
