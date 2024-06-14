@@ -402,7 +402,7 @@ public class ModsDialog extends BaseDialog{
 
         // Manually add a close button/listener and set the default height as we don't want to set a default width which addCloseButton() does
         dialog.buttons.defaults().height(64).minWidth(210);
-        dialog.buttons.button("@back", Icon.left, this::hide).wrapLabel(false);
+        dialog.buttons.button("@back", Icon.left, dialog::hide).wrapLabel(false);
         dialog.addCloseListener();
 
         // Foo's client mod auto/mass update toggles

@@ -372,7 +372,7 @@ public class HudFragment{
         parent.fill(t -> {
             t.top();
 
-            if(Core.settings.getBool("macnotch") ){
+            if(Core.settings.getBool("macnotch")){
                 t.margin(macNotchHeight);
             }
 
