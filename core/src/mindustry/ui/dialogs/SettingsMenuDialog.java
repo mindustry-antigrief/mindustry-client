@@ -461,7 +461,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("schematicbrowserimporttags", true);
 
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
-            client.category("Experimental");
+            client.category("experimental");
             client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
 
             client.checkPref("seer-warnings", false);
@@ -813,9 +813,12 @@ public class SettingsMenuDialog extends BaseDialog{
         private String search = "";
         private final Table searchBarTable = makeSearchBar();
         private TextField searchBar;
-        private Category lastCategory;
 
-        private static SettingsTable tempTable = new SettingsTable();
+        private static final SettingsTable tempTable = new SettingsTable();
+
+        static {
+            tempTable.canRebuild = false; // Disable the hack that detects mods adding unsupported settings
+        }
 
         public SettingsTable(){
             left();
@@ -902,7 +905,7 @@ public class SettingsMenuDialog extends BaseDialog{
             // FINISHME: Do we also want to maybe get the stacktrace and check if this is being called from Setting.add()? It would be slow but some mod probably does something weird like this somewhere. This suggestion applies to row() as well
             if(isRebuilding || !canRebuild) return super.add(element); // Normal behavior as long as we're adding stuff using the rebuild() method or once we've already disabled our optimizations
             // Force the table to be rebuilt *before* adding the first non setting as this is how vanilla would behave (there's a good chance that the last rebuild was delayed to the next frame for performance reasons)
-            Log.warn(bundle.format("client.settings.search.disabled.log.add", Threads.getTrace(1)));
+            Log.warn(bundle.format("client.settings.search.disabled.log.add", Threads.getTrace(0)));
             forceRebuild = true;
             rebuild();
             return super.add(element);
@@ -913,7 +916,7 @@ public class SettingsMenuDialog extends BaseDialog{
         public Table row(){
             if (hasChildren() || !canRebuild || isRebuilding) return super.row();
             // If we haven't yet seen a non setting, but they're trying to add a row, they're probably just adding it after the Reset to Defaults button which would be here normally. Trigger a rebuild so its there properly
-            Log.warn(bundle.format("client.settings.search.disabled.log.row", Threads.getTrace(1)));
+            Log.warn(bundle.format("client.settings.search.disabled.log.row", Threads.getTrace(0)));
             forceRebuild = true;
             rebuild();
             return super.row();
@@ -946,30 +949,26 @@ public class SettingsMenuDialog extends BaseDialog{
             add(searchBarTable).fillX().padBottom(4);
             row();
 
-            lastCategory = null;
-            if(search.trim().isEmpty()){
-                tempTable.clearChildren(); // This may look useless, but I assure you it isn't. If you remove this the game will explode
-                tempTable.canRebuild = false; // Disable the hack that we use for mods
+            if(search.trim().isEmpty()){ // No search value: Contains hacky code for client setting categories
+                Cons<Category> pushCategory = cat -> { // Adds all the elements of the current category to the settings table
+                    if(cat != null){
+                        cat.children.clearChildren(); // Clear the settings otherwise we'll end up with multiple sets of settings
+                        tempTable.getCells().each(cell -> {
+                            cat.children.add(cell.get()).set(cell); // Hack to get the element of a cell, move it to another table and then copy over the properties to its new cell.
+                            if(cell.isEndRow()) cat.children.row(); // Extra hack because setting the cell to the old one doesn't account for rows
+                        });
+                    }
+                    tempTable.clearChildren();
+                };
+                Category lastCategory = null;
                 for(Setting setting : list){
                     if(setting instanceof Category c){
-                        if(lastCategory != null){
-                            tempTable.getCells().each(ce -> {
-                                lastCategory.children.add(ce.get()).set(ce);
-                                if(ce.isEndRow()) lastCategory.children.row();
-                            });
-                        }
-                        tempTable.clearChildren();
+                        pushCategory.get(lastCategory);
                         lastCategory = c;
                         setting.add(this);
                     }else setting.add(lastCategory == null ? this : tempTable);
                 }
-                if(lastCategory != null){ // Handle final category for table
-                    tempTable.getCells().each(ce -> {
-                        lastCategory.children.add(ce.get()).set(ce);
-                        if(ce.isEndRow()) lastCategory.children.row();
-                    });
-                }
-                tempTable.clearChildren();
+                pushCategory.get(lastCategory); // Handle final category for table
             }else{
                 listSorted.selectFrom(list, s -> !(s instanceof Category));
                 var searchLower = search.toLowerCase();
