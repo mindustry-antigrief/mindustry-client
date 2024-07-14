@@ -1401,7 +1401,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
                     && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
-                if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)
+                // As long as there is a diagonal, all adjacent blocks are hydrated
+                boolean coversOutputs = (tempTiles.get(0).floor().liquidDrop == Liquids.water && tempTiles.get(3).floor().liquidDrop  == Liquids.water) ||
+                        (tempTiles.get(1).floor().liquidDrop == Liquids.water && tempTiles.get(2).floor().liquidDrop  == Liquids.water);
+                if (coversOutputs
                         && !tempTiles.contains(t -> !validPlace(t.x, t.y, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction, 0))) { // Can use mechanical pumps (covers all outputs)
                     for (var t : tempTiles) temp[added++] = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
                     continue; // Swapped water extractor for mechanical pumps, don't place it
