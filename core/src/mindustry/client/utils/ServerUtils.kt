@@ -61,7 +61,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             msg ?: return false
             if (sender == null && ohnoTask != null) { // Very hacky way of handling autoOhno
                 if ("Too close to an enemy tile!" in msg || "You cannot spawn ohnos while dead." in msg) return true // We don't care honestly
-                if ("Sorry, the max number of ohno units has been reached." in msg || "Ohnos have been temporarily disabled." in msg || "Ohnos are disabled in PVP." in msg) {
+                if ("Sorry, the max number of ohno units has been reached." in msg || "Ohnos have been temporarily disabled." in msg || "Ohnos are disabled in PVP." in msg || "Ohnos cannot survive in this map." in msg) {
                     Time.run(60f) { // Null it out a second later, this is just to prevent any additional messages from bypassing the return below (only if it's the same one we just cancelled).
                         if (ohnoTask?.isScheduled != true) ohnoTask = null
                     }
@@ -352,4 +352,4 @@ fun handleKick(reason: String) {
 }
 
 // FINISHME: The jank is growing worse. The servers really need their own classes
-fun Server.Companion.ohno(): Timer.Task = Timer.schedule({ if (!player.blockOn().solid && alpha.supportsEnv(state.rules.env)) Call.sendChatMessage("/ohno") }, 3f, 0.3f)
+fun Server.Companion.ohno(): Timer.Task = Timer.schedule({ if (!player.blockOn().solid && alpha.supportsEnv(state.rules.env)) Call.sendChatMessage("/ohno") }, 3f, 0.5f)
