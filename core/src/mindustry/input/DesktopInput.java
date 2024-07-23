@@ -229,7 +229,7 @@ public class DesktopInput extends InputHandler{
         for(int i = 0; i < size; i++){
             var plan = items[i];
 
-            if (updateOffset) {
+            if (updateOffset){
                 plan.x = plan.x + schemaXOffset;
                 plan.y = plan.y + schemaYOffset;
             }
@@ -917,27 +917,27 @@ public class DesktopInput extends InputHandler{
             selectUnitsRect();
         }
 
-        if(Core.input.keyDown(Binding.schematic_offset_modifier)) {
-            if(Core.input.keyTap(Binding.schematic_offset_y_up)) {
+        if(Core.input.keyDown(Binding.schematic_offset_modifier)){
+            if(Core.input.keyTap(Binding.schematic_offset_y_up)){
                 updateOffset = true;
                 schemaYOffset = 1;
             }
-            if(Core.input.keyTap(Binding.schematic_offset_y_down)) {
+            if(Core.input.keyTap(Binding.schematic_offset_y_down)){
                 updateOffset = true;
                 schemaYOffset = -1;
             }
-            if(Core.input.keyTap(Binding.schematic_offset_x_right)) {
+            if(Core.input.keyTap(Binding.schematic_offset_x_right)){
                 updateOffset = true;
                 schemaXOffset = 1;
             }
-            if(Core.input.keyTap(Binding.schematic_offset_x_left)) {
+            if(Core.input.keyTap(Binding.schematic_offset_x_left)){
                 updateOffset = true;
                 schemaXOffset = -1;
             }
         }
 
         // only "submit" / flush schematic something doesn't have keyboard focus (like chat/console)
-        if(Core.input.keyDown(Binding.schematic_submit_modifier) && Core.input.keyTap(Binding.schematic_submit) && scene.getKeyboardFocus() == null && selectPlans.any()) {
+        if(Core.input.keyDown(Binding.schematic_submit_modifier) && Core.input.keyTap(Binding.schematic_submit) && scene.getKeyboardFocus() == null && selectPlans.any()){
             flushPlans(selectPlans, isFreezeQueueing, Core.input.keyDown(Binding.force_place_modifier), isFreezeQueueing);
         }
 
