@@ -567,6 +567,12 @@ public class SettingsMenuDialog extends BaseDialog{
             return s + "%";
         });
         graphics.sliderPref("bridgeopacity", 100, 0, 100, 5, s -> s + "%");
+        // this is really "schemaopacity" but leaving as "schemalpha" so as not to break any potential usages in mods
+        // as it was defined a long time ago but not placed in default settings menu
+        graphics.sliderPref("schemalpha", 100, 0, 100, 5, s -> s + "%");
+
+        // opacity of the object selected from the block menu
+        graphics.sliderPref("placeopacity", 100, 0, 100, 5, s -> s + "%");
 
         if(!mobile){
             graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
