@@ -37,6 +37,13 @@ public enum Binding implements KeyBind{
     schematic_flip_x(KeyCode.z),
     schematic_flip_y(KeyCode.x),
     schematic_menu(KeyCode.t),
+    schematic_offset_modifier(KeyCode.shiftLeft),
+    schematic_offset_y_up(KeyCode.up),
+    schematic_offset_y_down(KeyCode.down),
+    schematic_offset_x_left(KeyCode.left),
+    schematic_offset_x_right(KeyCode.right),
+    schematic_submit(KeyCode.enter),
+    schematic_submit_modifier(KeyCode.shiftLeft),
 
     category_prev(KeyCode.comma, "blocks"),
     category_next(KeyCode.period),
