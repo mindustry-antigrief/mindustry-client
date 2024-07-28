@@ -283,7 +283,7 @@ public class StackConveyor extends Block implements Autotiler{
                     }
                     if(i++ > 2 * itemCapacity){
                         if(player != null){
-                            ui.chatfrag.addMessage(Strings.format("[scarlet]Foo's prevented a client crash!!!!! [orange]Stack router at (@,@), trying to unload item @, current items:@, too many loops! Please report how you got this error, including a screenshot of the surroundings!", x / 8, y / 8, lastItem.name, items.toString()));
+                            ui.chatfrag.addMessage(Strings.format("[scarlet]Foo's prevented a client crash caused by a stack conveyor at (@,@). Please reroute this belt to prevent vanilla users from crashing.", tileX(), tileY()));
                         }
                         items.clear();
                         break;
