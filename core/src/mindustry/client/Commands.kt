@@ -390,6 +390,7 @@ fun setupCommands() {
         player.sendMessage(with(state) {
             """
             [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
+            Size: ${world.width()}x${world.height()}
             Team: ${team.name}
             Map Time: ${UI.formatTime(tick.toFloat())}
             Build Speed (Unit Factories): ${rules.buildSpeed(team)}x (${rules.unitBuildSpeed(team)}x)
@@ -718,10 +719,6 @@ fun setupCommands() {
             "l", "leaves" -> Client.leaves?.leftList() ?: player.sendMessage("[scarlet]Leave logs are disabled")
             else -> player.sendMessage("[scarlet]Invalid option specified, options are:\nSettings, Leaves")
         }
-    }
-
-    register("mapsize", Core.bundle.get("client.command.mapsize.description")) { args, player ->
-        player.sendMessage(Core.bundle.format("client.command.mapsize.success", world.width(), world.height()))
     }
 
 
