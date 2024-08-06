@@ -720,6 +720,10 @@ fun setupCommands() {
         }
     }
 
+    register("mapsize", Core.bundle.get("client.command.mapsize.description")) { args, player ->
+        player.sendMessage(Core.bundle.format("client.command.mapsize.success", world.width(), world.height()))
+    }
+
 
     // Symbol replacements
 
