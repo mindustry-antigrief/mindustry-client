@@ -77,18 +77,13 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
 
         if (!store.loaded()) {
             Core.app.post(::hide)
-            Vars.ui.showText("Keys Still Loading", "Keys have not loaded yet. Please try again soon. If it doesn't load after a few retries please report it in the foo's discord") // FINISHME: Bundle
+            Vars.ui.showText("@client.keyshare.loading.title", "@client.keyshare.loading.text")
             return
         }
 
         if (store.cert() == null || store.key() == null || store.chain() == null) {
-            Vars.ui.showTextInput(
-                "@client.certname.title",
-                "@client.certname.text",
-                32,
-                Core.settings.getString("name", ""),
-                false,
-                { text -> // On submission
+            Core.app.post { // Post is needed otherwise this will show up behind the key dialog
+                Vars.ui.showTextInput("@client.certname.title", "@client.certname.text", 32, Core.settings.getString("name", ""), false, { text -> // On submission
                     if (text.length < 2) {
                         hide()
                         return@showTextInput
@@ -106,9 +101,8 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                     store.key(key, listOf(cert))
 
                     build()
-                },
-                ::hide
-            )
+                }, ::hide) // Hide on close
+            }
             return
         }
 
