@@ -390,6 +390,7 @@ fun setupCommands() {
         player.sendMessage(with(state) {
             """
             [accent]Name: ${map.name()}[accent] (by: ${map.author()}[accent])
+            Size: ${world.width()}x${world.height()}
             Team: ${team.name}
             Map Time: ${UI.formatTime(tick.toFloat())}
             Build Speed (Unit Factories): ${rules.buildSpeed(team)}x (${rules.unitBuildSpeed(team)}x)
