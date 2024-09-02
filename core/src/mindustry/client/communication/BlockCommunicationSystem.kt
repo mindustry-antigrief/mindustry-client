@@ -9,7 +9,6 @@ import mindustry.content.*
 import mindustry.entities.*
 import mindustry.game.*
 import mindustry.gen.*
-import mindustry.logic.*
 import mindustry.world.blocks.logic.*
 
 object BlockCommunicationSystem : CommunicationSystem() {
@@ -130,7 +129,7 @@ object BlockCommunicationSystem : CommunicationSystem() {
 
     private fun sendLogic(bytes: ByteArray): Boolean {
         val processor = findProcessor() ?: return false // No valid processor was found
-        val value = bytes.plus(12).base32768().chunked(LAssembler.maxTokenLength - 2).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
+        val value = bytes.plus(12).base32768().chunked(3000).joinToString("\n", prefix = LOGIC_PREFIX + "\n") { "print \"$it\"" }.removeSuffix("\n")
         Call.tileConfig(Vars.player, processor, LogicBlock.compress(value, Seq(0)))
         return true
     }

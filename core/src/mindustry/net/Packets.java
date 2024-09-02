@@ -18,6 +18,8 @@ public class Packets{
         nameInUse, idInUse, nameEmpty(false), customClient(false), serverClose, vote(false), typeMismatch,
         whitelist, playerLimit, serverRestarting;
 
+        public static final KickReason[] all = values();
+
         public final boolean rejoinable;
         public final boolean quiet;
 
@@ -45,7 +47,9 @@ public class Packets{
     }
 
     public enum AdminAction{
-        kick, ban, trace, wave, switchTeam
+        kick, ban, trace, wave, switchTeam;
+
+        public static final AdminAction[] all = values();
     }
 
     /** Generic client connection event. */

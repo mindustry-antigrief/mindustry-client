@@ -149,7 +149,7 @@ public class NetClient implements ApplicationListener{
 
             Time.runTask(3f, ui.loadfrag::hide);
 
-            String title = 
+            String title =
                 packet.reason == null ? "@disconnect" :
                 packet.reason.equals("closed") ? "@disconnect.closed" :
                 packet.reason.equals("timeout") ? "@disconnect.timeout" :
@@ -246,7 +246,7 @@ public class NetClient implements ApplicationListener{
                     "&lc" + (playersender == null ? "Server" : Strings.stripColors(playersender.name)),
                     "&lw" + Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(unformatted != null ? unformatted : message))
                 );
-            
+
             // highlight coords and set as the last position
             unformatted = processCoords(unformatted, true);
             message = processCoords(message, unformatted != null);
@@ -641,7 +641,7 @@ public class NetClient implements ApplicationListener{
                     Log.warn("Block ID mismatch at @: @ != @. Skipping block snapshot.", tile, tile.build.block.id, block);
                     break;
                 }
-                tile.build.readAll(Reads.get(input), tile.build.version());
+                tile.build.readSync(Reads.get(input), tile.build.version());
             }
         }catch(Exception e){
             Log.err(e);
@@ -790,24 +790,24 @@ public class NetClient implements ApplicationListener{
 
     void sync(){
         if(timer.get(0, playerSyncTime)){
-            Unit unit = player.dead() ? Nulls.unit : player.unit();
-            int uid = player.dead() ? -1 : unit.id;
+            boolean dead = player.dead();
+            Unit unit = dead ? null : player.unit();
+            int uid = dead || unit == null ? -1 : unit.id;
             Vec2 aimPos = Main.INSTANCE.floatEmbed();
 
             TypeIO.useConfigLocal = true; // Awful.
             Call.clientSnapshot(
             lastSent++,
             uid,
-            player.dead(),
-            player.dead() ? player.x : unit.x, player.dead() ? player.y : unit.y,
-            aimPos.x,
-            aimPos.y,
-            unit.rotation,
+            dead,
+            dead ? player.x : unit.x, dead ? player.y : unit.y,
+            aimPos.x, aimPos.y,
+            unit == null ? 0f : unit.rotation,
             unit instanceof Mechc m ? m.baseRotation() : 0,
-            unit.vel.x, unit.vel.y,
-            player.unit().mineTile,
-            player.boosting, player.shooting, player.typing, control.input.isBuilding,
-            player.isBuilder() ? player.unit().plans : null,
+            unit == null ? 0f : unit.vel.x, unit == null ? 0f : unit.vel.y,
+            dead ? null : unit.mineTile,
+            player.boosting, player.shooting, ui.chatfrag.shown(), control.input.isBuilding,
+            player.isBuilder() && unit != null ? unit.plans : null,
             Core.camera.position.x, Core.camera.position.y,
             Core.camera.width, Core.camera.height
             );

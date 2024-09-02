@@ -2,7 +2,6 @@ package mindustry.client
 
 import arc.*
 import arc.Core.*
-import arc.graphics.g2d.*
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
@@ -265,8 +264,8 @@ class ClientLogic {
             cameraBounds.grow(2 * tilesizeF)
         }
 
-        Events.on(ResetEvent::class.java) {
-            (batch as? SortedSpriteBatch)?.reset()
-        }
+//        Events.on(ResetEvent::class.java) { FINISHME v8: Get this working again, it saves a tiny amount of ram after a large map but it may as well get fixed since its so trivial
+//            (batch as? SortedSpriteBatch)?.reset()
+//        }
     }
 }

@@ -20,7 +20,10 @@ public class LiquidRegenAbility extends Ability{
 
     @Override
     public void addStats(Table t){
-        t.add(liquid.emoji() + " " + liquid.localizedName);
+        super.addStats(t);
+        t.add((liquid.hasEmoji() ? liquid.emoji() : "") + "[stat]" + liquid.localizedName);
+        t.row();
+        t.add(abilityStat("slurpheal", Strings.autoFixed(regenPerSlurp, 2)));
     }
 
     @Override

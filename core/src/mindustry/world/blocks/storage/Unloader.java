@@ -9,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import arc.util.pooling.*;
+import arc.util.pooling.Pool.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
@@ -73,14 +74,19 @@ public class Unloader extends Block{
         removeBar("items");
     }
 
-    public static class ContainerStat{
+    public static class ContainerStat implements Poolable{
         Building building;
         float loadFactor;
         boolean canLoad;
         boolean canUnload;
-        /** Cached !(building.block instanceof StorageBlock) */
+        /** Cached !(building instanceof StorageBuild) */
         boolean notStorage;
         int lastUsed;
+
+        @Override
+        public void reset(){
+            building = null;
+        }
     }
 
     public class UnloaderBuild extends Building{
@@ -105,8 +111,8 @@ public class Unloader extends Block{
 
         private boolean isPossibleItem(Item item){
             boolean hasProvider = false,
-                    hasReceiver = false,
-                    isDistinct = false;
+            hasReceiver = false,
+            isDistinct = false;
 
             var pbi = possibleBlocks.items;
             for(int i = 0, l = possibleBlocks.size; i < l; i++){
@@ -179,7 +185,7 @@ public class Unloader extends Block{
             if(item != null){
                 rotations = item.id; //next rotation for nulloaders //TODO maybe if(sortItem == null)
                 var pbi = possibleBlocks.items;
-                var pbs = possibleBlocks.size;
+                int pbs = possibleBlocks.size;
 
                 for(int i = 0; i < pbs; i++){
                     var pb = pbi[i];

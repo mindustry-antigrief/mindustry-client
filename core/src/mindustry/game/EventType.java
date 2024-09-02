@@ -48,6 +48,7 @@ public class EventType{
         socketConfigChanged,
         update,
         unitCommandChange,
+        unitCommandPosition,
         unitCommandAttack,
         importMod,
         draw,

@@ -328,6 +328,7 @@ public class SettingsMenuDialog extends BaseDialog{
     }
 
     void addSettings(){
+        sound.checkPref("alwaysmusic", false);
         sound.sliderPref("musicvol", 100, 0, 100, 1, i -> { mainExecutor.execute(() -> Musics.load(false)); return i + "%"; });
         sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> { mainExecutor.execute(() -> Sounds.load(false)); return i + "%"; });
         sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> { mainExecutor.execute(() -> Sounds.load(false)); return i + "%"; });
@@ -479,7 +480,6 @@ public class SettingsMenuDialog extends BaseDialog{
             client.sliderPref("seer-proclinkscore", 10, 0, 50, String::valueOf);
         }
         // End Client Settings
-
 
         game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
         game.checkPref("autotarget", false);

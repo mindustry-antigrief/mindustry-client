@@ -221,6 +221,8 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             case ammoCapacity -> type.ammoCapacity;
             case x -> World.conv(x);
             case y -> World.conv(y);
+            case velocityX -> vel.x * 60f / tilesize;
+            case velocityY -> vel.y * 60f / tilesize;
             case dead -> dead || !isAdded() ? 1 : 0;
             case team -> team.id;
             case shooting -> isShooting() ? 1 : 0;
@@ -289,6 +291,8 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
                 y = World.unconv((float)value);
                 if(!isLocal()) snapInterpolation();
             }
+            case velocityX -> vel.x = (float)(value * tilesize / 60d);
+            case velocityY -> vel.y = (float)(value * tilesize / 60d);
             case rotation -> rotation = (float)value;
             case team -> {
                 if(!net.client()){
@@ -409,7 +413,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         return type.allowLegStep && type.legPhysicsLayer ? PhysicsProcess.layerLegs : isGrounded() ? PhysicsProcess.layerGround : PhysicsProcess.layerFlying;
     }
 
-    /** @return pathfinder path type for calculating costs */
+    /** @return pathfinder path type for calculating costs. This is used for wave AI only. (TODO: remove) */
     public int pathType(){
         return Pathfinder.costGround;
     }
@@ -693,9 +697,9 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         }
     }
 
-    /** @return a preview icon for this unit. */
+    /** @return a preview UI icon for this unit. */
     public TextureRegion icon(){
-        return type.fullIcon;
+        return type.uiIcon;
     }
 
     /** Actually destroys the unit, removing it and creating explosions. **/
@@ -761,7 +765,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     /** @return name of direct or indirect player controller. */
     @Override
     public @Nullable String getControllerName(){
-        if(isPlayer()) return getPlayer().name;
+        if(isPlayer()) return getPlayer().coloredName();
         if(controller instanceof LogicAI ai && ai.controller != null) return ai.controller.lastAccessed;
         return null;
     }
@@ -823,6 +827,6 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     @Replace
     public String toString(){
-        return "Unit#" + id() + ":" + type;
+        return "Unit#" + id() + ":" + type + " (" + x + ", " + y + ")";
     }
 }

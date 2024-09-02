@@ -47,7 +47,7 @@ public class JoinDialog extends BaseDialog{
     @Nullable public Host lastHost;
     int lastPort, lastColumns = -1;
     Task ping;
-    private boolean beList = becontrol.active(), fetchingCommunityServersErrored;
+    private boolean beList = Version.type.equals("bleeding-edge"), fetchingCommunityServersErrored;
     public boolean hasFetchedCommunity;
     public Runnable onCommunityFetch; // This is jank, I know.
 

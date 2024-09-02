@@ -59,7 +59,7 @@ public class MessageBlock extends Block{
     }
 
     public boolean accessible(){
-        return !privileged || state.rules.editor;
+        return !privileged || state.rules.editor || state.rules.allowEditWorldProcessors;
     }
 
     @Override

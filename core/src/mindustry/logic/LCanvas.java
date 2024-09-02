@@ -148,14 +148,7 @@ public class LCanvas extends Table{
             visibleBoundUpper = visibleBoundLower + pane.getHeight();
         });
         pane.setFlickScroll(false);
-
         pane.setScrollYForce(s);
-        pane.updateVisualScroll();
-        //load old scroll percent
-        Core.app.post(() -> {
-            pane.setScrollYForce(s);
-            pane.updateVisualScroll();
-        });
 
         if(toLoad != null){
             load(toLoad);
@@ -239,8 +232,14 @@ public class LCanvas extends Table{
         recalculate();
     }
 
+    public void clearStatements(){
+        jumps.clear();
+        statements.clearChildren();
+        statements.layout();
+    }
+
     StatementElem checkHovered(){
-        Element e = Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true);
+        Element e = Core.scene.getHoverElement();
         if(e != null){
             while(e != null && !(e instanceof StatementElem)){
                 e = e.parent;
@@ -323,7 +322,8 @@ public class LCanvas extends Table{
                     (e = (StatementElem) seq.get(i)).updateAddress(e.index + 1);
                 }
             }
-            pack();
+
+            if(parent != null) parent.invalidateHierarchy();
         }
 
         public void forceLayout(){

@@ -3,6 +3,7 @@ package mindustry.client.antigrief
 import mindustry.ai.types.*
 import mindustry.gen.*
 import mindustry.gen.Unit
+import mindustry.gen.UnitEntity
 
 interface Interactor {
     val name: String
@@ -33,7 +34,7 @@ open class UnitInteractor(unit: Unit?) : Interactor {
     override val playerID: Int = if (unit?.isPlayer == true) unit.player.id else -1
 }
 
-object NullUnitInteractor : UnitInteractor(Nulls.unit) {
+object NullUnitInteractor : UnitInteractor(null) {
     override val name = "null unit" // FINISHME: Dont use this when nodes are automatically configured
 
     override val shortName = "null unit" // FINISHME: Dont use this when nodes are automatically configured

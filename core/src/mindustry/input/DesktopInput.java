@@ -80,7 +80,7 @@ public class DesktopInput extends InputHandler{
     public long lastCtrlGroupSelectMillis;
 
     boolean showHint(){
-        return ui.hudfrag.shown && Core.settings.getBool("hints") && selectPlans.isEmpty() &&
+        return ui.hudfrag.shown && Core.settings.getBool("hints") && selectPlans.isEmpty() && !player.dead() &&
             (!isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() || !player.dead() && !player.unit().spawnedByCore());
     }
 
@@ -171,6 +171,10 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void drawTop(){
+        if(cursorType != SystemCursor.arrow && scene.hasMouse()){
+           graphics.cursor(cursorType = SystemCursor.arrow);
+        }
+
         Lines.stroke(1f);
         int cursorX = tileX(Core.input.mouseX());
         int cursorY = tileY(Core.input.mouseY());
@@ -181,7 +185,7 @@ public class DesktopInput extends InputHandler{
         }
         //draw break selection
         if(mode == breaking){
-            drawBreakSelection(selectX, selectY, cursorX, cursorY, /*!Core.input.keyDown(Binding.schematic_select) ? maxLength :*/ Vars.maxSchematicSize, false);
+            drawBreakSelection(selectX, selectY, cursorX, cursorY, /*!(Core.input.keyDown(Binding.schematic_select) && schemX != -1 && schemY != -1) ? maxLength :*/ Vars.maxSchematicSize, false);
         }
         //draw dequeueing selection
         if (mode == dequeue){
@@ -190,7 +194,7 @@ public class DesktopInput extends InputHandler{
 
         if(!Core.scene.hasKeyboard() && mode != breaking && mode != freezing && mode != dequeue){
 
-            if(Core.input.keyDown(Binding.schematic_select)){
+            if(Core.input.keyDown(Binding.schematic_select) && schemX != -1 && schemY != -1){
                 drawSelection(schemX, schemY, cursorX, cursorY, Vars.maxSchematicSize);
             }else if(Core.input.keyDown(Binding.rebuild_select)){
                 drawRebuildSelection(schemX, schemY, cursorX, cursorY);
@@ -777,14 +781,17 @@ public class DesktopInput extends InputHandler{
                 rotatePlans(selectPlans, Mathf.sign(Core.input.axisTap(Binding.rotate)));
             }
         }
-        if(ui.chatfrag.hasLit){
+
+        cursorType = SystemCursor.arrow;
+
+        if(ui.chatfrag.hasLit){ // Scuffed foo's addition to ensure clickable chat takes priority
             cursorType = SystemCursor.hand;
         }else if(cursor != null){
             if(cursor.build != null){
                 cursorType = cursor.build.getCursor();
             }
 
-            if(cursor.build != null && cursor.build.team == Team.derelict && Build.validPlace(cursor.block(), player.team(), cursor.build.tileX(), cursor.build.tileY(), cursor.build.rotation)){
+            if(cursor.build != null && player.team() != Team.derelict && cursor.build.team == Team.derelict && cursor.build.block.unlockedNow() && Build.validPlace(cursor.block(), player.team(), cursor.build.tileX(), cursor.build.tileY(), cursor.build.rotation)){
                 cursorType = ui.repairCursor;
             }
 
@@ -830,9 +837,9 @@ public class DesktopInput extends InputHandler{
 
         if(!Core.scene.hasMouse()){
             Core.graphics.cursor(cursorType);
+        }else{
+            cursorType = SystemCursor.arrow;
         }
-
-        cursorType = SystemCursor.arrow;
     }
 
     @Override
@@ -901,7 +908,7 @@ public class DesktopInput extends InputHandler{
             schematicY += shiftY;
         }
 
-        if(Core.input.keyTap(Binding.deselect) && !isPlacing() && player.unit().plans.isEmpty() && !commandMode){
+        if(Core.input.keyTap(Binding.deselect) && !ui.minimapfrag.shown() && !isPlacing() && player.unit().plans.isEmpty() && !commandMode){
             player.unit().mineTile = null;
         }
 
@@ -910,7 +917,7 @@ public class DesktopInput extends InputHandler{
                 frozenPlans.clear();
             }else{
                 Player.persistPlans.clear();
-                player.unit().clearBuilding();
+                if(player.unit() != null) player.unit().clearBuilding(); // As of v8, the player unit is null when dead
             }
         }
 
@@ -1012,7 +1019,7 @@ public class DesktopInput extends InputHandler{
                 lastLineY = cursorY;
                 mode = placing;
                 updateLine(selectX, selectY);
-            }else if(plan != null && !plan.breaking && mode == none && !plan.initialized){
+            }else if(plan != null && !plan.breaking && mode == none && !plan.initialized && plan.progress <= 0f){
                 splan = plan;
                 buildPlanClickOffset.x = splan.x * tilesize - Core.input.mouseWorld().x;
                 buildPlanClickOffset.y = splan.y * tilesize - Core.input.mouseWorld().y;

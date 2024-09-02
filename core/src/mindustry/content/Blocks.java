@@ -1181,6 +1181,7 @@ public class Blocks{
             rotate = true;
             invertFlip = true;
             group = BlockGroup.liquids;
+            itemCapacity = 0;
 
             liquidCapacity = 50f;
 
@@ -1231,6 +1232,7 @@ public class Blocks{
             }});
 
             researchCostMultiplier = 1.1f;
+            itemCapacity = 0;
             liquidCapacity = 40f;
             consumePower(2f);
             ambientSound = Sounds.extractLoop;
@@ -1511,27 +1513,23 @@ public class Blocks{
             requirements(Category.defense, with(Items.copper, 6));
             health = 80 * wallHealthMultiplier;
             researchCostMultiplier = 0.1f;
-            envDisabled |= Env.scorching;
         }};
 
         copperWallLarge = new Wall("copper-wall-large"){{
             requirements(Category.defense, ItemStack.mult(copperWall.requirements, 4));
             health = 80 * 4 * wallHealthMultiplier;
             size = 2;
-            envDisabled |= Env.scorching;
         }};
 
         titaniumWall = new Wall("titanium-wall"){{
             requirements(Category.defense, with(Items.titanium, 6));
             health = 110 * wallHealthMultiplier;
-            envDisabled |= Env.scorching;
         }};
 
         titaniumWallLarge = new Wall("titanium-wall-large"){{
             requirements(Category.defense, ItemStack.mult(titaniumWall.requirements, 4));
             health = 110 * wallHealthMultiplier * 4;
             size = 2;
-            envDisabled |= Env.scorching;
         }};
 
         plastaniumWall = new Wall("plastanium-wall"){{
@@ -1540,7 +1538,6 @@ public class Blocks{
             insulated = true;
             absorbLasers = true;
             schematicPriority = 10;
-            envDisabled |= Env.scorching;
         }};
 
         plastaniumWallLarge = new Wall("plastanium-wall-large"){{
@@ -1550,20 +1547,17 @@ public class Blocks{
             insulated = true;
             absorbLasers = true;
             schematicPriority = 10;
-            envDisabled |= Env.scorching;
         }};
 
         thoriumWall = new Wall("thorium-wall"){{
             requirements(Category.defense, with(Items.thorium, 6));
             health = 200 * wallHealthMultiplier;
-            envDisabled |= Env.scorching;
         }};
 
         thoriumWallLarge = new Wall("thorium-wall-large"){{
             requirements(Category.defense, ItemStack.mult(thoriumWall.requirements, 4));
             health = 200 * wallHealthMultiplier * 4;
             size = 2;
-            envDisabled |= Env.scorching;
         }};
 
         phaseWall = new Wall("phase-wall"){{
@@ -1571,7 +1565,6 @@ public class Blocks{
             health = 150 * wallHealthMultiplier;
             chanceDeflect = 10f;
             flashHit = true;
-            envDisabled |= Env.scorching;
         }};
 
         phaseWallLarge = new Wall("phase-wall-large"){{
@@ -1580,14 +1573,12 @@ public class Blocks{
             size = 2;
             chanceDeflect = 10f;
             flashHit = true;
-            envDisabled |= Env.scorching;
         }};
 
         surgeWall = new Wall("surge-wall"){{
             requirements(Category.defense, with(Items.surgeAlloy, 6));
             health = 230 * wallHealthMultiplier;
             lightningChance = 0.05f;
-            envDisabled |= Env.scorching;
         }};
 
         surgeWallLarge = new Wall("surge-wall-large"){{
@@ -1595,13 +1586,11 @@ public class Blocks{
             health = 230 * 4 * wallHealthMultiplier;
             size = 2;
             lightningChance = 0.05f;
-            envDisabled |= Env.scorching;
         }};
 
         door = new Door("door"){{
             requirements(Category.defense, with(Items.titanium, 6, Items.silicon, 4));
             health = 100 * wallHealthMultiplier;
-            envDisabled |= Env.scorching;
         }};
 
         doorLarge = new Door("door-large"){{
@@ -1610,14 +1599,12 @@ public class Blocks{
             closefx = Fx.doorcloselarge;
             health = 100 * 4 * wallHealthMultiplier;
             size = 2;
-            envDisabled |= Env.scorching;
         }};
 
         scrapWall = new Wall("scrap-wall"){{
             requirements(Category.defense, BuildVisibility.sandboxOnly, with(Items.scrap, 6));
             health = 60 * wallHealthMultiplier;
             variants = 5;
-            envDisabled |= Env.scorching;
         }};
 
         scrapWallLarge = new Wall("scrap-wall-large"){{
@@ -1625,7 +1612,6 @@ public class Blocks{
             health = 60 * 4 * wallHealthMultiplier;
             size = 2;
             variants = 4;
-            envDisabled |= Env.scorching;
         }};
 
         scrapWallHuge = new Wall("scrap-wall-huge"){{
@@ -1633,21 +1619,18 @@ public class Blocks{
             health = 60 * 9 * wallHealthMultiplier;
             size = 3;
             variants = 3;
-            envDisabled |= Env.scorching;
         }};
 
         scrapWallGigantic = new Wall("scrap-wall-gigantic"){{
             requirements(Category.defense, BuildVisibility.sandboxOnly, ItemStack.mult(scrapWall.requirements, 16));
             health = 60 * 16 * wallHealthMultiplier;
             size = 4;
-            envDisabled |= Env.scorching;
         }};
 
         thruster = new Thruster("thruster"){{
             requirements(Category.defense, BuildVisibility.sandboxOnly, with(Items.scrap, 96));
             health = 55 * 16 * wallHealthMultiplier;
             size = 4;
-            envDisabled |= Env.scorching;
         }};
 
         berylliumWall = new Wall("beryllium-wall"){{
@@ -2555,8 +2538,8 @@ public class Blocks{
 
         fluxReactor = new VariableReactor("flux-reactor"){{
             requirements(Category.power, with(Items.graphite, 300, Items.carbide, 200, Items.oxide, 100, Items.silicon, 600, Items.surgeAlloy, 300));
-            powerProduction = 120f;
-            maxHeat = 140f;
+            powerProduction = 240f;
+            maxHeat = 150f;
 
             consumeLiquid(Liquids.cyanogen, 9f / 60f);
             liquidCapacity = 30f;
@@ -2783,6 +2766,7 @@ public class Blocks{
             ambientSoundVolume = 0.06f;
             hasLiquids = true;
             boostScale = 1f / 9f;
+            itemCapacity = 0;
             outputLiquid = new LiquidStack(Liquids.water, 30f / 60f);
             consumePower(0.5f);
             liquidCapacity = 60f;
@@ -4047,7 +4031,7 @@ public class Blocks{
             researchCostMultiplier = 0.05f;
 
             coolant = consume(new ConsumeLiquid(Liquids.water, 15f / 60f));
-            limitRange();
+            limitRange(12f);
         }};
 
         diffuse = new ItemTurret("diffuse"){{
@@ -4106,7 +4090,7 @@ public class Blocks{
             rotateSpeed = 3f;
 
             coolant = consume(new ConsumeLiquid(Liquids.water, 15f / 60f));
-            limitRange();
+            limitRange(25f);
         }};
 
         sublimate = new ContinuousLiquidTurret("sublimate"){{
@@ -4150,6 +4134,7 @@ public class Blocks{
 
             liquidConsumed = 10f / 60f;
             targetInterval = 5f;
+            newTargetInterval = 30f;
             targetUnderBlocks = false;
 
             float r = range = 130f;
@@ -4240,6 +4225,8 @@ public class Blocks{
             shootY = 7f;
             rotateSpeed = 1.4f;
             minWarmup = 0.85f;
+
+            newTargetInterval = 40f;
             shootWarmupSpeed = 0.07f;
 
             coolant = consume(new ConsumeLiquid(Liquids.water, 30f / 60f));
@@ -4356,7 +4343,7 @@ public class Blocks{
             coolant = consume(new ConsumeLiquid(Liquids.water, 20f / 60f));
             coolantMultiplier = 2.5f;
 
-            limitRange(-5f);
+            limitRange(5f);
         }};
 
         afflict = new PowerTurret("afflict"){{
@@ -4377,6 +4364,7 @@ public class Blocks{
                 trailInterval = 3f;
                 trailParam = 4f;
                 pierceCap = 2;
+                buildingDamageMultiplier = 0.5f;
                 fragOnHit = false;
                 speed = 5f;
                 damage = 180f;
@@ -4459,6 +4447,8 @@ public class Blocks{
             consumePower(5f);
             heatRequirement = 10f;
             maxHeatEfficiency = 2f;
+
+            newTargetInterval = 40f;
 
             inaccuracy = 1f;
             shake = 2f;
@@ -4682,6 +4672,8 @@ public class Blocks{
             shootSound = Sounds.missileLaunch;
 
             minWarmup = 0.94f;
+            newTargetInterval = 40f;
+            unitSort = UnitSorts.strongest;
             shootWarmupSpeed = 0.03f;
             targetAir = false;
             targetUnderBlocks = false;
@@ -5792,6 +5784,8 @@ public class Blocks{
             heatOutput = 1000f;
             warmupRate = 1000f;
             regionRotated1 = 1;
+            itemCapacity = 0;
+            alwaysUnlocked = true;
             ambientSound = Sounds.none;
         }};
 
@@ -5923,7 +5917,7 @@ public class Blocks{
         }};
 
         worldProcessor = new LogicBlock("world-processor"){{
-            requirements(Category.logic, BuildVisibility.editorOnly, with());
+            requirements(Category.logic, BuildVisibility.worldProcessorOnly, with());
 
             canOverdrive = false;
             targetable = false;
@@ -5936,7 +5930,7 @@ public class Blocks{
         }};
 
         worldCell = new MemoryBlock("world-cell"){{
-            requirements(Category.logic, BuildVisibility.editorOnly, with());
+            requirements(Category.logic, BuildVisibility.worldProcessorOnly, with());
 
             targetable = false;
             privileged = true;
@@ -5945,14 +5939,14 @@ public class Blocks{
         }};
 
         worldMessage = new MessageBlock("world-message"){{
-            requirements(Category.logic, BuildVisibility.editorOnly, with());
+            requirements(Category.logic, BuildVisibility.worldProcessorOnly, with());
             
             targetable = false;
             privileged = true;
         }};
 
         worldSwitch = new SwitchBlock("world-switch"){{
-            requirements(Category.logic, BuildVisibility.editorOnly, with());
+            requirements(Category.logic, BuildVisibility.worldProcessorOnly, with());
 
             targetable = false;
             privileged = true;

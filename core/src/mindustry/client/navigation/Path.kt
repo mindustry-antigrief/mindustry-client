@@ -52,7 +52,7 @@ abstract class Path {
                         val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.getEnts())
                         Pools.freeAll(filter, true)
                         filter.clear()
-                        if (!Vars.player.unit().isNull) v1.set(Vars.player.unit())
+                        if (!Vars.player.dead()) v1.set(Vars.player.unit())
                         if (path.isNotEmpty() && (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>))) { // Same destination
                             val relaxed = Navigation.navigator is AStarNavigatorOptimised
                             filter.addAll(path, 0, path.size) // Avoid addAll(*path) as that requires a spread operator which does an arrayCopy

@@ -40,7 +40,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Import float x, y;
 
-    @ReadOnly Unit unit = Nulls.unit;
+    @ReadOnly @Nullable Unit unit;
     transient @Nullable NetConnection con;
     @ReadOnly Team team = Team.sharded;
     @SyncLocal boolean typing, shooting, boosting;
@@ -55,8 +55,9 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient @Nullable Unit unitOnDeath;
     transient String lastText = "";
     transient float textFadeTime;
+    transient Ratekeeper itemDepositRate = new Ratekeeper();
 
-    transient private Unit lastReadUnit = Nulls.unit;
+    transient private @Nullable Unit lastReadUnit;
     transient private int wrongReadUnits;
     transient @Nullable Unit justSwitchFrom, justSwitchTo;
     transient boolean fooUser;
@@ -65,7 +66,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient @Nullable String serverID;
 
     public boolean isBuilder(){
-        return unit.canBuild();
+        return unit != null && unit.canBuild();
     }
 
     public @Nullable CoreBuild closestCore(){
@@ -100,7 +101,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         x = y = 0f;
         if(!dead()){
             unit.resetController();
-            unit = Nulls.unit;
+            unit = null;
         }
     }
 
@@ -116,7 +117,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Replace
     public float clipSize(){
-        return unit.isNull() ? 20 : unit.type.hitSize * 2f;
+        return unit == null ? 20 : unit.type.hitSize * 2f;
     }
 
     @Override
@@ -146,17 +147,18 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         unit = lastReadUnit;
         unit(set);
         lastReadUnit = unit;
-
-        unit.aim(mouseX, mouseY);
-        //this is only necessary when the thing being controlled isn't synced
-        unit.controlWeapons(shooting, shooting);
-        //extra precaution, necessary for non-synced things
-        unit.controller(this);
+        if(unit != null){
+            unit.aim(mouseX, mouseY);
+            //this is only necessary when the thing being controlled isn't synced
+            unit.controlWeapons(shooting, shooting);
+            //extra precaution, necessary for non-synced things
+            unit.controller(this);
+        }
     }
 
     @Override
     public void update(){
-        if(!unit.isValid()){
+        if(unit != null && !unit.isValid()){
             clearUnit();
         }
 
@@ -198,45 +200,45 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     @Override
     public void remove(){
         //clear unit upon removal
-        if(!unit.isNull()){
+        if(unit != null){
             clearUnit();
         }
 
         // null these out to prevent long-lived player objects (for example, Moderation.leaves) from holding onto units with logic controllers that will hold all of their neighbors
-        lastReadUnit = Nulls.unit;
-        justSwitchTo = justSwitchFrom = null;
+        lastReadUnit = justSwitchTo = justSwitchFrom = null;
     }
 
     public void team(Team team){
         this.team = team;
-        unit.team(team);
+        if(unit != null){
+            unit.team(team);
+        }
     }
 
     public void clearUnit(){
-        unit(Nulls.unit);
+        unit(null);
     }
 
-    public Unit unit(){
+    public @Nullable Unit unit(){
         return unit;
     }
 
-    public void unit(Unit unit){
+    public void unit(@Nullable Unit unit){
         //refuse to switch when the unit was just transitioned from
         if(isLocal() && unit == justSwitchFrom && justSwitchFrom != null && justSwitchTo != null){
             Log.info("@ just attempted to switch back @ at @", plainName(), wrongReadUnits, graphics.getFrameId());
             return;
         }
 
-        if(unit == null) throw new IllegalArgumentException("Unit cannot be null. Use clearUnit() instead.");
         if(this.unit == unit) return;
         var oldUnit = this.unit; // Unit we are swapping from
 
         //save last command this unit had
-        if(unit.controller() instanceof CommandAI ai){
+        if(unit != null && unit.controller() instanceof CommandAI ai){
             lastCommand = ai.command;
         }
 
-        if(this.unit != Nulls.unit){
+        if(this.unit != null){
             //un-control the old unit
             this.unit.resetController();
             if(!headless && isLocal()) { // Plan persistence is client side only FINISHME: Move this to some other class
@@ -251,7 +253,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             }
         }
         this.unit = unit;
-        if(unit != Nulls.unit){
+        if(unit != null){
             unit.team(team);
             unit.controller(this);
 
@@ -273,7 +275,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     }
 
     boolean dead(){
-        return unit.isNull() || !unit.isValid();
+        return unit == null || !unit.isValid();
     }
 
     String ip(){
@@ -306,10 +308,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Override
     public void draw(){
-        if(unit != null && unit.inFogTo(Vars.player.team())) return;
-
-        //??????
-        if(name == null) return;
+        if(unit == null || name == null || unit.inFogTo(Vars.player.team())) return;
 
         Draw.z(Layer.playerName);
         float z = Drawf.text();

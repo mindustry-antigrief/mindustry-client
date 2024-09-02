@@ -35,6 +35,8 @@ import mindustry.input.*;
 import mindustry.net.Packets.*;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.world.blocks.storage.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
 
 import java.lang.reflect.*;
 
@@ -705,6 +707,8 @@ public class HudFragment{
         }
     }
 
+    /** @deprecated see {@link CoreBuild#beginLaunch(CoreBlock)} */
+    @Deprecated
     public void showLaunch(){
         float margin = 30f;
 
@@ -723,6 +727,8 @@ public class HudFragment{
         Core.scene.add(image);
     }
 
+    /** @deprecated see {@link CoreBuild#beginLaunch(CoreBlock)} */
+    @Deprecated
     public void showLand(){
         Image image = new Image();
         image.color.a = 1f;
@@ -893,22 +899,23 @@ public class HudFragment{
 
             float[] maxShield = {0};
             t.stack(
-                new Table(tt ->
-                    tt.add(new SideBar(() -> player.unit().healthf(), () -> true, true))
+                new Table(tt -> // Health
+                    tt.add(new SideBar(() -> player.dead() ? 0f : player.unit().healthf(), () -> true, true))
                     .tooltip(tooltip ->
                         tooltip.background(Styles.black6).margin(4f)
                         .label(() ->
-                            player.unit().shield > 0
+                            !player.dead() && player.unit().shield > 0
                             ? Strings.format("@: (@ + @)/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), Mathf.round(player.unit().shield, 0.1f), player.unit().maxHealth)
                             : Strings.format("@: @/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), player.unit().maxHealth)
                         ).style(Styles.outlineLabel)
                     )
                     .width(bw).growY().padRight(pad)
-                ), // Health
-                new Table(tt ->
-                    tt.add(new SideBar(() -> player.unit().shield / maxShield[0], () -> true, true, 1/4f))
+                ),
+                new Table(tt -> // Shield
+                    tt.add(new SideBar(() -> player.dead() ? 0 : player.unit().shield / maxShield[0], () -> true, true, 1/4f))
                     .width(bw).growY().padRight(pad).color(Pal.accent)
-                    .visible(() -> { // Ammo
+                    .visible(() -> {
+                        if(player.dead()) return false;
                         var ff = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility);
 
                         maxShield[0] = ff == null ? 0f : ((ForceFieldAbility)ff).max;
@@ -1065,7 +1072,7 @@ public class HudFragment{
         Bits statuses = new Bits();
 
         table.table().update(t -> {
-            Bits applied = player.unit().statusBits();
+            Bits applied = player.dead() ? null : player.unit().statusBits();
             if(!statuses.equals(applied)){
                 t.clear();
 

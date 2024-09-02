@@ -3,17 +3,39 @@ package mindustry.ui.dialogs;
 import arc.*;
 import mindustry.client.ui.*;
 import mindustry.game.*;
+import arc.scene.ui.layout.*;
+import mindustry.*;
+import mindustry.editor.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 
 import static mindustry.Vars.*;
 
 public class PausedDialog extends BaseDialog{
-    private final SaveDialog save = new SaveDialog();
-    private boolean wasClient = false;
+    private MapProcessorsDialog processors = new MapProcessorsDialog();
+    private SaveDialog save = new SaveDialog();
+    private LoadDialog load = new LoadDialog();
+    private CustomRulesDialog rulesDialog = new CustomRulesDialog();
 
     public PausedDialog(){
         super("@menu");
         shouldPause = true;
+
+        clearChildren();
+        add(titleTable).growX().row();
+
+        stack(cont, new Table(t -> {
+            t.bottom().left();
+            t.button(Icon.book, () -> {
+                Rules toEdit = Vars.state.rules.copy();
+                rulesDialog.show(toEdit, () -> state.rules.copy());
+                rulesDialog.hidden(() -> {
+                    //apply rule changes only once it is hidden
+                    Vars.state.rules = toEdit;
+                    Call.setRules(toEdit);
+                });
+            }).size(70f).tooltip("@customize").visible(() -> state.rules.allowEditRules && (net.server() || !net.active()));
+        })).grow().row();
 
         shown(this::rebuild);
 
@@ -45,7 +67,7 @@ public class PausedDialog extends BaseDialog{
             if(!state.isCampaign() && !state.isEditor()){
                 cont.row();
                 cont.button("@savegame", Icon.save, save::show);
-                cont.button("@loadgame", Icon.upload, ui.load::show).disabled(b -> net.active());
+                cont.button("@loadgame", Icon.upload, load::show).disabled(b -> net.active());
             }
 
             cont.row();
@@ -59,6 +81,14 @@ public class PausedDialog extends BaseDialog{
             }).disabled(b -> !((steam && net.server()) || !net.active())).update(e -> e.setText(net.server() && steam ? "@invitefriends" : "@hostserver"));
             // FINISHME: Enable while not hosting but make this host when clicked (or add a tooltip or smth)
             cont.button("@client.claj.manage", Icon.link, () -> ui.clajManager.show()).tooltip("@client.claj.info").disabled(f -> !net.server());
+
+            if(state.isEditor()){ // World proc button gets its own row due to foo's claj button
+                cont.row();
+                cont.button("@editor.worldprocessors", Icon.logic, () -> {
+                    hide();
+                    processors.show();
+                }).colspan(2).width(dw * 2 + 10f);
+            }
 
             cont.row();
 
@@ -81,7 +111,7 @@ public class PausedDialog extends BaseDialog{
 
                 cont.row();
 
-                cont.buttonRow("@load", Icon.download, ui.load::show).disabled(b -> net.active());
+                cont.buttonRow("@load", Icon.download, load::show).disabled(b -> net.active());
             }else if(state.isCampaign()){
                 cont.buttonRow("@research", Icon.tree, ui.research::show);
 
@@ -129,7 +159,7 @@ public class PausedDialog extends BaseDialog{
     }
 
     public void runExitSave(){
-        wasClient = net.client();
+        boolean wasClient = net.client();
         if(net.client()) netClient.disconnectQuietly();
 
         if(state.isEditor() && !wasClient){
