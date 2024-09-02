@@ -17,9 +17,10 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     private val keys = Table()
     private lateinit var importDialog: Dialog
     private lateinit var aliasDialog: Dialog
+    private var built = false
 
     init {
-        build()
+        shown(::build)
     }
 
     private fun regenerate() {
@@ -60,9 +61,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                             hide()
                         }
 
-                        ta.button("@close") {
-                            hide()
-                        }
+                        ta.button("@close", ::hide)
                     }
                 }.show()
             }.padRight(10f).tooltip("@client.editcert")
@@ -73,18 +72,18 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
     }
 
     private fun build() {
-        addCloseListener()
-
+        if (built) return
         val store = Main.keyStorage
 
+        if (!store.loaded()) {
+            Core.app.post(::hide)
+            Vars.ui.showText("@client.keyshare.loading.title", "@client.keyshare.loading.text")
+            return
+        }
+
         if (store.cert() == null || store.key() == null || store.chain() == null) {
-            hide()
-            Core.app.post {
-                Vars.ui.showTextInput(
-                    "@client.certname.title",
-                    "@client.certname.text",
-                    Core.settings.getString("name", "")
-                ) { text ->
+            Core.app.post { // Post is needed otherwise this will show up behind the key dialog
+                Vars.ui.showTextInput("@client.certname.title", "@client.certname.text", 32, Core.settings.getString("name", ""), false, { text -> // On submission
                     if (text.length < 2) {
                         hide()
                         return@showTextInput
@@ -102,11 +101,13 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                     store.key(key, listOf(cert))
 
                     build()
-                }
+                }, ::hide) // Hide on close
             }
             return
         }
 
+        built = true
+        addCloseButton()
         regenerate()
 
         cont.table{ t ->
@@ -170,7 +171,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
         keyDown {
             if(it == KeyCode.escape || it == KeyCode.back){
                 if (this::importDialog.isInitialized && importDialog.isShown) Core.app.post(importDialog::hide) // This game hates being not dumb so this is needed
-                if (this::aliasDialog.isInitialized && aliasDialog.isShown) Core.app.post(aliasDialog::hide) // Same as above
+                else if (this::aliasDialog.isInitialized && aliasDialog.isShown) Core.app.post(aliasDialog::hide) // Same as above
                 else Core.app.post(this::hide)
             }
         }

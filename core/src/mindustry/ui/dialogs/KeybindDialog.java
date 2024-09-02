@@ -145,7 +145,7 @@ public class KeybindDialog extends Dialog{
                         openDialog(section, keybind);
                     }).width(130f);
 
-                    table.button("@settings.unbindKey", tstyle, () -> {
+                    table.button("@client.settings.unbind", tstyle, () -> {
                         rebindAxis = true;
                         rebindMin = true;
                         rebindKey = keybind;
@@ -161,7 +161,7 @@ public class KeybindDialog extends Dialog{
                         openDialog(section, keybind);
                     }).width(130f);
 
-                    table.button("@settings.unbindKey", tstyle, () -> {
+                    table.button("@client.settings.unbind", tstyle, () -> {
                         rebindAxis = false;
                         rebindMin = false;
                         rebindKey = keybind;

@@ -49,7 +49,7 @@ public class WaveSpawner{
     }
 
     public Seq<Tile> getCoreSpawns(){
-        if(!state.rules.attackMode) return new Seq<Tile>();
+        if(!state.rules.attackMode) return new Seq<>();
         return state.rules.waveTeam.cores().map(c -> c.tile);
     }
 

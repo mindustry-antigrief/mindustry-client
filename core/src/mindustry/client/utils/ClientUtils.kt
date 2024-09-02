@@ -135,7 +135,7 @@ fun String.stripColors(): String = Strings.stripColors(this)
 inline fun <T> Iterable<T>.sortedThreshold(threshold: Double, predicate: (T) -> Double): List<T> {
     return zip(map(predicate))  // Compute the predicate for each value and put it in pairs with the original item
         .filter { it.second >= threshold }  // Filter by threshold
-        .sortedBy { it.second }  // Sort
+        .sortedBy(Pair<T, Double>::second)  // Sort
         .unzip().first  // Go from a list of pairs back to a list
 }
 
@@ -219,7 +219,8 @@ fun <T> Iterable<T>.unescape(escapement: T, vararg escape: T): List<T> {
     return output
 }
 
-fun String.bundle(): String? = Core.bundle[removePrefix("@")]
+fun String.bundle(): String = Core.bundle[removePrefix("@")]
+operator fun String.get(vararg args: Any?): String = Core.bundle.formatKt(removePrefix("@"), args)
 
 val X509Certificate.readableName: String
     get() = subjectX500Principal.name.removePrefix("CN=")
@@ -460,7 +461,7 @@ fun ChatMessage.findLinks(start: Int = 0): ChatMessage = NetClient.findLinks(thi
 
 fun findItem(arg: String): Item = content.items().min { b -> biasedLevenshtein(arg, b.localizedName) }
 
-fun findUnit(arg: String): UnitType = content.units().min { b -> biasedLevenshtein(arg, b.localizedName) }
+fun findUnit(arg: String): UnitType = content.units().min({ u -> !u.internal }) { b -> biasedLevenshtein(arg, b.localizedName) } // Filter out internals as people will try spawning block entities and crash the game otherwise (all internals are filtered since they should likely never be manually spawned)
 
 fun findBlock(arg: String): Block = content.blocks().min { b -> biasedLevenshtein(arg, b.localizedName) }
 

@@ -9,6 +9,7 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
+import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
@@ -272,14 +273,22 @@ public class StackConveyor extends Block implements Autotiler{
             if(!enabled) return;
 
             if(state == stateUnload){ //unload
+                int i = 0;
                 while(lastItem != null && (!outputRouter ? moveForward(lastItem) : dump(lastItem))){
                     if(!outputRouter){
                         items.remove(lastItem, 1);
                     }
 
-                    if(items.empty()){
+                    if(!items.has(lastItem)){
                         poofOut();
                         lastItem = null;
+                    }
+                    if(i++ > 2 * itemCapacity){
+                        if(player != null){
+                            ui.chatfrag.addMessage(Strings.format("[scarlet]Foo's prevented a client crash!!!!! [orange]Stack router at (@,@), trying to unload item @, current items:@, too many loops! Please report how you got this error, including a screenshot of the surroundings! outputRouter: @", World.toTile(x), World.toTile(y), lastItem.name, items.toString(), outputRouter));
+                        }
+                        items.clear();
+                        break;
                     }
                 }
             }else{ //transfer
@@ -366,10 +375,10 @@ public class StackConveyor extends Block implements Autotiler{
         public boolean acceptItem(Building source, Item item){
             if(this == source) return items.total() < itemCapacity && (!items.any() || items.has(item)); //player threw items
             if(cooldown > recharge - 1f) return false; //still cooling down
-            return !((state != stateLoad) //not a loading dock
-            ||  (items.any() && !items.has(item)) //incompatible items
-            ||  (items.total() >= getMaximumAccepted(item)) //filled to capacity
-            ||  (front()  == source));
+            return state == stateLoad // is loading dock
+                && (items.empty() || items.has(item)) // empty or same item
+                && items.total() < getMaximumAccepted(item) // has free space
+                && front() != source; // from sides or back
         }
 
         @Override
@@ -386,6 +395,7 @@ public class StackConveyor extends Block implements Autotiler{
 
             link = read.i();
             cooldown = read.f();
+            lastItem = items.first();
         }
     }
 }

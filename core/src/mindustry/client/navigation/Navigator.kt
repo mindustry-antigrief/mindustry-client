@@ -39,13 +39,14 @@ abstract class Navigator {
         start.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
         end.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
         val additionalRadius = player.unit().hitSize / 2 + tilesize
+        val pool = Pools.get(Circle::class.java, ::Circle)
 
         // Turrets and units FINISHME: Turrets should probably not use this system
         if (player.unit().type.targetable(player.unit(), player.team()) && player.unit().type.hittable(player.unit())) {
             for (turret in obstacles) {
                 if (turret.isObstacle()) {
                     realObstacles.add(
-                        Pools.obtain(Circle::class.java) { Circle() }.set(
+                        pool.obtain().set(
                             turret.x(),
                             turret.y(),
                             turret.range() + additionalRadius
@@ -57,9 +58,9 @@ abstract class Navigator {
 
         // Spawns
         if (state.hasSpawns()) {
-            for (spawn in spawner.spawns) {
+            spawner.spawns.each { spawn -> // Use .each() as this is on the client thread and the iterator isn't thread safe. Each works fine as this Seq should never be edited at runtime. This might actually be a bad assumption to make? Idk
                 realObstacles.add(
-                    Pools.obtain(Circle::class.java) { Circle() }.set(
+                    pool.obtain().set(
                         spawn.worldx(),
                         spawn.worldy(),
                         state.rules.dropZoneRadius + additionalRadius
@@ -69,13 +70,13 @@ abstract class Navigator {
         }
 
         // Shield projectors
-        for (team in state.teams.active) {
-            if (team === player.team()) continue
-            arrayOf(team.getBuildings(Blocks.shieldProjector), team.getBuildings(Blocks.largeShieldProjector)).forEach { shields ->
-                val radius = ((shields.firstOpt()?.block ?: return@forEach) as BaseShield).radius + additionalRadius
-                for (shield in shields) {
+        state.teams.active.each { team ->
+            if (team === player.team()) return@each
+            for (block in BaseShield.baseShields) {
+                val radius = block.radius + additionalRadius
+                team.getBuildings(block).each { shield ->
                     realObstacles.add(
-                        Pools.obtain(Circle::class.java) { Circle() }.set(
+                        pool.obtain().set(
                             shield.x,
                             shield.y,
                             radius
@@ -112,7 +113,7 @@ abstract class Navigator {
             !canBoost && solidity?.solid(x, y) ?: false && // Units that cannot hover will check for solid blocks
                 world.tiles.getn(x, y).run { build === null || build.team !== player.team() || !block().teamPassable } // Ignore teamPassable blocks such as erekir blastDoors
         }
-        Pools.freeAll(realObstacles)
+        Pools.freeAll(realObstacles, true)
         realObstacles.clear()
         return ret
     }

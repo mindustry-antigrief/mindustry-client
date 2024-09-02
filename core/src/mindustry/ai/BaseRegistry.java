@@ -33,6 +33,7 @@ public class BaseRegistry{
     }
 
     public void load(){
+        Time.mark();
         cores.clear();
         parts.clear();
         reqParts.clear();
@@ -111,6 +112,7 @@ public class BaseRegistry{
         cores.sort(b -> b.tier);
         parts.sort();
         reqParts.each((key, arr) -> arr.sort());
+        Log.debug("Bases in @ms", Time.elapsed());
     }
 
     public static class BasePart implements Comparable<BasePart>{

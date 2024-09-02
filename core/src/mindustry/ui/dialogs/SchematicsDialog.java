@@ -42,6 +42,7 @@ public class SchematicsDialog extends BaseDialog{
     private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
     private Seq<String> tags, selectedTags = new Seq<>();
     private boolean checkedTags;
+    private final ItemSeq reusableItemSeq = new ItemSeq();
 
     public SchematicsDialog(){
         super("@schematics");
@@ -195,8 +196,19 @@ public class SchematicsDialog extends BaseDialog{
                         b.stack(new SchematicImage(s).setScaling(Scaling.fit), new Table(n -> {
                             n.top();
                             n.table(Styles.black3, c -> {
-                                Label label = c.add(s.name()).style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f)
-                                    .update(l -> l.setText((!player.team().rules().infiniteResources && !state.rules.infiniteResources && player.core() != null && !player.core().items.has(s.requirements()) ? "[#dd5656]" : "") + s.name())).get();
+                                Label label = c.add(new Label("[#dd5656]" + s.name()){
+                                    @Override
+                                    public void draw() { // Update the name in the draw method as update() is called even when culled
+                                        var txt = getText(); // Update the stringBuilder directly
+                                        var len = text.length();
+                                        txt.setLength(0);
+                                        if (!player.team().rules().infiniteResources && !state.rules.infiniteResources && player.core() != null && !player.core().items.has(s.requirements(reusableItemSeq))) txt.append("[#dd5656]");
+                                        txt.append(s.name());
+                                        reusableItemSeq.clear();
+                                        if (txt.length() != len) invalidate();
+                                        super.draw();
+                                    }
+                                }).style(Styles.outlineLabel).top().growX().maxWidth(200f - 8f).get();
                                 label.setEllipsis(true);
                                 label.setAlignment(Align.center);
                             }).growX().margin(1).pad(4).maxWidth(Scl.scl(200f - 8f)).padBottom(0);
@@ -322,7 +334,7 @@ public class SchematicsDialog extends BaseDialog{
                     platform.export(s.name(), schematicExtension, file -> Schematics.write(s, file));
                 }).marginLeft(12f);
                 t.row();
-                t.button("@schematic.chatshare", Icon.bookOpen, style, () -> {
+                t.button("@client.schematic.chatshare", Icon.bookOpen, style, () -> {
                     if (!state.isPlaying()) return;
                     dialog.hide();
                     clientThread.post(() -> Main.INSTANCE.send(new SchematicTransmission(s), () -> Core.app.post(() ->

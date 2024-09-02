@@ -45,7 +45,6 @@ import mindustry.world.modules.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.*;
 
 @EntityDef(value = {Buildingc.class}, isFinal = false, genio = false, serialize = false)
 @Component(base = true)
@@ -57,7 +56,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     static final BuildTeamChangeEvent teamChangeEvent = new BuildTeamChangeEvent();
     static final BuildDamageEvent bulletDamageEvent = new BuildDamageEvent();
     static int sleepingEntities = 0;
-    private static final Seq<Item> dumpItems = new Seq<Item>(Vars.content.items().size);
     
     @Import float x, y, health, maxHealth;
     @Import Team team;

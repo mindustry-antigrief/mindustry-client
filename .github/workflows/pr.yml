@@ -32,4 +32,4 @@ jobs:
 
       - name: Run Tests
         if: ${{ always() }}
-        run: ./gradlew test
+        run: ./gradlew tests:test

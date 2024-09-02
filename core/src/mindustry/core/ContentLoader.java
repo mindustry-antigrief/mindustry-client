@@ -111,15 +111,19 @@ public class ContentLoader{
 
     /** Calls Content#init() on everything. Use only after all modules have been created. */
     public void init(){
+        var s = Time.nanos();
         initialize(Content::init);
         if(logicVars != null) logicVars.init();
         Events.fire(new ContentInitEvent());
+        Log.debug("ContentInit Async: @", Time.millisSinceNanos(s));
     }
 
     /** Calls Content#loadIcon() and Content#load() on everything. Use only after all modules have been created on the client. */
     public void load(){
+        var s = Time.nanos();
         initialize(Content::loadIcon);
         initialize(Content::load);
+        Log.debug("ContentInit Sync: @", Time.millisSinceNanos(s));
     }
 
     /** Initializes all content with the specified function. */

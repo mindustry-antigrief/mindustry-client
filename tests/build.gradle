@@ -1,2 +1,3 @@
 sourceSets.test.resources.srcDirs = ["src/test/resources"]
 sourceSets.test.java.srcDirs = ["src/test/java"]
+sourceSets.test.kotlin.srcDirs = ["src/test/java"] // Yes, this is horrible

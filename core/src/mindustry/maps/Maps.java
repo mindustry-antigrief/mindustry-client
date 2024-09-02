@@ -1,7 +1,6 @@
 package mindustry.maps;
 
 import arc.*;
-import arc.assets.*;
 import arc.assets.loaders.*;
 import arc.files.*;
 import arc.func.*;
@@ -11,19 +10,19 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
+import kotlin.*;
 import mindustry.*;
 import mindustry.content.*;
-import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.io.*;
-import mindustry.maps.MapPreviewLoader.*;
 import mindustry.maps.filters.*;
 import mindustry.service.*;
 import mindustry.world.*;
 import mindustry.world.blocks.storage.*;
 
 import java.io.*;
+import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
 
@@ -99,12 +98,26 @@ public class Maps{
         return maps.find(m -> m.name().equals(name));
     }
 
+    private long lastPreview = 0;
     public Maps(){
-        Events.on(ClientLoadEvent.class, event -> maps.sort());
+        Events.on(ClientLoadEvent.class, event -> loadPreviews());
 
-        if(Core.assets != null){
-            ((CustomLoader)Core.assets.getLoader(ContentLoader.class)).loaded = this::createAllPreviews;
-        }
+        Events.run(Trigger.update, () -> {
+            if(!state.isMenu()) return;
+            var sy = Time.nanos();
+            if(nextSync()) {
+                Log.debug("Loaded map preview in @ms", Time.millisSinceNanos(sy));
+                return; // loadAsync on next preview texture. returns if this did any work as we don't want too much stuff loading at once
+            }
+            if(!previewList.isEmpty() && Time.timeSinceMillis(lastPreview) > 100) { // Create preview for any map missing one every 100ms (one per frame causes way too much lag)
+                var m = previewList.first();
+                var s = Time.nanos();
+                createNewPreview(m, e -> Core.app.post(() -> m.texture = Core.assets.get("sprites/error.png")));
+                Log.debug("Created preview for '@' in @ms", m.name(), Time.millisSinceNanos(s));
+                previewList.remove(m);
+                lastPreview = Time.millis();
+            }
+        });
     }
 
     /**
@@ -238,10 +251,18 @@ public class Maps{
                 }
 
                 Pixmap pix = MapIO.generatePreview(world.tiles);
-                mainExecutor.submit(() -> map.previewFile().writePng(pix));
-                writeCache(map);
 
                 map.texture = new Texture(pix);
+                mainExecutor.submit(() -> {
+                    try{
+                        map.previewFile().writePng(pix);
+                        writeCache(map);
+                    }catch(Exception e){
+                        throw new RuntimeException(e);
+                    }finally{
+                        pix.dispose();
+                    }
+                });
             }
             maps.add(map);
             maps.sort();
@@ -367,26 +388,54 @@ public class Maps{
     }
 
     public void loadPreviews(){
-        for(Map map : maps){
-            //try to load preview
-            if(map.previewFile().exists()){
-                //this may fail, but calls queueNewPreview
-                Core.assets.load(new AssetDescriptor<>(map.previewFile().path() + "." + mapExtension, Texture.class, new MapPreviewParameter(map))).loaded = t -> map.texture = t;
+        Threads.daemon("Map Preview Loader", () -> {
+            var loader = new MapPreviewLoader();
+            for(Map map : maps){
+                if(map.previewFile().exists()){
+                    var fileName = (map.previewFile().path() + "." + mapExtension).replaceAll("\\\\", "/");
+                    loader.loadAsync(Core.assets, fileName, loader.resolve(fileName), new MapPreviewLoader.MapPreviewParameter(map));
+                    try{
+                        readCache(map);
+                    }catch(Exception e){
+                        e.printStackTrace();
+                        queueNewPreview(map);
+                    }
 
-                try{
-                    readCache(map);
-                }catch(Exception e){
-                    e.printStackTrace();
+                    var info = new TextureLoader.TextureLoaderInfo();
+                    info.filename = loader.info.filename;
+                    info.data = loader.info.data;
+                    info.texture = loader.info.texture;
+                    queuedPreviews.add(new Pair<>(map, info));
+                }else{
                     queueNewPreview(map);
                 }
-            }else{
-                queueNewPreview(map);
             }
+            Core.app.post(() -> maps.sort());
+        });
+    }
+
+    private final LinkedBlockingQueue<Pair<Map, TextureLoader.TextureLoaderInfo>> queuedPreviews = new LinkedBlockingQueue<>();
+    private MapPreviewLoader loader;
+
+    /** @return Whether any work was done */
+    private boolean nextSync(){
+        if(queuedPreviews.isEmpty()){
+            loader = null;
+            return false;
         }
+        if(loader == null) loader = new MapPreviewLoader();
+
+        var pair = queuedPreviews.poll();
+        var map = pair.getFirst();
+        var info = pair.getSecond();
+        loader.info = info;
+        map.texture = loader.loadSync(Core.assets, info.filename, Core.files.local(info.filename.substring(0, info.filename.length() - 5)), null); // Drop 5 to remove the .msav extension
+        return true;
     }
 
     private void createAllPreviews(){
         Core.app.post(() -> {
+            if(!state.isMenu()) return;
             for(Map map : previewList){
                 createNewPreview(map, e -> Core.app.post(() -> map.texture = Core.assets.get("sprites/error.png")));
             }

@@ -1402,15 +1402,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.color(Pal.freeze);
         Lines.stroke(1f);
 
-        for(BuildPlan plan: player.unit().plans()){
-            if(plan.breaking) continue;
-            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+        for(BuildPlan plan : player.unit().plans()){
+            if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 drawFreezing(plan);
             }
         }
-        for(BuildPlan plan: selectPlans){
-            if(plan.breaking) continue;
-            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
+        for(BuildPlan plan : selectPlans){
+            if(!plan.breaking && plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 drawFreezing(plan);
             }
         }
@@ -1550,10 +1548,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if (plan.block == null) continue;
 
             if (removeFrozen) {
+                plan.bounds(Tmp.r1);
                 Iterator<BuildPlan> it = frozenPlans.iterator();
                 while(it.hasNext()){
                     BuildPlan frz = it.next();
-                    if(plan.bounds(Tmp.r1, true).overlaps(frz.bounds(Tmp.r2, true))){
+                    if(Tmp.r1.overlaps(frz.bounds(Tmp.r2))){
                         it.remove();
                     }
                 }
@@ -1569,7 +1568,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if (plan.block == Blocks.waterExtractor && !input.shift() // Attempt to replace water extractors with pumps FINISHME: Don't place 4 pumps, only 2 needed.
                     && plan.tile() != null && plan.tile().getLinkedTilesAs(plan.block, tempTiles).contains(t -> t.floor().liquidDrop == Liquids.water)) { // Has water
                 var first = tempTiles.first();
-                if (tempTiles.contains(t -> !t.adjacentTo(first) && t != first && t.floor().liquidDrop == Liquids.water)
+                // As long as there is a diagonal, all adjacent blocks are hydrated
+                boolean coversOutputs = (tempTiles.get(0).floor().liquidDrop == Liquids.water && tempTiles.get(3).floor().liquidDrop  == Liquids.water) ||
+                        (tempTiles.get(1).floor().liquidDrop == Liquids.water && tempTiles.get(2).floor().liquidDrop  == Liquids.water);
+                if (coversOutputs
                         && !tempTiles.contains(t -> !validPlace(t.x, t.y, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction, 0))) { // Can use mechanical pumps (covers all outputs)
                     for (var t : tempTiles) temp[added++] = new BuildPlan(t.x, t.y, 0, t.floor().liquidDrop == Liquids.water ? Blocks.mechanicalPump : Blocks.liquidJunction);
                     continue; // Swapped water extractor for mechanical pumps, don't place it
@@ -1598,6 +1600,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     copy.configLocal = net.client();
                 }
                 var existing = world.tiles.get(plan.x, plan.y);
+                if(existing == null) continue; // Frozen plan outside of world bounds
                 var existingBuild = existing.build;
                 var aligned = existingBuild != null && existingBuild.tileX() == plan.x && existingBuild.tileY() == plan.y;
                 var constructing = existingBuild instanceof ConstructBuild cb && cb.current == copy.block;
@@ -1638,6 +1641,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawOverPlan(BuildPlan plan, boolean valid){
+        drawOverPlan(plan, valid, 1f); // FINISMHE: Add a default alpha setting? Would need to cache the value in a field for performance reasons
+    }
+
+    protected void drawOverPlan(BuildPlan plan, boolean valid, float alpha){
         if(!plan.isVisible()) return;
         Draw.reset();
         final long frameId = graphics.getFrameId();
@@ -1647,7 +1654,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             BuildPlan.getVisiblePlans(allSelectLines, visiblePlanSeq);
         }
         Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
-        Draw.alpha(1f);
+        Draw.alpha(alpha);
         plan.block.drawPlanConfigTop(plan, visiblePlanSeq);
         Draw.reset();
     }
@@ -1657,7 +1664,11 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     protected void drawPlan(BuildPlan plan, boolean valid){
-        plan.block.drawPlan(plan, allPlans(), valid);
+        drawPlan(plan, valid, 1); // FINISHME: Add a default alpha setting? Would need to cache the value in a field for performance reasons
+    }
+
+    protected void drawPlan(BuildPlan plan, boolean valid, float alpha){
+        plan.block.drawPlan(plan, allPlans(), valid, alpha, false);
     }
 
     /** Draws a placement icon for a specific block. */
@@ -1761,7 +1772,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Iterator<BuildPlan> it = player.unit().plans().iterator();
         while(it.hasNext()){
             BuildPlan plan = it.next();
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 it.remove();
             }
         }
@@ -1769,7 +1780,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         it = selectPlans.iterator();
         while(it.hasNext()){
             BuildPlan plan = it.next();
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)){
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)){
                 it.remove();
             }
         }
@@ -1778,7 +1789,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             it = frozenPlans.iterator();
             while (it.hasNext()) {
                 BuildPlan plan = it.next();
-                if (plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) it.remove();
+                if (plan.bounds(Tmp.r2).overlaps(Tmp.r1)) it.remove();
             }
         }
     }
@@ -1804,25 +1815,23 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Tmp.r1.set(result.x * tilesize, result.y * tilesize, (result.x2 - result.x) * tilesize, (result.y2 - result.y) * tilesize);
 
         for(BuildPlan plan : player.unit().plans()){
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
         }
 
         for(BuildPlan plan : selectPlans){
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)) tmpFrozenPlans.add(plan);
         }
 
         Seq<BuildPlan> unfreeze = new Seq<>();
         for(BuildPlan plan : frozenPlans){
-            if(plan.bounds(Tmp.r2, true).overlaps(Tmp.r1)) unfreeze.add(plan);
+            if(plan.bounds(Tmp.r2).overlaps(Tmp.r1)) unfreeze.add(plan);
         }
 
-        Iterator<BuildPlan> it1, it2;
-        if(unfreeze.size > tmpFrozenPlans.size) flushPlans(unfreeze, false, false, true);
-        else{
-            it1 = player.unit().plans().iterator();
-            it2 = selectPlans.iterator();
-            for (BuildPlan frz : tmpFrozenPlans) {
-                if(checkFreezeSelectionHasNext(frz, it1)) continue;
+        if(unfreeze.size > tmpFrozenPlans.size) flushPlans(unfreeze, false, false, true); // Unfreeze the selection when there's more frozen blocks in the area
+        else{ // If there's fewer frozen blocks than unfrozen ones, we freeze the selection
+            Iterator<BuildPlan> it1 = player.unit().plans().iterator(), it2 = selectPlans.iterator();
+            for(BuildPlan frz : tmpFrozenPlans){
+                if(checkFreezeSelectionHasNext(frz, it1)) continue; // Player plans contains frz: remove it and continue.
                 if(/*!itHasNext implied*/ it2 != null){
                     it1 = it2;
                     it2 = null; // swap it2 into it1, continue iterating through without changing frz

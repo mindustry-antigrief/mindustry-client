@@ -14,7 +14,7 @@ import mindustry.net.*;
 import mindustry.ui.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
-import mindustry.world.blocks.payloads.PayloadMassDriver;
+import mindustry.world.blocks.payloads.*;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
@@ -37,7 +37,7 @@ public class ClientVars {
     public static CoreItemsDisplay coreItemsDisplay; // FINISHME: Redundant.
 
     // Config Queue
-    @NotNull public static LinkedBlockingQueue<Runnable> configs = new LinkedBlockingQueue<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
+    @NotNull public static LinkedBlockingDeque<Runnable> configs = new LinkedBlockingDeque<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
     public static int ratelimitMax = Core.settings.getInt("ratelimitmax", Administration.Config.interactRateLimit.num()); // The max number of configs per ratelimit window
     public static float ratelimitSeconds = Core.settings.getFloat("ratelimitseconds", Administration.Config.interactRateWindow.num() + 1); // The number of seconds between ratelimit resets
     public static int ratelimitRemaining = ratelimitMax; // Number of configs that can be made safely before ratelimit reset

@@ -2,10 +2,13 @@ package mindustry.io;
 
 import arc.*;
 import arc.files.*;
+import arc.graphics.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
+import mindustry.content.*;
+import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.io.versions.*;
 import mindustry.world.*;
@@ -172,6 +175,91 @@ public class SaveIO{
             throw new SaveException(e);
         }finally{
             world.setGenerating(false);
+            content.setTemporaryMapper(null);
+        }
+    }
+
+    public static Pixmap generatePreview(Saves.SaveSlot slot) throws IOException{
+        Pixmap[] floors = {null}, walls = {null};
+        try(InputStream is = new InflaterInputStream(slot.file.read(bufferSize)); CounterInputStream counter = new CounterInputStream(is); DataInputStream stream = new DataInputStream(counter)){
+            SaveIO.readHeader(stream);
+            int version = stream.readInt();
+            SaveVersion ver = SaveIO.getSaveWriter(version);
+
+            if(ver == null) throw new IOException("Unknown save version: " + version + ". Are you trying to load a save from a newer version?");
+            ver.region("meta", stream, counter, ver::readStringMap);
+
+            int black = 255;
+            int shade = Color.rgba8888(0f, 0f, 0f, 0.5f);
+            CachedTile tile = new CachedTile(){
+                @Override
+                public void setBlock(Block type){
+                    super.setBlock(type);
+
+                    int c = MapIO.colorFor(block(), Blocks.air, Blocks.air, team());
+                    if(c != black){
+                        walls[0].setRaw(x, floors[0].height - 1 - y, c);
+                        floors[0].set(x, floors[0].height - 1 - y + 1, shade);
+                    }
+                }
+            };
+
+            ver.region("content", stream, counter, ver::readContentHeader);
+            ver.region("preview_map", stream, counter, in -> ver.readMap(in, new WorldContext(){
+                @Override public void resize(int width, int height){
+                    walls[0] = new Pixmap(width, height);
+                    floors[0] = new Pixmap(width, height);
+                }
+                @Override public boolean isGenerating(){return false;}
+                @Override public void begin(){
+                    world.setGenerating(true);
+                }
+                @Override public void end(){
+                    world.setGenerating(false);
+                }
+
+                @Override
+                public void onReadBuilding(){
+                    //read team colors
+                    if(tile.build != null){
+                        int c = tile.build.team.color.rgba8888();
+                        int size = tile.block().size;
+                        int offsetx = -(size - 1) / 2;
+                        int offsety = -(size - 1) / 2;
+                        for(int dx = 0; dx < size; dx++){
+                            for(int dy = 0; dy < size; dy++){
+                                int drawx = tile.x + dx + offsetx, drawy = tile.y + dy + offsety;
+                                walls[0].set(drawx, floors[0].height - 1 - drawy, c);
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public Tile tile(int index){
+                    tile.x = (short)(index % floors[0].width);
+                    tile.y = (short)(index / floors[0].width);
+                    return tile;
+                }
+
+                @Override
+                public Tile create(int x, int y, int floorID, int overlayID, int wallID){
+                    if(overlayID != 0){
+                        floors[0].set(x, floors[0].height - 1 - y, MapIO.colorFor(Blocks.air, Blocks.air, content.block(overlayID), Team.derelict));
+                    }else{
+                        floors[0].set(x, floors[0].height - 1 - y, MapIO.colorFor(Blocks.air, content.block(floorID), Blocks.air, Team.derelict));
+                    }
+                    return tile;
+                }
+            }));
+
+            floors[0].draw(walls[0], true);
+            return floors[0];
+        }catch(Exception e){
+            floors[0].dispose();
+            throw e;
+        }finally{
+            walls[0].dispose();
             content.setTemporaryMapper(null);
         }
     }

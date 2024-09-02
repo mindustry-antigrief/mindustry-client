@@ -19,11 +19,6 @@ abstract class BoundedComp implements Velc, Posc, Healthc, Flyingc{
 
     @Override
     public void update(){
-        if(type == null){
-            Log.info(this);
-            Log.info("!: Position: (@, @) Team: @", x, y, team);
-            throw new NullPointerException("DEBUGGED: Cannot read field \"bounded\" because \"this.type\" is null, at BoundedComp::update");
-        }
         if(!type.bounded) return;
         
         float bot = 0f, left = 0f, top = world.unitHeight(), right = world.unitWidth();

@@ -18,6 +18,7 @@ import mindustry.ui.*;
 
 import java.io.*;
 
+import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class LoadDialog extends BaseDialog{
@@ -44,8 +45,20 @@ public class LoadDialog extends BaseDialog{
         });
         onResize(this::setup);
 
-        addCloseButton();
+        // Manually add a close button/listener and set the default height as we don't want to set a default width which addCloseButton() does
+        buttons.defaults().height(64).minWidth(210);
+        buttons.button("@back", Icon.left, this::hide);
+        addCloseListener();
+
         addSetup();
+
+        buttons.button("@client.save.createpreviews.now", Vars.control.saves::createMissingPreviews);
+        buttons.table(Tex.button, t ->
+            t.check("@client.save.createpreviews.async", settings.getBool("createmissingsavepreviews"), b -> { if(b) settings.put("createmissingsavepreviews", true); else settings.remove("createmissingsavepreviews"); }).fill()
+                .tooltip("@client.save.createpreviews.async.tooltip").get().getLabelCell().fillX()
+        );
+
+        buttons.getCells().each(c -> c.wrapLabel(false)); // Need to do this due to our hacky buttons.defaults stuff above
     }
 
     protected void setup(){
@@ -83,9 +96,8 @@ public class LoadDialog extends BaseDialog{
         cont.add(pane).growY();
     }
 
-    private int count = 0;
     public void rebuild(){
-        count = 0;
+        int[] count = {0};
         slots.clear();
         slots.marginRight(24).marginLeft(20f);
 
@@ -93,17 +105,17 @@ public class LoadDialog extends BaseDialog{
 
         int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(470)), 1);
 
-        if(control.saves.loadedSaveCount() == 0){
+        if(!control.saves.loading){ // Start an async load if we haven't yet done so
             control.saves.load(false, s -> {
                 if(!visible) return;
-                if(s != null && addSlot(s, count, maxwidth)) count++;
+                if(s != null && addSlot(s, count[0], maxwidth)) count[0]++;
                 else if (s == null) rebuild(); // Ensures that ordering is correct based on last played timestamp and not file last modified timestamp.
             });
         }else{
             for(SaveSlot slot : control.saves.getSaveSlots().sort(s -> -s.getTimestamp())){
-                if(addSlot(slot, count, maxwidth)) count++;
+                if(addSlot(slot, count[0], maxwidth)) count[0]++;
             }
-            if(count == 0) slots.add("@save.none");
+            if(count[0] == 0) slots.add("@save.none");
         }
     }
 
@@ -154,18 +166,23 @@ public class LoadDialog extends BaseDialog{
         String color = "[lightgray]";
         TextureRegion def = Core.atlas.find("nomap");
 
-        button.left().add(new BorderImage(def, 4f)).update(im -> {
-            TextureRegionDrawable draw = (TextureRegionDrawable)im.getDrawable();
-            if(draw.getRegion().texture.isDisposed()){
-                draw.setRegion(def);
-            }
+        button.left().add(new BorderImage(def, 4f){
+            @Override
+            public void draw(){
+                TextureRegionDrawable draw = (TextureRegionDrawable)getDrawable();
+                if(draw.getRegion().texture.isDisposed()){
+                    draw.setRegion(def);
+                    invalidate();
+                }
 
-            var reg = slot.previewTexture();
-            if(draw.getRegion() != reg){
-                draw.setRegion(reg);
+                var reg = slot.previewTexture();
+                if(draw.getRegion() != reg){
+                    draw.setRegion(reg);
+                    invalidate();
+                }
+                super.draw();
             }
-            im.setScaling(Scaling.fit);
-        }).left().size(160f).padRight(6);
+        }).left().size(160f).padRight(6).get().setScaling(Scaling.fit);
 
         button.table(meta -> {
             meta.left().top();

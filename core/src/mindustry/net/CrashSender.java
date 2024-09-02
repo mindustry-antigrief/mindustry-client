@@ -9,6 +9,7 @@ import arc.util.io.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.mod.Mods.*;
+import mindustry.ui.dialogs.*;
 
 import java.io.*;
 import java.text.*;
@@ -20,9 +21,9 @@ import static mindustry.Vars.*;
 public class CrashSender{
 
     public static String createReport(String error){
-        var lastHost = ui.join.lastHost;
-        var lastIp = Reflect.<String>get(ui.join, "lastIp");
-        var group = lastHost != null ? lastHost.group != null ? lastHost.group : ui.join.communityHosts.find(h -> h.equals(lastHost)) != null ? ui.join.communityHosts.find(h -> h.equals(lastHost)).group : null : null;
+        var lastHost = ui.join != null ? ui.join.lastHost : null;
+        var lastIp = ui.join != null ? Reflect.<String>get(JoinDialog.class, ui.join, "lastIp") : null;
+        var group = lastHost != null ? lastHost.group != null ? lastHost.group : ui.join.communityHosts.contains(h -> h.equals(lastHost)) ? ui.join.communityHosts.find(h -> h.equals(lastHost)).group : null : null;
         String report = "Ohno, the game has crashed. Report this at: " + clientDiscord + "\n\n";
         report += "Copy paste the report below when reporting:\n```java\n";
         return Strings.stripColors(report

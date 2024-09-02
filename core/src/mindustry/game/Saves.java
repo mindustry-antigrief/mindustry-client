@@ -34,12 +34,13 @@ public class Saves{
     public boolean hasLoaded;
 
     /** Whether we are currently loading or cancelling loading */
-    private boolean loading, cancelling;
+    public boolean loading, cancelling;
 
     long totalPlaytime;
     private long lastTimestamp;
 
-    private final LinkedBlockingDeque<Runnable> previewQueue = new LinkedBlockingDeque<>();
+    private final LinkedBlockingQueue<Runnable> previewQueue = new LinkedBlockingQueue<>();
+    private SaveSlot createPreviewFor;
 
     public Saves(){
         Events.on(StateChangeEvent.class, event -> {
@@ -66,8 +67,8 @@ public class Saves{
     public void load(boolean sectorsOnly, Cons<SaveSlot> cons){
         hasLoaded = false;
         Log.debug("Loading saves");
-        unload(); // Clear saves (prevents loading two sets of saves at once)
         var start = Time.nanos();
+        unload(); // Clear saves (prevents loading two sets of saves at once)
         Time.mark();
 
         class FiTi{
@@ -112,23 +113,8 @@ public class Saves{
         }else if(!loading){ // Non-blocking async
             cancelling = false;
             loading = true;
-            int i = 0;
-            for(; i < tasks.size; i++){ // Run sync until at least one save is added (very horrid)
-                var s = Threads.await(tasks.get(i));
-                if(s != null){
-                    processSave(s);
-                    cons.get(s);
-                    i++;
-                    break;
-                }
-            }
-            for(; i < tasks.size; i++){
-                var task = tasks.get(i);
+            for(var task : tasks){
                 previewQueue.add(() -> {
-                    if(cancelling){
-                        previewQueue.pop().run(); // Saves were cleared before loading finished, cancel all loading tasks now (jank)
-                        return;
-                    }
                     var s = Threads.await(task);
                     if(s != null){
                         processSave(s);
@@ -139,11 +125,11 @@ public class Saves{
             previewQueue.add(() -> { // Signifies that loading has completed
                 if(cancelling){
                     hasLoaded = false;
-                    Log.debug("Cancelled loading | Size: @", saves.size);
+                    Log.debug("Cancelled loading saves | Size: @", saves.size);
                     unload();
-                    Log.debug("Cancelled loading after | Size: @", saves.size);
+                    Log.debug("Cancelled loading saves (after unload) | Size: @", saves.size);
                 }else{
-                    Log.info("Loading finished");
+                    Log.info("Loading saves asynchronously finished in @ms", Time.millisSinceNanos(start));
                     hasLoaded = true;
                     cons.get(null);
                 }
@@ -168,6 +154,7 @@ public class Saves{
             }
         };
     }
+
     private void processSave(SaveSlot s){
         saves.add(s);
         var sector = s.getSector();
@@ -182,8 +169,49 @@ public class Saves{
     public void unload(){
         Log.debug("Unloading saves");
         cancelling = true;
+        while(!previewQueue.isEmpty()) previewQueue.remove().run(); // Process the queue immediately (jank)
         saves.each(SaveSlot::unloadTexture);
         saves.clear().shrink(); // Don't want all of this stuff in memory
+        createPreviewFor = null;
+    }
+
+    /** Doesn't attempt to recreate existing broken previews Vars.control.saves.createMissingPreviews() */
+    public void createMissingPreviews(){
+        load(); // reload saves to ensure we have them all loaded
+        var missing = saves.select(s -> !s.previewFile().exists()).reverse();
+        var originallyMissing = missing.size;
+        Runnable[] next = {null};
+        next[0] = () -> {
+            var s = Time.millis();
+            do{
+                if(missing.isEmpty()){
+                    ui.loadfrag.hide();
+                    return;
+                }
+                var save = missing.pop();
+                if(save.previewFile().exists()) continue; // Preview was already created by createPreviewFor (this is jank but whatever, it works and is better than creating the preview again as thats slow)
+                createPreview(save);
+            }while(Time.timeSinceMillis(s) < 1000);
+            ui.loadfrag.setText(Core.bundle.format("client.save.createpreviews.progress", originallyMissing - missing.size, originallyMissing));
+            ui.loadfrag.setProgress((originallyMissing - missing.size) / (float) originallyMissing);
+            ui.loadfrag.snapProgress();
+            Core.app.post(next[0]);
+        };
+        ui.loadfrag.show("[accent]" + Core.bundle.format("client.save.createpreviews.progress", 0, originallyMissing)); // Why does show() not add accent but setText() does smh
+        ui.loadfrag.setButton(missing::clear);
+        Time.runTask(7, next[0]); // Let the loading screen appear first
+    }
+
+    private void createPreview(SaveSlot slot){
+        try{
+            var pix = SaveIO.generatePreview(slot); // Very slow and expensive
+            // The three methods below are intentionally not threaded as that can cause race conditions (even when posting slot.unloadTexture back to the main thread)
+            slot.previewFile().writePng(pix);
+            pix.dispose();
+            slot.unloadTexture(); // Force the preview to be loaded from disk next frame (this is horrible and will cause unneeded reads, but it's super easy, so I'm doing it anyway)
+        }catch(Throwable t){
+            Log.err(t);
+        }
     }
 
     public @Nullable SaveSlot getLastSector(){
@@ -194,6 +222,7 @@ public class Saves{
         return current;
     }
 
+    private long lastPreview = 0;
     public void update(){
         if(current != null && state.isGame()
         && !(state.isPaused() && Core.scene.hasDialog())){
@@ -204,8 +233,13 @@ public class Saves{
         }
 
         var start = Time.millis();
-        while(previewQueue.size() > 0 && Time.timeSinceMillis(start) < 15){
-            previewQueue.pop().run();
+        while(!previewQueue.isEmpty() && Time.timeSinceMillis(start) < 15){
+            previewQueue.remove().run();
+        }
+        if(Core.settings.getBool("createmissingsavepreviews") && createPreviewFor != null && Time.timeSinceMillis(start) < 1 && Time.timeSinceMillis(lastPreview) > 50){
+            createPreview(createPreviewFor);
+            createPreviewFor = null;
+            lastPreview = Time.millis();
         }
 
         if(state.isGame() && !state.gameOver && current != null && current.isAutosave()){
@@ -347,7 +381,7 @@ public class Saves{
         }
 
         private void savePreview(){
-            mainExecutor.submit(() -> {
+            mainExecutor.execute(() -> {
                 try{
                     previewFile().writePng(renderer.minimap.getPixmap());
                     previewQueue.add(this::unloadTexture);
@@ -370,8 +404,6 @@ public class Saves{
                             previewQueue.add(() -> {
                                 if (preview == null) { // By the time the pixmap finished loading, we no longer needed it, so we don't create a texture.
                                     data.consumePixmap().dispose(); // Since we don't create a texture, we need to manually dispose the pixmap.
-                                    var next = previewQueue.poll(); // Saves were cleared before loading finished, cancel all loading tasks now (jank)
-                                    if(next != null) next.run();
                                     return;
                                 }
                                 preview = new TextureRegion(new Texture(data));
@@ -382,6 +414,8 @@ public class Saves{
                         }
                     });
                 }
+            }else if(createPreviewFor == null && preview == Core.atlas.find("nomap") && !previewFile().exists()){ // Doesn't have the default
+                createPreviewFor = this;
             }
             return preview;
         }

@@ -18,7 +18,7 @@ import kotlin.math.*
 // https://arxiv.org/ftp/arxiv/papers/1506/1506.01864.pdf the stuff looks familiar
 
 object AStarNavigatorOptimised : Navigator() {
-    private val pool = Pools.get(PositionWaypoint::class.java) { PositionWaypoint() }
+    private val pool = Pools.get(PositionWaypoint::class.java, ::PositionWaypoint)
     private var grid: Array<Cell> = emptyArray()
     private var gridSize = Point2()
     private var open = BinaryHeap<Cell>(65_536, false)
@@ -297,7 +297,7 @@ object AStarNavigatorOptimised : Navigator() {
                 }
                 points.reverse()
                 if (hasBlocked) {
-                    val tileSize = tilesize.toFloat()
+                    val tileSize = tilesizeF
                     for (c in points) { // adjust tolerance values
                         val cx = World.toTile(c.x)
                         val cy = World.toTile(c.y)

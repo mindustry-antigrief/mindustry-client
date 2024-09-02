@@ -205,7 +205,7 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         if(tile == null) return true;
         Block tblock = tile.block();
         if(breaking){
-            return tblock == null || tblock == Blocks.air || tblock == tile.floor();  // covering all the bases
+            return tblock == Blocks.air || tblock == tile.floor();  // covering all the bases
         }else{
             return tblock == block && (tile.build == null || tile.build.rotation == rotation);
         }
@@ -233,16 +233,8 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         }
     }
     
-    public Rect bounds(Rect rect) {
-        return bounds(rect, false);
-    }
-    
-    public Rect bounds(Rect rect, boolean allowBreak){
-        if(breaking && !allowBreak){
-            return rect.set(-100f, -100f, 0f, 0f);
-        }else{
-            return block.bounds(x, y, rect);
-        }
+    public Rect bounds(Rect rect){
+        return block.bounds(x, y, rect);
     }
 
     @Override

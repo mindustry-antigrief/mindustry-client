@@ -24,7 +24,7 @@ import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 
-import java.util.*;
+import java.io.*;
 
 public class Fonts{
     private static final String mainFont = "fonts/font.woff";
@@ -107,14 +107,13 @@ public class Fonts{
     }
 
     public static void loadContentIcons(){
-        var start = Time.nanos();
         Seq<FontData> fontsData = Seq.with(Fonts.def, Fonts.outline).map(Font::getData);
         Texture uitex = Core.atlas.find("logo").texture;
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
 
-        try(Scanner scan = new Scanner(Core.files.internal("icons/icons.properties").read(512))){
-            while(scan.hasNextLine()){
-                String line = scan.nextLine();
+        try(var read = Core.files.internal("icons/icons.properties").reader(8192)){
+            String line;
+            while((line = read.readLine()) != null){
                 String[] split = line.split("=");
                 String[] nametex = split[1].split("\\|");
                 String character = split[0], texture = nametex[1];
@@ -148,6 +147,8 @@ public class Fonts{
                 glyph.page = 0;
                 fontsData.each(f -> f.setGlyph(ch, glyph));
             }
+        }catch(IOException e){
+            throw new RuntimeException(e);
         }
 
         stringIcons.put("alphachan", stringIcons.get("alphaaaa"));
@@ -171,9 +172,9 @@ public class Fonts{
     }
     
     public static void loadContentIconsHeadless(){
-        try(Scanner scan = new Scanner(Core.files.internal("icons/icons.properties").read(512))){
-            while(scan.hasNextLine()){
-                String line = scan.nextLine();
+        try(var read = Core.files.internal("icons/icons.properties").reader(8192)){
+            String line;
+            while((line = read.readLine()) != null){
                 String[] split = line.split("=");
                 String[] nametex = split[1].split("\\|");
                 String character = split[0];
@@ -182,6 +183,8 @@ public class Fonts{
                 unicodeIcons.put(nametex[0], ch);
                 stringIcons.put(nametex[0], ((char)ch) + "");
             }
+        }catch(IOException e){
+            throw new RuntimeException(e);
         }
 
         stringIcons.put("alphachan", stringIcons.get("alphaaaa"));

@@ -123,9 +123,8 @@ public class FileTree implements FileHandleResolver{
         var cached = Core.settings.getDataDirectory().child("cache").child(audio instanceof Sound ? path : fi.nameWithoutExtension() + "__" + length + "." + fi.extension()); // See Music#load
 
         if(!outdated() && cached.exists() && cached.length() == length){ // Cached up-to-date copy
-            var err = audio.loadDirectly(cached);
-            if(err != null) throw err;
-            Log.debug("Loaded @ @ from cache", clazz, cached.nameWithoutExtension());
+            audio.load(cached, true);
+            Log.debug("Loaded @ @ from cache", clazz, fi.nameWithoutExtension());
             return;
         }
 
@@ -139,8 +138,7 @@ public class FileTree implements FileHandleResolver{
                 write.close();
                 Log.debug("Finished downloading @ @", clazz, fi.name());
             }
-            var err = audio.loadDirectly(cached);
-            if(err != null) throw err;
+            audio.load(cached, true);
             Log.debug("Loaded @ @ from cache after downloading", clazz, fi.name());
         };
 //        FINISHME: Making a get request to the line below would be beneficial as we could compare hashes but that would require a backup for exceeding rate limits (would also be done by directory as it would save many requests)
@@ -152,10 +150,7 @@ public class FileTree implements FileHandleResolver{
                     if(!notified) Vars.ui.showErrorMessage("@client.audiofail"); // Display at most one dialog
                     notified = true;
                 });
-                if(cached.exists()){ // Use outdated cached audio if it exists, it's better than silence
-                    var err = audio.loadDirectly(cached);
-                    if(err != null) throw err;
-                }
+                if(cached.exists()) audio.load(cached, true);// Use outdated cached audio if it exists, it's better than silence
                 return;
             }
             Log.debug("@ downloading failed for @ retrying", clazz, fi.name());

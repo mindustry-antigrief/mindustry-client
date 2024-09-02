@@ -5,10 +5,10 @@ import arc.math.geom.*
 import arc.math.geom.QuadTree.*
 import arc.struct.*
 import mindustry.Vars.*
-import mindustry.content.UnitTypes
+import mindustry.content.*
 import mindustry.gen.*
 import mindustry.logic.*
-import mindustry.type.UnitType
+import mindustry.type.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 

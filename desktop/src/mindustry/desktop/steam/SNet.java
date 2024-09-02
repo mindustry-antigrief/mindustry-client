@@ -339,7 +339,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void onLobbyMatchList(int matches){
-        Log.info("found @ matches", matches);
+        Log.debug("Found @ steam lobbies", matches);
 
         if(lobbyDoneCallback != null){
             Seq<Host> hosts = new Seq<>();
@@ -466,7 +466,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
             }
             ui.join.refreshCommunity();
             int port = Integer.parseInt(split[1]);
-            net.pingExecutor.execute(() -> {
+            net.pingExecutor.execute(() -> { // Hacky way to ensure that community servers are loaded (anything in ServerUtils that depends on being connected to a certain server needs this)
                 Threads.sleep(Core.settings.getInt("serverbrowserpinglimit", 2000) + 500); // Pray that everything actually finishes in time (it should since this will run after/alongside
                 Core.app.post(() -> ui.join.connect(split[0], port));                                    // the last ping and the pings should all finish within the timeout from the last ping running)
             });

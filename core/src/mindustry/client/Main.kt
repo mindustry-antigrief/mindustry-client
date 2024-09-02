@@ -40,9 +40,10 @@ object Main : ApplicationListener {
 
     /** Run on client load. */
     override fun init() {
+        Time.mark()
         if (Core.app.isDesktop) {
             ntp = NTP()
-            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem, PluginCommunicationSystem)
+            communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem, PluginCommunicationSystem) // FINISHME: Profile this, it takes ~40ms which it really shouldn't
             communicationSystem.init()
 
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
@@ -55,13 +56,9 @@ object Main : ApplicationListener {
             communicationSystem.init()
         }
 
-        Core.settings.getBoolOnce("displaydef") {
-            Core.settings.put("displayasuser", true)
-        }
-
         communicationClient = Packets.CommunicationClient(communicationSystem)
 
-        Navigation.navigator = AStarNavigatorOptimised
+        Navigation.navigator = AStarNavigatorOptimised // Man this class is heavy, it takes ~10ms to load
 
         Events.on(EventType.WorldLoadEvent::class.java) {
             if (!Vars.net.client()) { // This is so scuffed but shh
@@ -152,8 +149,7 @@ object Main : ApplicationListener {
 
                 is ImageTransmission -> {
                     val msg = findMessage(transmission.message) ?: return@addListener
-                    msg.attachments.add(Texture(transmission.image))
-                    msg.attachments.shrink()
+                    msg.attachments.add(Texture(transmission.image)).shrink()
                     transmission.image.dispose()
                 }
 
@@ -190,7 +186,7 @@ object Main : ApplicationListener {
         return when (output.first) {
             Signatures.VerifyResult.VALID -> {
                 msg.sender = output.second?.run { keyStorage.aliasOrName(this) }.plus(if (Core.settings.getBool("showclientmsgsendername")) " (${msg.sender}[white])" else "")
-                msg.backgroundColor = if(Main.keyStorage.builtInCerts.contains(output.second)) ClientVars.developerMsgBackground else ClientVars.verified
+                msg.backgroundColor = if(keyStorage.builtInCerts.contains(output.second)) ClientVars.developerMsgBackground else ClientVars.verified
                 msg.prefix = "${Iconc.ok} ${msg.prefix} "
                 msg.format()
                 true

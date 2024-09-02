@@ -1,6 +1,7 @@
 package mindustry.core;
 
 import arc.*;
+import arc.filedialogs.*;
 import arc.files.*;
 import arc.func.*;
 import arc.math.*;
@@ -155,7 +156,9 @@ public interface Platform{
      * @param title The title of the native dialog
      */
     default void showFileChooser(boolean open, String title, String extension, Cons<Fi> cons){
-        if(OS.isLinux && !OS.isAndroid){
+        if(OS.isWindows || OS.isMac){
+            showNativeFileChooser(open, title, cons, extension);
+        }else if(OS.isLinux && !OS.isAndroid){
             showZenity(open, title, new String[]{extension}, cons, () -> defaultFileDialog(open, title, extension, cons));
         }else{
             defaultFileDialog(open, title, extension, cons);
@@ -229,14 +232,21 @@ public interface Platform{
         showFileChooser(open, open ? "@open": "@save", extension, cons);
     }
 
+    default void showMultiFileChooser(Cons<Fi> cons, String... extensions){
+        showMultiFileChooser(cons, false, extensions);
+    }
+
     /**
      * Show a file chooser for multiple file types.
      * @param cons Selection listener
      * @param extensions File extensions to filter
+     * @param allowMultiple Allow multiple files to be selected
      */
-    default void showMultiFileChooser(Cons<Fi> cons, String... extensions){
+    default void showMultiFileChooser(Cons<Fi> cons, boolean allowMultiple, String... extensions){
         if(mobile){
             showFileChooser(true, extensions[0], cons);
+        }else if(OS.isWindows || OS.isMac){
+            showNativeFileChooser(true, "@open", cons, allowMultiple, extensions);
         }else if(OS.isLinux && !OS.isAndroid){
             showZenity(true, "@open", extensions, cons, () -> defaultMultiFileChooser(cons, extensions));
         }else{
@@ -246,6 +256,72 @@ public interface Platform{
 
     static void defaultMultiFileChooser(Cons<Fi> cons, String... extensions){
         new FileChooser("@open", file -> Structs.contains(extensions, file.extension().toLowerCase()), true, cons).show();
+    }
+
+    default void showNativeFileChooser(boolean open, String title, Cons<Fi> cons, String... shownExtensions){
+        showNativeFileChooser(open, title, cons, false, shownExtensions);
+    }
+
+    default void showNativeFileChooser(boolean open, String title, Cons<Fi> cons, boolean allowMultiple, String... shownExtensions){
+        String formatted = (title.startsWith("@") ? Core.bundle.get(title.substring(1)) : title).replaceAll("\"", "'");
+
+        //this should never happen unless someone is being dumb with the parameters
+        String[] ext = shownExtensions == null || shownExtensions.length == 0 ? new String[]{""} : shownExtensions;
+
+        //native file dialog
+        Threads.daemon(() -> {
+            try{
+                FileDialogs.loadNatives();
+
+                String result;
+                String[] patterns = new String[ext.length];
+                for(int i = 0; i < ext.length; i++){
+                    patterns[i] = "*." + ext[i];
+                }
+
+                //on MacOS, .msav is not properly recognized until I put garbage into the array?
+                if(patterns.length == 1 && OS.isMac && open){
+                    patterns = new String[]{"", "*." + ext[0]};
+                }
+
+                if(open){
+                    result = FileDialogs.openFileDialog(formatted, FileChooser.getLastDirectory().absolutePath(), patterns, "", allowMultiple); // Blank description is turned into *.ext[0], *.ext[1]...
+                }else{
+                    result = FileDialogs.saveFileDialog(formatted, FileChooser.getLastDirectory().child("file." + ext[0]).absolutePath(), patterns, "");
+                }
+
+                if(result == null) return;
+
+//                if(result.length() > 1 && result.contains("\n")){
+//                    result = result.split("\n")[0];
+//                }
+                // Foo's micro optimization
+                var idx = result.indexOf('\n');
+                if(idx > 1) result = result.substring(0, idx);
+
+                //cancelled selection, ignore result
+                if(result.isEmpty() || result.equals("\n")) return;
+                if(result.endsWith("\n")) result = result.substring(0, result.length() - 1);
+                if(result.contains("\n")) throw new IOException("invalid input: \"" + result + "\"");
+
+                Fi file = Core.files.absolute(result);
+                Core.app.post(() -> {
+                    FileChooser.setLastDirectory(file.isDirectory() ? file : file.parent());
+
+                    if(!open){
+                        cons.get(file.parent().child(file.nameWithoutExtension() + "." + ext[0]));
+                    }else{
+                        cons.get(file);
+                    }
+                });
+            }catch(Throwable error){
+                Log.err("Failure to execute native file chooser", error);
+                Core.app.post(() -> {
+                    if(ext.length > 1) defaultMultiFileChooser(cons, ext);
+                    else defaultFileDialog(open, title, ext[0], cons);
+                });
+            }
+        });
     }
 
     /** Hide the app. Android only. */

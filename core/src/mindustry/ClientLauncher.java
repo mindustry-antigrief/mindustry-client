@@ -162,7 +162,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
             atlas.dispose();
             atlas = t;
         };
-        assets.loadRun("maps", Map.class, () -> maps.loadPreviews());
 
         assets.loadRun("contentcreate", Content.class, () -> {
             content.createBaseContent();
@@ -247,12 +246,21 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 loader.dispose();
                 loader = null;
                 Log.info("Total time to load: @ms", Time.timeSinceMillis(beginTime));
+                Time.mark();
                 for(ApplicationListener listener : modules){
+                    Time.mark();
                     listener.init();
+                    float dur = Time.elapsed();
+                    Log.debug("Listener @ in @ms", listener.getClass().getName(), dur);
                 }
+                Log.debug("Listener init: @ms", Time.elapsed());
                 mods.eachClass(Mod::init);
                 finished = true;
+                Time.mark();
                 Events.fire(new ClientLoadEvent());
+                Log.debug("Total time to load including ClientLoadEvent: @ms | ClientLoadEvent: @ms", Time.timeSinceMillis(beginTime), Time.elapsed());
+                Core.app.post(() -> Log.debug("Total time to load including ClientLoadEvent and 1 extra frame: @ms", Time.timeSinceMillis(beginTime)));
+
                 clientLoaded = true;
                 super.resize(graphics.getWidth(), graphics.getHeight());
                 app.post(() -> app.post(() -> app.post(() -> app.post(() -> {

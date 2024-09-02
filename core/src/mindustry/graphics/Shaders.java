@@ -337,7 +337,7 @@ public class Shaders{
             return "noise";
         }
 
-        public void loadNoise(){
+        public void loadNoise(){ // FINISHME: Do this in a way that doesn't block the game from finishing loading
             Core.assets.load("sprites/" + textureName() + ".png", Texture.class).loaded = t -> {
                 t.setFilter(TextureFilter.linear);
                 t.setWrap(TextureWrap.repeat);
