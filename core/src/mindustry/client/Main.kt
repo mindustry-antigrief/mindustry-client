@@ -278,6 +278,7 @@ object Main : ApplicationListener {
     fun floatEmbed(): Vec2 {
         val show = Core.settings.getBool("displayasuser")
         return when {
+            Vars.player.dead() -> Tmp.v1.set(0F, 0F)
             Server.current.ghost -> Tmp.v1.set(Vars.player.unit().aimX, Vars.player.unit().aimY)
             Navigation.currentlyFollowing is AssistPath && show ->
                 Tmp.v1.set(

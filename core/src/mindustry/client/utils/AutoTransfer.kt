@@ -67,7 +67,8 @@ class AutoTransfer {
         if (!enabled) return
         if (state.rules.onlyDepositCore) return
         if (ratelimitRemaining <= 1) return // Leave one config for other stuff
-        player.unit().item() ?: return
+        if (player.dead()) return
+        player.unit()?.item() ?: return
         timer += Time.delta
         if (timer < delay) return
         timer -= delay

@@ -119,7 +119,7 @@ public class UnitPicker extends BaseDialog {
 
     private void setup(){
         Events.on(EventType.UnitChangeEventClient.class, event -> {
-            if (type == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal() || !state.rules.possessionAllowed || Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame()) return;
+            if (type == null || event.oldUnit == null || event.oldUnit.dead || event.oldUnit.type != type || event.oldUnit.team != player.team() || event.player.isLocal() || !state.rules.possessionAllowed || Navigation.currentlyFollowing instanceof MinePath mp && mp.getNewGame()) return;
             type = null;
             Timer.schedule(() -> Core.app.post(() -> {
                 Call.unitControl(player, event.oldUnit); // FINISHME: Handle as config due to ratelimit
@@ -166,7 +166,8 @@ public class UnitPicker extends BaseDialog {
         Events.on(EventType.WorldLoadEvent.class, event -> {
             if (!ClientVars.syncing) {
                 type = null;
-                Time.run(60, () -> pickUnit(Core.settings.getBool("automega") && state.isGame() && (player.unit().type == null || player.unit().type != UnitTypes.mega) ? UnitTypes.mega : null));
+                // FINISHME v8: This should try again once a second until the player unit is non null as they may take a bit to spawn.
+                Time.run(120, () -> pickUnit(Core.settings.getBool("automega") && state.isGame() && (player.unit() == null || player.unit().type == null || player.unit().type != UnitTypes.mega) ? UnitTypes.mega : null));
             }
         });
     }
