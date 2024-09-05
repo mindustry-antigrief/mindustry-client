@@ -34,7 +34,6 @@ public class SapBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
         if(b.data instanceof Position data){
             Tmp.v1.set(data).lerp(b, b.fin());
 

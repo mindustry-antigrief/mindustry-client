@@ -222,7 +222,6 @@ public class Saves{
         return current;
     }
 
-    private long lastPreview = 0;
     public void update(){
         if(current != null && state.isGame()
         && !(state.isPaused() && Core.scene.hasDialog())){
@@ -230,16 +229,6 @@ public class Saves{
                 totalPlaytime += Time.timeSinceMillis(lastTimestamp);
             }
             lastTimestamp = Time.millis();
-        }
-
-        var start = Time.millis();
-        while(!previewQueue.isEmpty() && Time.timeSinceMillis(start) < 15){
-            previewQueue.remove().run();
-        }
-        if(Core.settings.getBool("createmissingsavepreviews") && createPreviewFor != null && Time.timeSinceMillis(start) < 1 && Time.timeSinceMillis(lastPreview) > 50){
-            createPreview(createPreviewFor);
-            createPreviewFor = null;
-            lastPreview = Time.millis();
         }
 
         if(state.isGame() && !state.gameOver && current != null && current.isAutosave()){
@@ -260,6 +249,21 @@ public class Saves{
         }else{
             time = 0;
         }
+    }
+
+    /** Processes a portion of the existing preview/loading queue. Also creates the pending save preview if needed. */
+    public long processQueue(long start, long lastPreview, int limit){
+        int i = 0; // Time.millis() is not free and these are generally very small tasks, we should run Time.millis() less frequently to reduce the overhead
+        while(!previewQueue.isEmpty() && ((i = (i + 1) % 5) == 0 || Time.timeSinceMillis(start) < limit)){
+            previewQueue.remove().run();
+        }
+
+        if(Core.settings.getBool("createmissingsavepreviews") && createPreviewFor != null && Time.timeSinceMillis(start) < 1 && Time.timeSinceMillis(lastPreview) > 50){ // Only create the preview if we didn't do much work above
+            createPreview(createPreviewFor);
+            createPreviewFor = null;
+            lastPreview = Time.millis();
+        }
+        return lastPreview;
     }
 
     public long getTotalPlaytime(){

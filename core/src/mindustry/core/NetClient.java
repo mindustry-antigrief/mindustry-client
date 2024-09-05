@@ -213,6 +213,7 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true)
     public static void effect(Effect effect, float x, float y, float rotation, Color color, Object data){
         if(effect == null) return;
+        if(Server.current.blockEffect(effect, rotation)) return;
 
         effect.at(x, y, rotation, color, data);
     }

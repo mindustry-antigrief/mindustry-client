@@ -25,6 +25,7 @@ import mindustry.world.*
 import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.payloads.*
+import mindustry.world.meta.*
 import org.bouncycastle.jce.provider.*
 import org.bouncycastle.jsse.provider.*
 import java.security.*
@@ -32,8 +33,11 @@ import java.security.*
 object Client {
     var leaves: Moderation? = Moderation()
     val tiles = Seq<Tile>()
+    /** Not actually tiles, instead Float pairs */
+    val tilesFlying = FloatSeq()
+    val tilesNaval = Seq<Tile>()
     val timer = Interval(4)
-    val autoTransfer by lazy { AutoTransfer() } // FINISHME: Awful
+    val autoTransfer by lazy(::AutoTransfer) // FINISHME: Awful
 //    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
 
     private val massDriverGreen: Color = Color.green.cpy().a(.7f)
@@ -42,7 +46,7 @@ object Client {
 
 
     fun initialize() {
-        mainExecutor.execute { setupCommands() }
+        mainExecutor.execute(::setupCommands)
         AutoTransfer.init()
         ClientLogic()
         Server // Force the init block to be run
@@ -89,8 +93,14 @@ object Client {
         // Spawn path
         if (spawnTime < 0 && spawner.spawns.size < 50) { // FINISHME: Repetitive code, squash down
             Draw.color(state.rules.waveTeam.color)
-            for (i in 0 until spawner.spawns.size) {
-                var target: Tile? = spawner.spawns[i]
+            if (timer.get(1, 1 * 60F)) { // We still cache the start points as eachGroundSpawn is expensive. FINISHME: Should this actually use spawnTime?
+                tiles.clear()
+                tilesFlying.clear()
+                spawner.eachGroundSpawn { x, y -> tiles.add(world.tile(x, y)) }
+                spawner.eachFlyerSpawn(tilesFlying::add) // FINISHME: Add a path for each unit type? Also add this to the non line based path drawing
+            }
+            for (t in tiles) {
+                var target = t
                 val field = pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore)
                 Lines.beginLine()
                 Lines.linePoint(target)
@@ -99,13 +109,30 @@ object Client {
                 }
                 Lines.endLine()
             }
+
+            Draw.alpha(.5F)
+            for (i in 0..<tilesFlying.size step 2) { // Draw air paths FINISHME: Instead of direct path to core, we should check the types of all existing and upcoming units and draw a path for each of their main targets. See FlyingAI.findMainTarget
+                val target = Geometry.findClosest(tilesFlying.get(i), tilesFlying.get(i+1), indexer.getEnemy(state.rules.waveTeam, BlockFlag.core))
+                Lines.line(tilesFlying.get(i), tilesFlying.get(i+1), target.x, target.y)
+            }
         } else if (spawnTime != 0f && travelTime != 0f && spawner.spawns.size < 50 && timer.get(0, travelTime)) {
-            if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
+            if (timer.get(1, spawnTime)) {
+                spawner.eachGroundSpawn { x, y -> tiles.add(world.tile(x, y)) }
+                spawner.eachGroundSpawn { x, y -> tilesNaval.add(world.tile(x, y)) }
+            }
+//            if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
             for (i in tiles.size - 1 downTo 0) {
                 val t = tiles.get(i)
                 val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costGround, Pathfinder.fieldCore))
                 if (target != t) tiles.set(i, target) else tiles.remove(i)
-                Fx.healBlock.at(t.worldx(), t.worldy(), 1f, state.rules.waveTeam.color)
+                Fx.healBlock.at(t.worldx(), t.worldy(), 1f, Team.crux.color)
+            }
+
+            for (i in tilesNaval.size - 1 downTo 0) {
+                val t = tilesNaval.get(i)
+                val target = pathfinder.getTargetTile(t, pathfinder.getField(state.rules.waveTeam, Pathfinder.costNaval, Pathfinder.fieldCore))
+                if (target != t) tilesNaval.set(i, target) else tilesNaval.remove(i)
+                Fx.healBlock.at(t.worldx(), t.worldy(), 1f, Team.blue.color)
             }
         }
 
@@ -171,15 +198,15 @@ object Client {
         }
         //Enemy spawners
         if (state.hasSpawns()) {
-            val tiles = Seq<Tile>();
-            spawner.getSpawns().forEach { s ->
+            val tiles = Seq<Tile>()
+            spawner.spawns.forEach { s ->
                 val intRad = Mathf.floor(state.rules.dropZoneRadius / tilesize)
                 indexer.eachBlock(player.team(), s.worldx(), s.worldy(), tilesize * intRad.toFloat(), { true }) {
                     it.tile.getLinkedTiles(tiles)
                     if (tiles.contains { t -> Mathf.pow(t.x - s.x, 2) + Mathf.pow(t.y - s.y, 2) < intRad * intRad }) {
                         Drawf.selected(it, Tmp.c1.set(Color.red).a(Mathf.absin(4f, 1f)))
                     }
-                };
+                }
             }
         }
 

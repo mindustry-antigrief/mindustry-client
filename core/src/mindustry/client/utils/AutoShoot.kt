@@ -110,10 +110,11 @@ fun autoShoot() {
         Vars.player.shooting = !boosting
 
         if (type.omniMovement && Vars.player.shooting && type.hasWeapons() && type.faceTarget && !boosting) { // Rotate towards enemy
-            unit.lookAt(unit.angleTo(Vars.player.mouseX, Vars.player.mouseY))
+            unit.lookAt(Vars.player.mouseX, Vars.player.mouseY)
         }
 
         unit.aim(Vars.player.mouseX, Vars.player.mouseY)
+        unit.controlWeapons(true, Vars.player.shooting)
         hadTarget = true
     }
 }

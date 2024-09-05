@@ -36,7 +36,6 @@ public class LightningBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
     }
 
     @Override

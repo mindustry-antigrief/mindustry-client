@@ -1,5 +1,6 @@
 package mindustry.client.crypto
 
+import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
 import mindustry.client.utils.*
@@ -7,6 +8,7 @@ import java.io.*
 import java.math.*
 import java.security.*
 import java.security.cert.*
+import kotlin.system.*
 
 open class KeyStorage(val directory: File) {
     private val store by lazy { KeyStore.getInstance("BKS") }
@@ -14,19 +16,23 @@ open class KeyStorage(val directory: File) {
     private val aliases: HashMap<String, String> = hashMapOf()
     @Volatile private var loaded = false
     val builtInCerts by lazy {
-        val factory = CertificateFactory.getInstance("X509")
-        arrayOf(
-            // foo
-            "MIIBRzCByKADAgECAiCdhMB3qS0218EgXi0asK7io931Jjo2lWjYlL18rmoKxzAFBgMrZXEwDjEMMAoGA1UEAxMDZm9vMB4XDTIxMDgyMDAxNDYzOFoXDTM2MDgyNzAxNDYzOFowDjEMMAoGA1UEAxMDZm9vMEMwBQYDK2VxAzoAshx1nVePa4FkbLczm2Osp+IHU0ikU/+JyCUbs43klnP49tSybg1WS0NMCRINnEh30DzwOBKUs9+AoxMwETAPBgNVHRMBAf8EBTADAQH/MAUGAytlcQNzAE/uMei8ryVSW5l0GipNTko396syxdvdCQeUrlmwks1l5MNRkhjXHfYxlDow0KMM41K8r+w5HThPAAQFrzCMlKPVccZDdJy+xfLUUkmmjuO8q2TtDSmQw8cdXydPjPiK7t/l5WvJJFacO7QWJHUNl9QbAA==",
-            // buthed
-            "MIIBTTCBzqADAgECAiAhOw3ewOX+VKGajeKaxJoau2z32vy9aVn+HDDUZw7bFzAFBgMrZXEwETEPMA0GA1UEAxMGYnV0aGVkMB4XDTIxMDgyMDAxNDAwOFoXDTM2MDgyNzAxNDAwOFowETEPMA0GA1UEAxMGYnV0aGVkMEMwBQYDK2VxAzoAN+6Uos1pkds1qqvRM3p+w7RZWsB57C6C4NOCq8qCld7rLobD2XzxqKHzZJZntDSRsHCOtwtcq8SAoxMwETAPBgNVHRMBAf8EBTADAQH/MAUGAytlcQNzAJwsk9icL+lXbfzneAkzcahnrPEGUknpMXXe+x30RMOIwUDRL7KbRAid7GWluOIGboDqFVhoJ5atgGQ2hLh+kEx7ijhjC/tcYhbXMefWko+i6GPuUUdoHY75aGpUiXyIbAq6ch3K7YOItV3MY9ad20sxAA==",
-            // zxtej
-            "MIIBdTCB9qADAgECAhTfCrIPbhvsEK1N5k65WKw/ocG4MDAFBgMrZXEwKzEpMCcGA1UEAxMgMzMzMzMzMzMzMzMzNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQwHhcNMjEwODIwMTYxNzE0WhcNMzYwODI3MTYxNzE0WjArMSkwJwYDVQQDEyAzMzMzMzMzMzMzMzM0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDBDMAUGAytlcQM6AMovhskudhxJmw3MUGZB4jiLuMWjYNeA6LofNEBC0KLFW/flTaMs7fq6bsDR0MdvBjSQiebqk+xmAKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwAFsDdzP8Wc9Fe4JiC56cIL2TWOc6/fXKyJNu1dI+kmGk7UCuvUwGmAMZYwxif7xYWlkv6C42AWIoBQHWNMIyirVJXsWtZ1aWr3cS6G5pJtp/0y5Ow5utoeVlOAR1mIZNsjzIjRs3Rv+4mFhnD57kZTAAA=",
-            // sbyte
-            "MIIBPzCBwKADAgECAhRjpBHVpYocCsBspqpCG3Z0MNuRejAFBgMrZXEwEDEOMAwGA1UEAxMFU0J5dGUwHhcNMjMxMjIzMTUzNzAwWhcNMzgxMjMwMTUzNzAwWjAQMQ4wDAYDVQQDEwVTQnl0ZTBDMAUGAytlcQM6AOkvuvocpWgctfAOIoB2V3Ygkbgl6vNkdE7s5nwX8ohn+5ek0X0hnire8o8E1Jm9QFXCo+vMW7SqAKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwCLeeueP097rj8XBpsVzG3bcbf6edMpKUB7+YZNg9sPp2X0fupl6yJH5fxsEIz4P7fKTZlgtiLpUoD3aeqfka0WJCWDrn59SzHK2FjuG1iaLVQFGoCxo61AYc+KJnOIqaPDqPktd5vJ66dxKANZWgxdKgA=",
-            // bala
-            "MIIBRTCBxqADAgECAhTeD2MCcBrVQbkK5fxVGvtHBwMMyDAFBgMrZXEwEzERMA8GA1UEAxMIQmFsYU0zMTQwHhcNMjIwMjA4MTEzODI4WhcNMzcwMjE1MTEzODI4WjATMREwDwYDVQQDEwhCYWxhTTMxNDBDMAUGAytlcQM6AI5t3i1wE5UjzYMVYNfWMgrEycgfhCIwpENrMJr9EVBJSPdtxN7Agq+vv7xGnfTSD+pDnVsvtLDKgKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwCNmgB1xz7vM3a2EKfdgQgh5IOYqVqi+KYYnYjRUtB0sEoRRhN1qWc332+TwSqeP1rdljfNMdn9iwBr/LfxXaqrp+ud3IeFFFAtMkHrmdiy2TesLz3X9KfIWrRxP+m/uY/l5TXewUq74RG3eVD9xfA9CwA="
-        ).map { factory.generateCertificate(it.base64()!!.inputStream()) as X509Certificate }
+        var certs = emptyList<X509Certificate>()
+        Log.debug("Loaded developer certs in ${ measureTimeMillis {
+            val factory = CertificateFactory.getInstance("X509")
+            certs = arrayOf( // FINISHME: There has to be some way to cache these, right?
+                // foo
+                "MIIBRzCByKADAgECAiCdhMB3qS0218EgXi0asK7io931Jjo2lWjYlL18rmoKxzAFBgMrZXEwDjEMMAoGA1UEAxMDZm9vMB4XDTIxMDgyMDAxNDYzOFoXDTM2MDgyNzAxNDYzOFowDjEMMAoGA1UEAxMDZm9vMEMwBQYDK2VxAzoAshx1nVePa4FkbLczm2Osp+IHU0ikU/+JyCUbs43klnP49tSybg1WS0NMCRINnEh30DzwOBKUs9+AoxMwETAPBgNVHRMBAf8EBTADAQH/MAUGAytlcQNzAE/uMei8ryVSW5l0GipNTko396syxdvdCQeUrlmwks1l5MNRkhjXHfYxlDow0KMM41K8r+w5HThPAAQFrzCMlKPVccZDdJy+xfLUUkmmjuO8q2TtDSmQw8cdXydPjPiK7t/l5WvJJFacO7QWJHUNl9QbAA==",
+                // buthed
+                "MIIBTTCBzqADAgECAiAhOw3ewOX+VKGajeKaxJoau2z32vy9aVn+HDDUZw7bFzAFBgMrZXEwETEPMA0GA1UEAxMGYnV0aGVkMB4XDTIxMDgyMDAxNDAwOFoXDTM2MDgyNzAxNDAwOFowETEPMA0GA1UEAxMGYnV0aGVkMEMwBQYDK2VxAzoAN+6Uos1pkds1qqvRM3p+w7RZWsB57C6C4NOCq8qCld7rLobD2XzxqKHzZJZntDSRsHCOtwtcq8SAoxMwETAPBgNVHRMBAf8EBTADAQH/MAUGAytlcQNzAJwsk9icL+lXbfzneAkzcahnrPEGUknpMXXe+x30RMOIwUDRL7KbRAid7GWluOIGboDqFVhoJ5atgGQ2hLh+kEx7ijhjC/tcYhbXMefWko+i6GPuUUdoHY75aGpUiXyIbAq6ch3K7YOItV3MY9ad20sxAA==",
+                // zxtej
+                "MIIBdTCB9qADAgECAhTfCrIPbhvsEK1N5k65WKw/ocG4MDAFBgMrZXEwKzEpMCcGA1UEAxMgMzMzMzMzMzMzMzMzNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQwHhcNMjEwODIwMTYxNzE0WhcNMzYwODI3MTYxNzE0WjArMSkwJwYDVQQDEyAzMzMzMzMzMzMzMzM0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDBDMAUGAytlcQM6AMovhskudhxJmw3MUGZB4jiLuMWjYNeA6LofNEBC0KLFW/flTaMs7fq6bsDR0MdvBjSQiebqk+xmAKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwAFsDdzP8Wc9Fe4JiC56cIL2TWOc6/fXKyJNu1dI+kmGk7UCuvUwGmAMZYwxif7xYWlkv6C42AWIoBQHWNMIyirVJXsWtZ1aWr3cS6G5pJtp/0y5Ow5utoeVlOAR1mIZNsjzIjRs3Rv+4mFhnD57kZTAAA=",
+                // sbyte
+                "MIIBPzCBwKADAgECAhRjpBHVpYocCsBspqpCG3Z0MNuRejAFBgMrZXEwEDEOMAwGA1UEAxMFU0J5dGUwHhcNMjMxMjIzMTUzNzAwWhcNMzgxMjMwMTUzNzAwWjAQMQ4wDAYDVQQDEwVTQnl0ZTBDMAUGAytlcQM6AOkvuvocpWgctfAOIoB2V3Ygkbgl6vNkdE7s5nwX8ohn+5ek0X0hnire8o8E1Jm9QFXCo+vMW7SqAKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwCLeeueP097rj8XBpsVzG3bcbf6edMpKUB7+YZNg9sPp2X0fupl6yJH5fxsEIz4P7fKTZlgtiLpUoD3aeqfka0WJCWDrn59SzHK2FjuG1iaLVQFGoCxo61AYc+KJnOIqaPDqPktd5vJ66dxKANZWgxdKgA=",
+                // bala
+                "MIIBRTCBxqADAgECAhTeD2MCcBrVQbkK5fxVGvtHBwMMyDAFBgMrZXEwEzERMA8GA1UEAxMIQmFsYU0zMTQwHhcNMjIwMjA4MTEzODI4WhcNMzcwMjE1MTEzODI4WjATMREwDwYDVQQDEwhCYWxhTTMxNDBDMAUGAytlcQM6AI5t3i1wE5UjzYMVYNfWMgrEycgfhCIwpENrMJr9EVBJSPdtxN7Agq+vv7xGnfTSD+pDnVsvtLDKgKMTMBEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwCNmgB1xz7vM3a2EKfdgQgh5IOYqVqi+KYYnYjRUtB0sEoRRhN1qWc332+TwSqeP1rdljfNMdn9iwBr/LfxXaqrp+ud3IeFFFAtMkHrmdiy2TesLz3X9KfIWrRxP+m/uY/l5TXewUq74RG3eVD9xfA9CwA="
+            ).map { factory.generateCertificate(it.base64()!!.inputStream()) as X509Certificate }
+        } }")
+        certs
     }
 
     init {

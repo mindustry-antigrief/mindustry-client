@@ -68,7 +68,6 @@ public class LiquidBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
         super.draw(b);
         if(liquid.willBoil()){
             Draw.color(liquid.color, Tmp.c3.set(liquid.gasColor).a(0.4f), b.time / Mathf.randomSeed(b.id, boilTime));

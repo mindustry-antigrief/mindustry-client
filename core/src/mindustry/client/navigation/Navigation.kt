@@ -6,8 +6,11 @@ import arc.struct.*
 import mindustry.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.game.EventType.*
+import mindustry.gen.Unit
+import mindustry.type.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
+import kotlin.math.*
 
 object Navigation {
     @JvmField var currentlyFollowing: Path? = null
@@ -23,6 +26,9 @@ object Navigation {
     private var obstacles = Seq<TurretPathfindingEntity>()
     private var allies = Seq<TurretPathfindingEntity>()
     lateinit var navigator: Navigator
+    // Used to setup unit pathfinding ents
+    private val weaponSet: IntSet = IntSet(4)
+    private val numWeapons: ObjectIntMap<UnitType> = ObjectIntMap()
 
     init {
         Events.on(WorldLoadEvent::class.java) {
@@ -35,6 +41,28 @@ object Navigation {
 
     @JvmStatic fun addEnt(ent: TurretPathfindingEntity) = clientThread.post { ents.add(ent) }
     @JvmStatic fun removeEnt(ent: TurretPathfindingEntity) = clientThread.post { ents.remove(ent) }
+    @JvmStatic fun removeEnts(ent: Array<TurretPathfindingEntity>) = clientThread.post { ents.removeAll(ent) }
+    @JvmStatic fun setupEnts(u: Unit): Array<TurretPathfindingEntity?>? {
+        var n = numWeapons.get(u.type, -1)
+        if (n == 0) return null
+        if (n == -1) { // Add missing unit type to the map. This allows us to create arrays that are exactly the right size to reduce garbage
+            val s = IntSet()
+            u.type.weapons.forEach { s.add(it.bullet.hashCode()) } // Yes, this is duplicated code. No, I do not care
+            numWeapons.put(u.type, s.size)
+            n = s.size
+            if (n == 0) return null // Check again since this could have become 0
+        }
+        val ret = arrayOfNulls<TurretPathfindingEntity>(n)
+        clientThread.post { // The entities will get added by the client thread at a later point
+            var i = 0
+            u.type.weapons.forEach { w -> // FINISHME: Cache the result of this loop for each UnitType instead of computing hashes every time
+                if (weaponSet.add(w.bullet.hashCode())) ret[i++] = TurretPathfindingEntity(u, { max(24f, w.bullet.range) }, w.bullet.collidesGround, w.bullet.collidesAir, { u.canShoot() })
+            }
+            ents.addAll(ret, 0, ret.size) // Avoid using spread operator as it creates a copy of the array
+            weaponSet.clear() // We reuse one set for efficiency
+        }
+        return ret
+    }
 
     @JvmOverloads @JvmStatic
     fun follow(path: Path?, repeat: Boolean = false) {

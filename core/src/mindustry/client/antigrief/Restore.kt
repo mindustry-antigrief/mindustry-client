@@ -2,6 +2,7 @@ package mindustry.client.antigrief
 
 import arc.*
 import arc.struct.*
+import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
 import mindustry.client.navigation.*
@@ -82,8 +83,8 @@ fun rebuildBroken(tiles: Iterable<Tile>, timeStart: Instant, timeEnd: Instant, r
             return@post
         }
         // The following is so inefficient lol what
-        // FINSIHME: Do not plan over existing buildings
-        clientThread.sortingInstance.sort(states, Comparator.comparing { it.time }) // Sort by time to deal with tile overlaps
+        // FINISHME: Do not plan over existing buildings
+        states.sort(Structs.comparing { it.time }) // Sort by time to deal with tile overlaps
         val minX = max(floor((player.x - range) / tilesize).toInt(), 0)
         val minY = max(floor((player.y - range) / tilesize).toInt(), 0)
         val takenTiles = GridBits(min(ceil((player.x + range) / tilesize).toInt() - minX, world.width()) + 1, min(ceil((player.y + range) / tilesize).toInt() - minY, world.height()) + 1)

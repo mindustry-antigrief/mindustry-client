@@ -74,12 +74,9 @@ public class CoreItemsDisplay extends Table{
                 image(item.uiIcon).size(iconSmall).padRight(3).tooltip(tooltip);
                 //TODO leaks garbage
                 label(() -> (core == null ? "0" : switch(mode){
-                    case disabled ->
-                        colorFor(totalItems.getAverageChange(trackSteps, item)) + UI.formatAmount(core.items.get(item));
-                    case inputOnly ->
-                        formatAmount(inputItems.getAverage(trackSteps, item));
-                    case all ->
-                        formatAmount(totalItems.getAverageChange(trackSteps, item));
+                    case disabled -> colorFor(totalItems.getAverageChange(trackSteps, item)) + UI.formatAmount(core.items.get(item));
+                    case inputOnly -> formatAmount(inputItems.getAverage(trackSteps, item));
+                    case all -> formatAmount(totalItems.getAverageChange(trackSteps, item));
                 })).padRight(3).minWidth(52f).left().tooltip(tooltip);
                 //TODO properly update the tooltip
 

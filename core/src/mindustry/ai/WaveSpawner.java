@@ -156,6 +156,11 @@ public class WaveSpawner{
         }
     }
 
+    /** Foo's addition as making the existing method public would cause mod compatibility issues */
+    public void eachFlyerSpawn(Floatc2 cons){
+        eachFlyerSpawn(-1, cons);
+    }
+
     private void eachFlyerSpawn(int filterPos, Floatc2 cons){
         boolean airUseSpawns = state.rules.airUseSpawns;
         

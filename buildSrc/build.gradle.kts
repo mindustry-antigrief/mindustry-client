@@ -1,7 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.0.10"
 }
 
 repositories {
@@ -16,10 +18,10 @@ dependencies {
 }
 
 // I swear gradle is the worst
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java) {
-    kotlinOptions.jvmTarget = "16"
+tasks.withType(KotlinCompile::class.java) {
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
 }
 
-tasks.withType(org.gradle.api.tasks.compile.JavaCompile::class.java){
-    targetCompatibility = "16"
+tasks.withType(JavaCompile::class.java){
+    targetCompatibility = "17"
 }

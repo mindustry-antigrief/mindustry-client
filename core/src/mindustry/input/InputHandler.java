@@ -447,7 +447,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot request items.");
         }
 
-        Navigation.addWaypointRecording(new ItemPickupWaypoint(build.tileX(), build.tileY(), new ItemStack().set(item, amount))); // FINISHME: Awful
+        Navigation.addWaypointRecording(new ItemPickupWaypoint(build.tileX(), build.tileY(), new ItemStack(item, amount))); // FINISHME: Awful
 
         Call.takeItems(build, item, Math.min(player.unit().maxAccepted(item), amount), player.unit());
         Events.fire(new WithdrawEvent(build, player, item, amount));
@@ -2390,7 +2390,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    public void updateMovementCustom(Unit unit, float x, float y, float direction){
+    public void updateMovementCustom(Unit unit, float x, float y, float direction){ // FINISHME: Is this really needed?
         if (unit == null || player.dead()) {
             return;
         }

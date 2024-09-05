@@ -27,7 +27,6 @@ public class LaserBoltBulletType extends BasicBulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
         super.draw(b);
         Draw.color(backColor);
         Lines.stroke(width);

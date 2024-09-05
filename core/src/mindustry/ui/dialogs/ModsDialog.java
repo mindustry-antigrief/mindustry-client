@@ -116,7 +116,7 @@ public class ModsDialog extends BaseDialog{
                     if (!mod.enabled() || mod.getRepo() == null || !settings.getBool(mod.autoUpdateString(), true)) continue;
                     if (expected++ >= 30) continue; // Only make up to 30 api requests
 
-                    githubImportMod(mod.getRepo(), mod.isJava(), null, mod.meta.version);
+                    githubImportMod(mod.getRepo(), mod.isJava(), null, mod.meta.version); // FINISHME: Handle deletion of old file on shutdown
                 }
             } else Log.debug("Not updating mods, updated too recently / auto update is disabled / no enabled mods.");
         });

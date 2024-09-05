@@ -45,8 +45,7 @@ import static mindustry.Vars.*;
 public class UnitType extends UnlockableContent implements Senseable{
     public static final float shadowTX = -12, shadowTY = -13;
     private static final Vec2 legOffset = new Vec2();
-    public static boolean drawAllItems, pixelated;
-    public static float formationAlpha = -1, hitboxAlpha;
+    public static boolean pixelated;
 
     /** Environmental flags that are *all* required for this unit to function. 0 = any environment */
     public int envRequired = 0;
@@ -446,14 +445,20 @@ public class UnitType extends UnlockableContent implements Senseable{
     protected float buildTime = -1f;
     protected @Nullable ItemStack[] totalRequirements, cachedRequirements, firstRequirements;
 
-    public static float alpha = 1f; // FINISHME: Seriously, why the hell is this static? Shouldn't this be a variable tied to the unit?!?
+    // Foo's additions
+    public final float typeAlpha;
+    public static boolean drawAllItems;
+    public static float formationAlpha = -1, hitboxAlpha = -1;
+    public static float currentAlpha = 1f; // Easier to just make this static
     private static final Color accentCopy = Pal.accent.cpy(); // Used so we can set the alpha value without resetting it
+    // End Foo's additions
 
     public UnitType(String name){
         super(name);
 
         constructor = EntityMapping.map(this.name);
         selectionSize = 30f;
+        typeAlpha = Core.settings.getInt("unittypeopacity-" + this.name, 100) / 100F; // use this.name as it is different from the parameter after the super call
     }
 
     public UnitController createController(Unit unit){
@@ -1311,7 +1316,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         if(!isPayload){
             for(Ability a : unit.abilities){
                 Draw.reset();
-                Draw.alpha(alpha);
+                Draw.alpha(currentAlpha);
                 a.draw(unit);
             }
         }
@@ -1374,7 +1379,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         float radius = unit.hitSize() * 1.3f;
         Fill.light(unit.x, unit.y, Lines.circleVertices(radius), radius,
             Color.clear,
-            Tmp.c2.set(unit.type.shieldColor(unit)).lerp(Color.white, Mathf.clamp(unit.hitTime() / 2f)).a(0.7f * unit.shieldAlpha() * alpha)
+            Tmp.c2.set(unit.type.shieldColor(unit)).lerp(Color.white, Mathf.clamp(unit.hitTime() / 2f)).a(0.7f * unit.shieldAlpha() * currentAlpha)
         );
     }
 
@@ -1382,7 +1387,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         Draw.z(unit.isFlying() ? Layer.flyingUnitLow : Layer.groundUnit - 2);
 
         Draw.color(Pal.accent, Color.white, Mathf.absin(4f, 0.3f));
-        Draw.alpha(alpha);
+        Draw.alpha(currentAlpha);
         Lines.poly(unit.x, unit.y, 4, unit.hitSize + 1.5f);
 
         Draw.reset();
@@ -1396,7 +1401,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         float dest = floor.canShadow ? 1f : 0f;
         //yes, this updates state in draw()... which isn't a problem, because I don't want it to be obvious anyway
         unit.shadowAlpha = unit.shadowAlpha < 0 ? dest : Mathf.approachDelta(unit.shadowAlpha, dest, 0.11f);
-        Draw.color(Pal.shadow, Pal.shadow.a * unit.shadowAlpha * alpha);
+        Draw.color(Pal.shadow, Pal.shadow.a * unit.shadowAlpha * currentAlpha);
 
         Draw.rect(shadowRegion, unit.x + shadowTX * e, unit.y + shadowTY * e, unit.rotation - 90);
         Draw.color();
@@ -1411,7 +1416,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     }
 
     public void drawSoftShadow(float x, float y, float rotation, float alpha){
-        Draw.color(0, 0, 0, 0.4f * alpha * UnitType.alpha);
+        Draw.color(0, 0, 0, 0.4f * alpha * UnitType.currentAlpha);
         float rad = 1.6f;
         float size = Math.max(region.width, region.height) * region.scl();
         Draw.rect(softShadowRegion, x, y, size * rad * Draw.xscl, size * rad * Draw.yscl, rotation - 90);
@@ -1427,7 +1432,7 @@ public class UnitType extends UnlockableContent implements Senseable{
             float size = (itemSize + sin) * unit.itemTime;
 
             Draw.mixcol(Pal.accent, sin * 0.1f);
-            Draw.alpha(alpha);
+            Draw.alpha(currentAlpha);
             Draw.rect(unit.item().fullIcon,
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
@@ -1435,7 +1440,7 @@ public class UnitType extends UnlockableContent implements Senseable{
             Draw.mixcol();
 
             size = ((3f + sin) * unit.itemTime + 0.5f) * 2;
-            Draw.color(Pal.accent, alpha);
+            Draw.color(Pal.accent, currentAlpha);
             Draw.rect(itemCircleRegion,
             unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
             unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY),
@@ -1447,7 +1452,8 @@ public class UnitType extends UnlockableContent implements Senseable{
                 Fonts.outline.draw(unit.stack.amount + "",
                     unit.x + Angles.trnsx(unit.rotation + 180f, itemOffsetY),
                     unit.y + Angles.trnsy(unit.rotation + 180f, itemOffsetY) - 3,
-                    accentCopy.a(alpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
+
+                    accentCopy.a(currentAlpha), 0.25f * unit.itemTime / Scl.scl(1f), false, Align.center
                 );
                 Draw.z(z);
             }
@@ -1487,7 +1493,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     public void drawWeaponOutlines(Unit unit){
         applyColor(unit);
         applyOutlineColor(unit);
-        Draw.alpha(alpha);
+        Draw.alpha(currentAlpha);
 
         for(WeaponMount mount : unit.mounts){
             if(!mount.weapon.top){
@@ -1510,7 +1516,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         if(Core.atlas.isFound(outlineRegion)){
             applyColor(unit);
             applyOutlineColor(unit);
-            Draw.alpha(alpha);
+            Draw.alpha(currentAlpha);
             Draw.rect(outlineRegion, unit.x, unit.y, unit.rotation - 90);
             Draw.reset();
         }
@@ -1518,7 +1524,7 @@ public class UnitType extends UnlockableContent implements Senseable{
 
     public void drawBody(Unit unit){
         applyColor(unit);
-        Draw.alpha(alpha);
+        Draw.alpha(currentAlpha);
 
         Draw.rect(region, unit.x, unit.y, unit.rotation - 90);
 
@@ -1529,7 +1535,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         applyColor(unit);
 
         Draw.color(cellColor(unit));
-        Draw.alpha(alpha);
+        Draw.alpha(currentAlpha);
 
         Draw.rect(cellRegion, unit.x, unit.y, unit.rotation - 90);
         Draw.reset();
@@ -1542,7 +1548,7 @@ public class UnitType extends UnlockableContent implements Senseable{
 
     public void drawLight(Unit unit){
         if(lightRadius > 0){
-            Drawf.light(unit.x, unit.y, lightRadius, lightColor, lightOpacity * alpha);
+            Drawf.light(unit.x, unit.y, lightRadius, lightColor, lightOpacity * currentAlpha);
         }
     }
 
@@ -1568,7 +1574,7 @@ public class UnitType extends UnlockableContent implements Senseable{
 
     public <T extends Unit & Legsc> void drawLegs(T unit){
         applyColor(unit);
-        Draw.alpha(alpha);
+        Draw.alpha(currentAlpha);
         Tmp.c3.set(Draw.getMixColor());
 
         Leg[] legs = unit.legs();
@@ -1579,7 +1585,7 @@ public class UnitType extends UnlockableContent implements Senseable{
 
         if(footRegion.found()){
             for(Leg leg : legs){
-                Drawf.shadow(leg.base.x, leg.base.y, ssize, invDrown * alpha);
+                Drawf.shadow(leg.base.x, leg.base.y, ssize, invDrown * currentAlpha);
             }
         }
 
@@ -1597,7 +1603,7 @@ public class UnitType extends UnlockableContent implements Senseable{
             if(footRegion.found() && leg.moving && shadowElevation > 0){
                 float scl = shadowElevation * invDrown;
                 float elev = Mathf.slope(1f - leg.stage) * scl;
-                Draw.color(Pal.shadow, Pal.shadow.a * alpha);
+                Draw.color(Pal.shadow, Pal.shadow.a * currentAlpha);
                 Draw.rect(footRegion, leg.base.x + shadowTX * elev, leg.base.y + shadowTY * elev, position.angleTo(leg.base));
                 Draw.color();
             }
@@ -1682,7 +1688,7 @@ public class UnitType extends UnlockableContent implements Senseable{
 
         for(int i : Mathf.signs){
             Draw.mixcol(Tmp.c1.set(mechLegColor).lerp(Color.white, Mathf.clamp(unit.hitTime)), Math.max(Math.max(0, i * extension / mechStride), unit.hitTime));
-            Draw.alpha(alpha);
+            Draw.alpha(currentAlpha);
 
             Draw.rect(legRegion,
             unit.x + Angles.trnsx(mech.baseRotation(), extension * i - boostTrns, -boostTrns*i),
@@ -1700,7 +1706,7 @@ public class UnitType extends UnlockableContent implements Senseable{
             Draw.color(Color.white);
         }
 
-        Draw.alpha(alpha);
+        Draw.alpha(currentAlpha);
         Draw.rect(baseRegion, unit, mech.baseRotation() - 90);
 
         Draw.mixcol();
@@ -1766,13 +1772,13 @@ public class UnitType extends UnlockableContent implements Senseable{
             );
             Draw.z(z);*/
 
-            Draw.color(color, alpha);
+            Draw.color(color, currentAlpha);
             Fill.circle(
             unit.x + ex,
             unit.y + ey,
             (radius + Mathf.absin(Time.time, 2f, radius / 4f)) * scale
             );
-            Draw.color(type.engineColorInner, alpha);
+            Draw.color(type.engineColorInner, currentAlpha);
             Fill.circle(
             unit.x + ex - Angles.trnsx(rot + rotation, 1f),
             unit.y + ey - Angles.trnsy(rot + rotation, 1f),

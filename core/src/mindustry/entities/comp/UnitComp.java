@@ -6,7 +6,6 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.*;
 import mindustry.ai.types.*;
@@ -30,8 +29,6 @@ import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.payloads.*;
-
-import java.util.*;
 
 import static mindustry.Vars.*;
 import static mindustry.logic.GlobalVars.*;
@@ -64,8 +61,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     private transient float resupplyTime = Mathf.random(10f);
     private transient boolean wasPlayer;
     private transient boolean wasHealed;
-    private transient Seq<TurretPathfindingEntity> turretEnts;
-    private static final IntSet weaponSet = new IntSet(4);
+    private transient @Nullable TurretPathfindingEntity[] turretEnts;
 
     /** Called when this unit was unloaded from a factory or spawn point. */
     public void unloaded(){
@@ -520,17 +516,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         }
 
         // Client stuff below
-        if(hasWeapons()){
-            turretEnts = new Seq<>(type.weapons.size);
-            for(var w : type.weapons){
-                if(weaponSet.add(Objects.hash(w.bullet.collidesAir, w.bullet.collidesGround, w.bullet.damage, w.bullet.lifetime, w.bullet.speed, w.bullet.healPercent))){
-                    turretEnts.add(new TurretPathfindingEntity(this, () -> Math.max(24f, w.bullet.range), w.bullet.collidesGround, w.bullet.collidesAir, this::canShoot));
-                }
-            }
-            turretEnts.shrink(); // FINISHME: Honestly this stuff could all be made faster if we did this once for each UnitType and cached it.
-            turretEnts.each(Navigation::addEnt);
-            weaponSet.clear(); // Reusing things is good for the environment <3
-        }
+        if(hasWeapons()) turretEnts = Navigation.setupEnts(self());
 
         if(ui != null) ui.unitPicker.handle(self());
     }
@@ -546,7 +532,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         }
 
         // Client stuff below
-        if(turretEnts != null) turretEnts.each(Navigation::removeEnt);
+        if(turretEnts != null) Navigation.removeEnts(turretEnts);
     }
 
     @Override
@@ -782,11 +768,11 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     @Override
     public void draw(){
-        UnitType.alpha =
+        UnitType.currentAlpha =
             ClientVars.hidingUnits || ClientVars.hidingAirUnits && isFlying() ? 0 :
             (controller() instanceof Player p && p.assisting && !p.isLocal() && !type.isModded()) ? UnitType.formationAlpha : // Don't draw modded units with partial transparency as it won't apply to custom UnitType.draw() code
-            1;
-        if (UnitType.alpha == 0) return; // Don't bother drawing what we can't see.
+            type.typeAlpha;
+        if (UnitType.currentAlpha == 0) return; // Don't bother drawing what we can't see.
 
         type.draw(self());
     }

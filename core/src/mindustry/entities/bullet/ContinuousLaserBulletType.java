@@ -8,7 +8,6 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.*;
 
 public class ContinuousLaserBulletType extends ContinuousBulletType{
     public float fadeTime = 16f;
@@ -42,7 +41,6 @@ public class ContinuousLaserBulletType extends ContinuousBulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
         float fout = Mathf.clamp(b.time > b.lifetime - fadeTime ? 1f - (b.time - (lifetime - fadeTime)) / fadeTime : 1f);
         float realLength = Damage.findLength(b, length * fout, laserAbsorb, pierceCap);
         float rot = b.rotation();

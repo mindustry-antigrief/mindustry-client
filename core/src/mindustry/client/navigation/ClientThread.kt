@@ -1,7 +1,6 @@
 package mindustry.client.navigation
 
 import arc.*
-import arc.struct.*
 import arc.util.*
 import mindustry.game.EventType.*
 import java.util.concurrent.*
@@ -9,7 +8,6 @@ import java.util.function.*
 
 object clientThread {
     private var thread: ThreadPoolExecutor? = null
-    val sortingInstance: Sort = Sort()
 
     @JvmStatic
     fun queue() = thread?.queue
@@ -30,15 +28,24 @@ object clientThread {
 
     /** Stops the thread. */
     private fun stop() {
-        thread?.shutdownNow()
+        val start = Time.millis()
+        Threads.await(thread ?: return) // FINISHME: We can't just shutdownNow as we need to ensure that turret ents are properly added and removed but we also don't want to wait on this for ages for things like chat schem sharing
+        Log.debug("Waited @ms for client thread", Time.timeSinceMillis(start))
+//        thread?.shutdownNow()
         thread = null
     }
 
     @JvmStatic
-    fun post(task: Runnable): CompletableFuture<Void> = if (thread != null) CompletableFuture.runAsync(task, thread).exceptionHandler() else CompletableFuture()
+    fun post(task: Runnable): CompletableFuture<Void> = if (thread != null) CompletableFuture.runAsync(task, thread).exceptionHandler() else {
+        Log.warn("Post to null clientThread")
+        CompletableFuture()
+    }
 
     @JvmStatic
-    fun <T> submit(task: Supplier<T>): CompletableFuture<T> = if (thread != null) CompletableFuture.supplyAsync(task, thread).exceptionHandler() else CompletableFuture()
+    fun <T> submit(task: Supplier<T>): CompletableFuture<T> = if (thread != null) CompletableFuture.supplyAsync(task, thread).exceptionHandler() else {
+        Log.warn("Submit to null clientThread")
+        CompletableFuture()
+    }
 
     @JvmStatic
     fun get() = thread
