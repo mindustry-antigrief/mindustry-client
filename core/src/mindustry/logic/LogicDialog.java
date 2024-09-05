@@ -29,6 +29,7 @@ public class LogicDialog extends BaseDialog{
     boolean privileged;
     @Nullable LExecutor executor;
     GlobalVarsDialog globalsDialog = new GlobalVarsDialog();
+    boolean wasRows, wasPortrait;
 
     public LogicDialog(){
         super("logic");
@@ -41,12 +42,20 @@ public class LogicDialog extends BaseDialog{
         addCloseListener();
 
         shown(this::setup);
+        shown(() -> {
+            wasRows = LCanvas.useRows();
+            wasPortrait = Core.graphics.isPortrait();
+        });
         hidden(() -> { // If the executor is null, theres a very big problem.
             if (!Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
         });
         onResize(() -> {
-            setup();
-            canvas.rebuild();
+            if(wasRows != LCanvas.useRows() || wasPortrait != Core.graphics.isPortrait()){
+                setup();
+                canvas.rebuild();
+                wasPortrait = Core.graphics.isPortrait();
+                wasRows = LCanvas.useRows();
+            }
         });
 
 

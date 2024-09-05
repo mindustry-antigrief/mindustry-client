@@ -123,7 +123,7 @@ public class SerpuloTechTree{
                     });
 
                     node(pyratiteMixer, () -> {
-                        node(blastMixer, () -> {
+                        node(blastMixer, Seq.with(new SectorComplete(facility32m)), () -> {
 
                         });
                     });
@@ -502,15 +502,20 @@ public class SerpuloTechTree{
                                     });
                                 });
 
-                                node(extractionOutpost, Seq.with(
-                                new SectorComplete(stainedMountains),
-                                new SectorComplete(windsweptIslands),
-                                new Research(groundFactory),
-                                new Research(nova),
-                                new Research(airFactory),
-                                new Research(mono)
+                                node(facility32m, Seq.with(
+                                new Research(pneumaticDrill),
+                                new SectorComplete(stainedMountains)
                                 ), () -> {
+                                    node(extractionOutpost, Seq.with(
+                                    new SectorComplete(windsweptIslands),
+                                    new SectorComplete(facility32m),
+                                    new Research(groundFactory),
+                                    new Research(nova),
+                                    new Research(airFactory),
+                                    new Research(mono)
+                                    ), () -> {
 
+                                    });
                                 });
 
                                 node(saltFlats, Seq.with(
@@ -561,6 +566,14 @@ public class SerpuloTechTree{
                     new Research(scatter),
                     new Research(graphitePress)
                     ), () -> {
+                        node(taintedWoods, Seq.with(
+                        new SectorComplete(biomassFacility),
+                        new Research(Items.sporePod),
+                        new Research(wave)
+                        ), () -> {
+
+                        });
+
                         node(stainedMountains, Seq.with(
                         new SectorComplete(biomassFacility),
                         new Research(pneumaticDrill),

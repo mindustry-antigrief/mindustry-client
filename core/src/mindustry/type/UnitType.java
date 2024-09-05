@@ -900,7 +900,7 @@ public class UnitType extends UnlockableContent implements Senseable{
             //suicide enemy
             if(weapons.contains(w -> w.bullet.killShooter)){
                 //scale down DPS to be insignificant
-                dpsEstimate /= 25f;
+                dpsEstimate /= 15f;
             }
         }
 
