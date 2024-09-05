@@ -1218,7 +1218,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     //region drawing
 
     public void draw(Unit unit){
-        if(unit.inFogTo(Vars.player.team())  || alpha == 0) return;
+        if(unit.inFogTo(Vars.player.team())  || currentAlpha == 0) return;
 
         unit.drawBuilding();
 
@@ -1355,7 +1355,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         Draw.z(Layer.flyingUnit + 0.1f);
 
         Draw.color(Color.lightGray, Color.white, 1f - flashScl + Mathf.absin(Time.time, 0.5f, flashScl));
-        Draw.alpha(alpha);
+        Draw.alpha(currentAlpha);
 
         Drawf.laser(mineLaserRegion, mineLaserEndRegion, px, py, ex, ey, 0.75f);
 

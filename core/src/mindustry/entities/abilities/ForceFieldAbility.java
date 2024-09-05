@@ -111,7 +111,7 @@ public class ForceFieldAbility extends Ability{
         checkRadius(unit);
 
         if(unit.shield > 0){
-            var a = Mathf.clamp(alpha * UnitType.alpha);
+            var a = Mathf.clamp(alpha * UnitType.currentAlpha);
             Draw.color(unit.type.shieldColor(unit), Color.white, a);
 
             if(Vars.renderer.animateShields){
@@ -121,9 +121,9 @@ public class ForceFieldAbility extends Ability{
             }else{
                 Draw.z(Layer.shields);
                 Lines.stroke(1.5f);
-                Draw.alpha(0.09f * UnitType.alpha);
+                Draw.alpha(0.09f * UnitType.currentAlpha);
                 Fill.poly(unit.x, unit.y, sides, radius, rotation);
-                Draw.alpha(UnitType.alpha);
+                Draw.alpha(UnitType.currentAlpha);
                 Lines.poly(unit.x, unit.y, sides, radius, rotation);
             }
         }
