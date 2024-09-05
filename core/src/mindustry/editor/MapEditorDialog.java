@@ -382,6 +382,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
                     workshop = true;
                 }
                 returned = maps.saveMap(editor.tags);
+                if(autoSave >= 0) editor.tags.put("name", name); // Remove -autosave# from the map name after saving
                 if(workshop){
                     returned.workshop = workshop;
                 }
