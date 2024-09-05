@@ -23,7 +23,7 @@ public class MassDriverBolt extends BulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
+        if (UnitType.currentAlpha == 0) return;
         float w = 11f, h = 13f;
 
         Draw.color(Pal.bulletYellowBack);

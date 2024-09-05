@@ -9,7 +9,6 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
-import mindustry.core.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
@@ -281,13 +280,6 @@ public class StackConveyor extends Block implements Autotiler{
                     if(!items.has(lastItem)){
                         poofOut();
                         lastItem = null;
-                    }
-                    if(i++ > 2 * itemCapacity){
-                        if(player != null){
-                            ui.chatfrag.addMessage(Strings.format("[scarlet]Foo's prevented a client crash!!!!! [orange]Stack router at (@,@), trying to unload item @, current items:@, too many loops! Please report how you got this error, including a screenshot of the surroundings! outputRouter: @", World.toTile(x), World.toTile(y), lastItem.name, items.toString(), outputRouter));
-                        }
-                        items.clear();
-                        break;
                     }
                 }
             }else{ //transfer

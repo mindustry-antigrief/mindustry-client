@@ -426,6 +426,19 @@ public class BulletType extends Content implements Cloneable{
         hit(b, b.x, b.y);
     }
 
+    /** Used only for foo's turret ents. Only relevant properties are included */
+    @Override
+    public int hashCode(){
+        int h = Boolean.hashCode(collidesAir);
+        h = h * 31 + Boolean.hashCode(collidesGround);
+        h = h * 31 + Float.floatToIntBits(damage);
+        h = h * 31 + Float.floatToIntBits(lifetime);
+        h = h * 31 + Float.floatToIntBits(speed);
+        h = h * 31 + Float.floatToIntBits(healPercent);
+        h = h * 31 + Float.floatToIntBits(healAmount);
+        return h;
+    }
+
     public void hit(Bullet b, float x, float y){
         hitEffect.at(x, y, b.rotation(), hitColor);
         hitSound.at(x, y, hitSoundPitch, hitSoundVolume);

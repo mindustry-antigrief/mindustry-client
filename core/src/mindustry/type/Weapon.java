@@ -211,11 +211,11 @@ public class Weapon implements Cloneable{
         wy = unit.y + Angles.trnsy(rotation, x, y) + Angles.trnsy(weaponRotation, 0, -realRecoil);
 
         if(shadow > 0){
-            Drawf.shadow(wx, wy, shadow, UnitType.alpha);
+            Drawf.shadow(wx, wy, shadow, UnitType.currentAlpha);
         }
 
         if(top){
-            Draw.alpha(UnitType.alpha);
+            Draw.alpha(UnitType.currentAlpha);
             drawOutline(unit, mount);
         }
 
@@ -236,18 +236,18 @@ public class Weapon implements Cloneable{
 
         //fix color
         unit.type.applyColor(unit);
-        Draw.alpha(UnitType.alpha);
+        Draw.alpha(UnitType.currentAlpha);
 
         if(region.found()) Draw.rect(region, wx, wy, weaponRotation);
 
         if(cellRegion.found()){
-            Draw.color(unit.type.cellColor(unit), UnitType.alpha);
+            Draw.color(unit.type.cellColor(unit), UnitType.currentAlpha);
             Draw.rect(cellRegion, wx, wy, weaponRotation);
             Draw.color();
         }
 
         if(heatRegion.found() && mount.heat > 0){
-            Draw.color(heatColor, mount.heat * UnitType.alpha);
+            Draw.color(heatColor, mount.heat * UnitType.currentAlpha);
             Draw.blend(Blending.additive);
             Draw.rect(heatRegion, wx, wy, weaponRotation);
             Draw.blend();

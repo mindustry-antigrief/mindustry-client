@@ -244,7 +244,7 @@ abstract class BulletComp implements Timedc, Damagec, Hitboxc, Teamc, Posc, Draw
 
     @Override
     public void draw(){
-        if (UnitType.alpha == 0) return;
+        if (UnitType.currentAlpha == 0) return;
         Draw.z(type.layer);
 
         type.draw(self());

@@ -54,7 +54,6 @@ public class ShrapnelBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
         float realLength = b.fdata, rot = b.rotation();
 
         Draw.color(fromColor, toColor, b.fin());

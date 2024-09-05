@@ -93,7 +93,6 @@ public class LaserBulletType extends BulletType{
 
     @Override
     public void draw(Bullet b){
-        if (UnitType.alpha == 0) return;
         float realLength = b.fdata;
 
         float f = Mathf.curve(b.fin(), 0f, 0.2f);

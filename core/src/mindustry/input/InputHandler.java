@@ -344,7 +344,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(called = Loc.server, targets = Loc.both, forward = true, ratelimited = true)
     public static void requestItem(Player player, Building build, Item item, int amount){
-        if(player == null || build == null || !build.interactable(player.team()) || !player.within(build, itemTransferRange) || player.dead()) return;
+        if(player == null || build == null || !build.interactable(player.team()) || !player.within(build, itemTransferRange) || player.dead() || (amount <= 0 && player != Vars.player && net.server())) return; // FINISHME: Foo's v146 hack that fixes negative item withdraws for other players
 
         if(net.server() && (!Units.canInteract(player, build) ||
         !netServer.admins.allowAction(player, ActionType.withdrawItem, build.tile(), action -> {
@@ -354,7 +354,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             throw new ValidateException(player, "Player cannot request items.");
         }
 
-        Navigation.addWaypointRecording(new ItemPickupWaypoint(build.tileX(), build.tileY(), new ItemStack().set(item, amount))); // FINISHME: Awful
+        Navigation.addWaypointRecording(new ItemPickupWaypoint(build.tileX(), build.tileY(), new ItemStack(item, amount))); // FINISHME: Awful
 
         Call.takeItems(build, item, Math.min(player.unit().maxAccepted(item), amount), player.unit());
         Events.fire(new WithdrawEvent(build, player, item, amount));
@@ -2206,7 +2206,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    public void updateMovementCustom(Unit unit, float x, float y, float direction){
+    public void updateMovementCustom(Unit unit, float x, float y, float direction){ // FINISHME: Is this really needed?
         if (unit == null || player.dead()) {
             return;
         }

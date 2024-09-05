@@ -21,7 +21,6 @@ import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 import mindustry.world.modules.*;
-import arc.util.Nullable;
 
 import java.util.*;
 
@@ -185,8 +184,7 @@ public class PowerNode extends PowerBlock{
         if(highlight){
             Draw.color(Pal.freeze, Renderer.laserOpacity + .2f);
         }else{
-            Draw.color(laserColor1, laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f));
-            Draw.alpha(Renderer.laserOpacity);
+            Draw.color(Tmp.c1.set(laserColor1).lerp(laserColor2, (1f - satisfaction) * 0.86f + Mathf.absin(3f, 0.1f)).a(Renderer.laserOpacity));
         }
     }
 

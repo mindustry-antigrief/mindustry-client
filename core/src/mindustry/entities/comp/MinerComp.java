@@ -126,7 +126,7 @@ abstract class MinerComp implements Itemsc, Posc, Teamc, Rotc, Drawc{
 
     @Override
     public void draw(){
-        if(!mining() || UnitType.alpha == 0) return;
+        if(!mining() || UnitType.currentAlpha == 0) return;
         float focusLen = hitSize / 2f + Mathf.absin(Time.time, 1.1f, 0.5f);
         float swingScl = 12f, swingMag = tilesize / 8f;
         float flashScl = 0.3f;
@@ -140,7 +140,7 @@ abstract class MinerComp implements Itemsc, Posc, Teamc, Rotc, Drawc{
         Draw.z(Layer.flyingUnit + 0.1f);
 
         Draw.color(Color.lightGray, Color.white, 1f - flashScl + Mathf.absin(Time.time, 0.5f, flashScl));
-        Draw.alpha(UnitType.alpha);
+        Draw.alpha(UnitType.currentAlpha);
 
         Drawf.laser(Core.atlas.find("minelaser"), Core.atlas.find("minelaser-end"), px, py, ex, ey, 0.75f);
 

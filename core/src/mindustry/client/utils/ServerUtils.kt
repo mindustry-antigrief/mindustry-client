@@ -11,6 +11,7 @@ import mindustry.client.*
 import mindustry.content.*
 import mindustry.content.Blocks.*
 import mindustry.content.UnitTypes.*
+import mindustry.entities.*
 import mindustry.entities.abilities.*
 import mindustry.entities.bullet.*
 import mindustry.game.EventType.*
@@ -73,6 +74,11 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             if (sender == null && "Fish Membership" in msg) return true // Adblock
 
             return false // All other messages are okay
+        }
+
+        /** Fish staff spam obnoxious particle rings */
+        override fun blockEffect(fx: Effect, rot: Float): Boolean {
+            return rot == 0F && fx == Fx.pointBeam
         }
     },
     darkdustry("Darkdustry")
@@ -156,8 +162,11 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 
     fun isVotekick(msg: String) = votekickString in msg
 
-    /** Handle's a message on a server. If true is returned, the message will be discarded and not printed. */
+    /** Handles a message on a server. If true is returned, the message will be discarded and not printed. */
     open fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean = false
+
+    /** Used to block effects on servers that spam them. */
+    open fun blockEffect(fx: Effect, rot: Float): Boolean = false
 }
 
 enum class CustomMode {

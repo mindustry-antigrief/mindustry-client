@@ -110,20 +110,18 @@ public class ForceFieldAbility extends Ability{
         checkRadius(unit);
 
         if(unit.shield > 0){
-            Draw.z(Layer.shields - .5f + UnitType.alpha); // Scuffed way of drawing unit force fields correctly, this will draw the least transparent ones higher so it shouldn't look weird
-
-            Draw.color(unit.team.color, Color.white, Mathf.clamp(alpha * UnitType.alpha));
+            var a = Mathf.clamp(alpha * UnitType.currentAlpha);
+            Draw.color(unit.team.color, Color.white, a);
+            Draw.z(Layer.shields + 0.001f * a);
 
             if(Vars.renderer.animateShields){
-                Draw.alpha(Mathf.clamp(UnitType.alpha * 2));
                 Fill.poly(unit.x, unit.y, sides, realRad, rotation);
                 Draw.alpha(1f);
             }else{
-                Draw.z(Layer.shields);
                 Lines.stroke(1.5f);
-                Draw.alpha(0.09f * UnitType.alpha);
+                Draw.alpha(0.09f * UnitType.currentAlpha);
                 Fill.poly(unit.x, unit.y, sides, radius, rotation);
-                Draw.alpha(UnitType.alpha);
+                Draw.alpha(UnitType.currentAlpha);
                 Lines.poly(unit.x, unit.y, sides, radius, rotation);
             }
         }

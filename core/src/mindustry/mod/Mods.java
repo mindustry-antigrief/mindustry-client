@@ -207,12 +207,18 @@ public class Mods implements Loadable{
         }
     }
 
-    private void loadIcons(){ // FINISHME: Do this after the menu loads, its slow. Ideally there should be a unified way to queue textures for loading after the game starts so that we only load one per frame instead of one mod icon + one map preview etc.
-        Time.mark();
-        for(LoadedMod mod : mods){
-            loadIcon(mod);
-        }
-        Log.info("Loaded mod icons in @", Time.elapsed());
+    private boolean hasLoadedIcons;
+    public void loadIcons(long start, int limit) { // FINISHME: This could be further sped up by running part of the texture creation on mainExecutor
+        if(hasLoadedIcons) return; // Skip doing any work
+        hasLoadedIcons = true; // This will be set back to false if a mod is missing an iconTexture
+        mods.each(m -> !m.attemptedIconLoad, m -> {
+            hasLoadedIcons = false;
+            var startM = Time.nanos();
+            if(Time.nanosToMillis(startM) - start > limit) return;
+            m.attemptedIconLoad = true;
+            loadIcon(m);
+            Log.debug("Attempted icon load for mod '@' in @ms", m.meta.name, Time.millisSinceNanos(startM));
+        });
     }
 
     private void loadIcon(LoadedMod mod){
@@ -273,8 +279,6 @@ public class Mods implements Loadable{
 
     @Override
     public void loadSync(){
-        loadIcons();
-
         if(packer == null) return;
         Log.debug("Begin generate & flush textures synchronously");
         var startSync = Time.nanos();
@@ -762,8 +766,9 @@ public class Mods implements Loadable{
             content.setCurrentMod(null);
         }
 
+        var duration = Time.elapsed();
         if(any[0]){
-            Log.info("Time to initialize modded scripts: @", Time.elapsed());
+            Log.info("Time to initialize modded scripts: @", duration);
         }
     }
 
@@ -1086,14 +1091,16 @@ public class Mods implements Loadable{
                 Core.settings.put("mod-" + baseName + "-enabled", false);
             }
 
+            var duration = Time.elapsed();
             if(!headless && Core.settings.getBool("mod-" + baseName + "-enabled", true)){
-                Log.info("Loaded mod '@' in @ms", meta.name, Time.elapsed());
+                Log.info("Loaded mod '@' in @ms", meta.name, duration);
             }
 
             return new LoadedMod(sourceFile, zip, mainMod, loader, meta);
         }catch(Exception e){
             //delete root zip file so it can be closed on windows
             if(rootZip != null) rootZip.delete();
+            Time.elapsed(); // Don't leak the Time.mark()
             throw e;
         }
     }
@@ -1122,6 +1129,9 @@ public class Mods implements Loadable{
         public @Nullable Texture iconTexture;
         /** Class loader for JAR mods. Null if the mod isn't loaded or this isn't a jar mod. */
         public @Nullable ClassLoader loader;
+
+        /** Foo's addition to track whether we have tried to load this mod's icon */
+        public boolean attemptedIconLoad;
 
         public LoadedMod(Fi file, Fi root, Mod main, ClassLoader loader, ModMeta meta){
             this.root = root;

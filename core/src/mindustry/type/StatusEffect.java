@@ -134,9 +134,9 @@ public class StatusEffect extends UnlockableContent{
             unit.heal(-1f * damage * Time.delta);
         }
 
-        if(effect != Fx.none && UnitType.alpha > 0 && Mathf.chanceDelta(effectChance)){
+        if(effect != Fx.none && UnitType.currentAlpha > 0 && Mathf.chanceDelta(effectChance)){
             Tmp.v1.rnd(Mathf.range(unit.type.hitSize/2f));
-            effect.at(unit.x + Tmp.v1.x, unit.y + Tmp.v1.y, 0, color.cpy().a(UnitType.alpha), parentizeEffect ? unit : null); // FINISHME: Dont copy color every frame...
+            effect.at(unit.x + Tmp.v1.x, unit.y + Tmp.v1.y, 0, color.cpy().a(UnitType.currentAlpha), parentizeEffect ? unit : null); // FINISHME: Dont copy color every frame...
         }
     }
 

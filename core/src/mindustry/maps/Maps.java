@@ -13,7 +13,6 @@ import arc.util.serialization.*;
 import kotlin.*;
 import mindustry.*;
 import mindustry.content.*;
-import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.io.*;
 import mindustry.maps.filters.*;
@@ -98,27 +97,7 @@ public class Maps{
         return maps.find(m -> m.name().equals(name));
     }
 
-    private long lastPreview = 0;
-    public Maps(){
-        Events.on(ClientLoadEvent.class, event -> loadPreviews());
-
-        Events.run(Trigger.update, () -> {
-            if(!state.isMenu()) return;
-            var sy = Time.nanos();
-            if(nextSync()) {
-                Log.debug("Loaded map preview in @ms", Time.millisSinceNanos(sy));
-                return; // loadAsync on next preview texture. returns if this did any work as we don't want too much stuff loading at once
-            }
-            if(!previewList.isEmpty() && Time.timeSinceMillis(lastPreview) > 100) { // Create preview for any map missing one every 100ms (one per frame causes way too much lag)
-                var m = previewList.first();
-                var s = Time.nanos();
-                createNewPreview(m, e -> Core.app.post(() -> m.texture = Core.assets.get("sprites/error.png")));
-                Log.debug("Created preview for '@' in @ms", m.name(), Time.millisSinceNanos(s));
-                previewList.remove(m);
-                lastPreview = Time.millis();
-            }
-        });
-    }
+    public Maps(){}
 
     /**
      * Loads a map from the map folder and returns it. Should only be used for zone maps.
@@ -387,55 +366,70 @@ public class Maps{
         return str == null ? null : str.equals("[]") ? new Seq<>() : Seq.with(JsonIO.json.fromJson(SpawnGroup[].class, str));
     }
 
-    public void loadPreviews(){
-        Threads.daemon("Map Preview Loader", () -> {
-            var loader = new MapPreviewLoader();
-            for(Map map : maps){
-                if(map.previewFile().exists()){
-                    var fileName = (map.previewFile().path() + "." + mapExtension).replaceAll("\\\\", "/");
-                    loader.loadAsync(Core.assets, fileName, loader.resolve(fileName), new MapPreviewLoader.MapPreviewParameter(map));
-                    try{
-                        readCache(map);
-                    }catch(Exception e){
-                        e.printStackTrace();
-                        queueNewPreview(map);
-                    }
-
-                    var info = new TextureLoader.TextureLoaderInfo();
-                    info.filename = loader.info.filename;
-                    info.data = loader.info.data;
-                    info.texture = loader.info.texture;
-                    queuedPreviews.add(new Pair<>(map, info));
-                }else{
+    public void loadPreviewsAsync(){ // This is run *off* the main thread!
+        var loader = new MapPreviewLoader();
+        for(Map map : maps){
+            if(map.previewFile().exists()){
+                var fileName = (map.previewFile().path() + "." + mapExtension).replaceAll("\\\\", "/");
+                loader.loadAsync(Core.assets, fileName, loader.resolve(fileName), new MapPreviewLoader.MapPreviewParameter(map));
+                try{
+                    readCache(map);
+                }catch(Exception e){
+                    e.printStackTrace();
                     queueNewPreview(map);
                 }
+
+                var info = new TextureLoader.TextureLoaderInfo();
+                info.filename = loader.info.filename;
+                info.data = loader.info.data;
+                info.texture = loader.info.texture;
+                queuedPreviews.add(new Pair<>(map, info));
+            }else{
+                queueNewPreview(map);
             }
-            Core.app.post(() -> maps.sort());
-        });
+        }
+        Core.app.post(() -> maps.sort());
     }
 
     private final LinkedBlockingQueue<Pair<Map, TextureLoader.TextureLoaderInfo>> queuedPreviews = new LinkedBlockingQueue<>();
     private MapPreviewLoader loader;
 
-    /** @return Whether any work was done */
-    private boolean nextSync(){
-        if(queuedPreviews.isEmpty()){
-            loader = null;
-            return false;
-        }
-        if(loader == null) loader = new MapPreviewLoader();
+    /** Processes the work queues relating to map preview creation and loading */
+    public long processQueue(long start, long lastPreview){
+        if(!state.isMenu()) return lastPreview; // Only want this to work in the menu
 
-        var pair = queuedPreviews.poll();
-        var map = pair.getFirst();
-        var info = pair.getSecond();
-        loader.info = info;
-        map.texture = loader.loadSync(Core.assets, info.filename, Core.files.local(info.filename.substring(0, info.filename.length() - 5)), null); // Drop 5 to remove the .msav extension
-        return true;
+        // This block handles loading the preview texture for a map
+        if(queuedPreviews.isEmpty()) loader = null; // No remaining previews (or we somehow outpaced the threads posting to the queue which is unlikely and not a problem either way), null out the loader to reclaim memory
+        else{
+            if(loader == null) loader = new MapPreviewLoader();
+
+            var pair = queuedPreviews.poll();
+            var map = pair.getFirst();
+            var info = pair.getSecond();
+            var noExt = info.filename.substring(0, info.filename.length() - 5); // Drop 5 to remove the .msav extension
+            loader.info = info;
+            var s = Time.nanos();
+            map.texture = loader.loadSync(Core.assets, info.filename, Core.files.local(noExt), null);
+            Log.debug("Lazy loaded map preview for @ in @ms", noExt, Time.millisSinceNanos(s));
+            return Time.millis(); // This is always slow, so we may as well just return now
+        }
+
+        // This block handles the creation of previews for a map with no existing preview file (or the existing preview is corrupt for whatever reason)
+        if(!previewList.isEmpty() && Time.timeSinceMillis(lastPreview) > 100){ // Create preview for any map missing one every 100ms (one per frame causes way too much lag)
+            var m = previewList.first();
+            var s = Time.nanos();
+            createNewPreview(m, e -> Core.app.post(() -> m.texture = Core.assets.get("sprites/error.png")));
+            Log.debug("Created preview for '@' in @ms", m.name(), Time.millisSinceNanos(s));
+            previewList.remove(m);
+            return Time.millis(); // This is *extremely* slow, especially on large maps, we should return immediately
+        }
+        return lastPreview;
     }
 
+
+    @SuppressWarnings("unused") // Kept in case some mod uses it for whatever reason, vanilla compatibility sure is a pain sometimes
     private void createAllPreviews(){
         Core.app.post(() -> {
-            if(!state.isMenu()) return;
             for(Map map : previewList){
                 createNewPreview(map, e -> Core.app.post(() -> map.texture = Core.assets.get("sprites/error.png")));
             }

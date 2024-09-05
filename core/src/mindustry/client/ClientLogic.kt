@@ -25,7 +25,6 @@ import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
 import kotlin.random.*
-import kotlin.system.*
 
 /** WIP client logic class, similar to [Logic] but for the client.
  * Handles various events and such.
@@ -111,6 +110,8 @@ class ClientLogic {
             massDrivers.clear()
             payloadMassDrivers.clear()
             Client.tiles.clear()
+            Client.tilesNaval.clear()
+            Client.tilesFlying.clear()
         }
 
         Events.on(MenuReturnEvent::class.java) { // Run when returning to the title screen
@@ -121,13 +122,7 @@ class ClientLogic {
         }
 
         Events.on(ClientLoadEvent::class.java) { // Run when the client finishes loading FINISHME: Look into optimizing this, it takes half of the entire ClientLoadEvent, ~250ms on my machine
-            mainExecutor.execute {
-                Log.debug("Loaded sound & music in @ms", measureTimeMillis {
-                    Musics.load(true) // Loading music isn't very important
-                    Sounds.load(true) // Same applies to sounds
-                })
-            }
-
+            handleMenuTasksAsync()
             val changeHash = files.internal("changelog").readString().replace("\r\n", "\n").hashCode() // Display changelog if the file contents have changed as well as on first run
             if (settings.getInt("changeHash") != changeHash) {
                 ChangelogDialog.show()
