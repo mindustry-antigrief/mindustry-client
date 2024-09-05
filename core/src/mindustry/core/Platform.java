@@ -62,6 +62,9 @@ public interface Platform{
     /** Steam: View a listing on the workshop by an ID.*/
     default void viewListingID(String mapid){}
 
+    /** Steam: Verify the game files.*/
+    default void checkIntegrity(){}
+
     /** Steam: Return external workshop maps to be loaded.*/
     default Seq<Fi> getWorkshopContent(Class<? extends Publishable> type){
         return new Seq<>(0);

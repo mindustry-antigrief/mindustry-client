@@ -14,6 +14,7 @@ import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.client.ui.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
@@ -80,7 +81,29 @@ public class MenuFragment{
             }}, ui.about::show).size(84, 45).name("info"));
         }else{
             parent.fill(c -> {
-                c.bottom().right().button("Switch to v6", Icon.download, () -> {
+                // Uninstall foo's button
+                c.bottom().right().button("@client.uninstall", Icon.trash, () ->
+                    ui.showConfirm("@client.uninstall.title", Core.bundle.get("client.uninstall.body") + (steam ? Core.bundle.get("client.uninstall.body.append.steam") : ""), () -> {
+                        var installerMod = Vars.mods.getMod("fooinstaller");
+                        if(installerMod != null) Vars.mods.setEnabled(installerMod, false);
+                        if(steam){
+                            platform.checkIntegrity();
+                        }else{
+                            ui.loadfrag.show();
+                            becontrol.checkUpdate(result -> {
+                                ui.loadfrag.hide();
+                                if(!result){
+                                    ui.showInfo("@be.noupdates");
+                                }else{
+                                    becontrol.showUpdateDialog();
+                                }
+                            }, "anuken/mindustry");
+                        }
+                    })
+                ).size(200, 60);
+
+                // Switch to lower major version (v6)
+                c.bottom().right().button("@client.version.swap.v6", Icon.download, () -> {
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
@@ -92,6 +115,7 @@ public class MenuFragment{
                     }, "mindustry-antigrief/mindustry-client-v6-builds");
                 }).size(200, 60).padRight(10);
 
+                // "Switch to (un)stable" button
                 c.button("", Icon.refresh, () -> {
                     Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-v7-builds").replaceFirst("((-v6|-v7)?-builds) {2}", ""));
                     ui.loadfrag.show();
@@ -99,23 +123,24 @@ public class MenuFragment{
                         ui.loadfrag.hide();
                         if(!result){
                             ui.showInfo("@be.noupdates");
-                        } else {
+                        }else{
                             becontrol.showUpdateDialog();
                         }
                     });
                 }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchstable" : "@client.switchunstable")).disabled(true); // FINISHME: Re-enable when v7 releases
 
+                // "Check for updates" button
                 c.bottom().right().button("@be.check", Icon.refresh, () -> {
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
                         if(!result){
                             ui.showInfo("@be.noupdates");
-                        } else {
+                        }else{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
+                }).size(200, 60).padRight(10).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
             });
         }
 

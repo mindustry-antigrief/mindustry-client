@@ -21,4 +21,12 @@ class UnpackJars {
             }
         }
     }
+
+    fun unpackSteamUninstaller(): Fi { // Only run as needed since it just adds more work
+        val out = Fi(this::class.java.protectionDomain.codeSource.location.toURI().path).sibling("fooUninstaller.jar")
+        val inp = Fi("fooUninstaller.jar", Files.FileType.classpath)
+        out.delete() // Prevent the file from copying to itself
+        inp.copyTo(out)
+        return out
+    }
 }
