@@ -168,10 +168,12 @@ class AutoTransfer {
 
         var maxID = -1
         var maxCount = 0
-        if (nearCore) { // Draining to core: Drain as much as possible always FINISHME: We need to consider core resource caps, we don't do that currently.
+        if (nearCore) { // Draining to core: Drain as much as possible always (without overfilling cores)
+            val playerCap = player.unit().itemCapacity()
+            val reasonableCoreLimit = (core!! as CoreBlock.CoreBuild).storageCapacity - 300 - playerCap * 3 // Why is this reasonable? Because it feels right. There is no other reason.
             for (i in counts.indices) {
                 val count = counts[i]
-                if (count > maxCount) {
+                if (count > maxCount && core!!.items.get(i) < reasonableCoreLimit) {
                     maxID = i
                     maxCount = count
                 }
@@ -202,7 +204,7 @@ class AutoTransfer {
         if (item == null) return false
 
         maxCount = maxCount.coerceAtMost(player.unit().maxAccepted(item))
-        builds.sort { b -> b.items[maxID].toFloat() - b.getMaximumAccepted(item) }.forEach { // FINISHME: Don't grab items if they're gonna get stuck in the player inv cause the core is full
+        builds.sort { b -> b.items[maxID].toFloat() - b.getMaximumAccepted(item) }.forEach {
             if (ratelimitRemaining <= 1 || it.items[maxID] < minTransfer || maxCount < minTransfer) return@forEach // No ratelimit left or this building doesn't have enough of the item or the player unit is full
 
             Call.requestItem(player, it, item, maxCount)

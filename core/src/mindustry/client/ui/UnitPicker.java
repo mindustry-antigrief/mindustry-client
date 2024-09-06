@@ -24,7 +24,7 @@ public class UnitPicker extends BaseDialog {
     Seq<UnitType> sorted = content.units().copy();
 
     public UnitPicker(){
-        super("@client.unitpicker");
+        super("@client.unitpicker.title");
 
         onResize(this::build);
         shown(this::build);

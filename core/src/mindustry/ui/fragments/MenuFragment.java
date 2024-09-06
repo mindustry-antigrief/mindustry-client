@@ -100,7 +100,7 @@ public class MenuFragment{
                             }, "anuken/mindustry");
                         }
                     })
-                ).size(200, 60);
+                ).size(200, 60).padRight(10);
 
                 // Switch to lower major version (v6)
                 c.bottom().right().button("@client.version.swap.v6", Icon.download, () -> {
@@ -115,19 +115,18 @@ public class MenuFragment{
                     }, "mindustry-antigrief/mindustry-client-v6-builds");
                 }).size(200, 60).padRight(10);
 
-                // "Switch to (un)stable" button
-                c.button("", Icon.refresh, () -> {
-                    Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-v7-builds").replaceFirst("((-v6|-v7)?-builds) {2}", ""));
+                // Switch to higher major version (v8)
+                c.bottom().right().button("@client.version.swap.v8", Icon.upload, () -> {
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
                         if(!result){
                             ui.showInfo("@be.noupdates");
-                        }else{
+                        } else {
                             becontrol.showUpdateDialog();
                         }
-                    });
-                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchstable" : "@client.switchunstable")).disabled(true); // FINISHME: Re-enable when v7 releases
+                    }, "mindustry-antigrief/mindustry-client-v8-builds");
+                }).size(200, 60).padRight(10);
 
                 // "Check for updates" button
                 c.bottom().right().button("@be.check", Icon.refresh, () -> {
@@ -140,7 +139,7 @@ public class MenuFragment{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).padRight(10).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
+                }).size(200, 60).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
             });
         }
 
@@ -252,7 +251,7 @@ public class MenuFragment{
                     new MenuButton("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
                     new MenuButton("@loadgame", Icon.download, () -> checkPlay(ui.load::show))
                 ),
-                new MenuButton("@client", Icon.wrench,
+                new MenuButton("@client.name", Icon.wrench,
                     new MenuButton("Discord", Icon.discord, () -> { // Link to client discord
                         if (!Core.app.openURI(clientDiscord)) {
                             ui.showErrorMessage("@linkfail");
@@ -260,14 +259,14 @@ public class MenuFragment{
                         }
                     }),
                     new MenuButton("Github", Icon.github, () -> { // Link to client github
-                        if (!Core.app.openURI("https://github.com/blahblahbloopster/mindustry-client-v6")) {
+                        if (!Core.app.openURI("https://github.com/mindustry-antigrief/mindustry-client")) {
                             ui.showErrorMessage("@linkfail");
-                            Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
+                            Core.app.setClipboardText("https://github.com/mindustry-antigrief/mindustry-client");
                         }
                     }),
                     new MenuButton("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show),
                     new MenuButton("@client.features", Icon.list, FeaturesDialog.INSTANCE::show),
-                    new MenuButton("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show())
+                    new MenuButton("@client.certs.manage.title", Icon.lock, () -> new TLSKeyDialog().show())
                 ), // End of client section
                 new MenuButton("@database.button", Icon.menu,
                     new MenuButton("@schematics", Icon.paste, ui.schematics::show),

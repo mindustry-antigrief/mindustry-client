@@ -556,8 +556,8 @@ public class ConstructBlock extends Block{
 
             if (warnBlock.warnDistance == 101 || distance <= warnBlock.warnDistance) {
                 String toastMessage = Core.bundle.format(
-                        "client.blockwarn", ClientUtils.getName(lastBuilder),
-                        current.localizedName, tile.x, tile.y, distance
+                    "client.blockwarn", ClientUtils.getName(lastBuilder),
+                    current.localizedName, tile.x, tile.y, distance
                 );
                 String toastSubtitle = String.format("%2d%% completed.", Mathf.round(progress * 100));
                 if (toast == null || toast.parent == null) {

@@ -54,7 +54,7 @@ object ResearchAssistant : Table() {
         top().right().clearChildren()
         defaults().right().top()
 
-        check("@client.research", autoResearch) { autoResearch = it }
+        check("@client.research.everything", autoResearch) { autoResearch = it }
 
         row()
         table {
