@@ -449,7 +449,7 @@ public class UnitType extends UnlockableContent implements Senseable{
 
         constructor = EntityMapping.map(this.name);
         selectionSize = 30f;
-        typeAlpha = Core.settings.getInt("unittypeopacity-" + this.name, 100) / 100F; // use this.name as it is different from the parameter after the super call
+        typeAlpha = Core.settings == null ? 1  : Core.settings.getInt("unittypeopacity-" + this.name, 100) / 100F; // use this.name as it is different from the parameter after the super call
     }
 
     public UnitController createController(Unit unit){
