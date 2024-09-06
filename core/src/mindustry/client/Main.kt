@@ -83,7 +83,6 @@ object Main : ApplicationListener {
             if (!Strings.canParsePositiveFloat(version)) return@addPacketHandler
 
             ClientVars.pluginVersion = Strings.parseFloat(version)
-            if (ClientVars.pluginVersion == 1F) setPluginNetworking(true) // In version one we didnt have fooTransmissionEnabled FINISHME: Remove this on v7 release
         }
 
         /** @since v2 Toggles the state of plugin networking */

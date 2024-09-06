@@ -65,7 +65,7 @@ class CommandTransmission : Transmission {
         UPDATE(true, {
             if (!isDeveloper()) {
                 val cert = Main.keyStorage.findTrusted(BigInteger(it.certSN))!!
-                Vars.becontrol.checkUpdate({ Vars.becontrol.actuallyDownload(Main.keyStorage.aliasOrName(cert)) }, "mindustry-antigrief/mindustry-client-v7-builds")
+                Vars.becontrol.checkUpdate({ Vars.becontrol.actuallyDownload(Main.keyStorage.aliasOrName(cert)) }, "mindustry-antigrief/mindustry-client-v8-builds")
             }
         })
     }
