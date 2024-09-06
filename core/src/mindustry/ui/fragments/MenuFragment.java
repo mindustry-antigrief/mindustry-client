@@ -102,8 +102,8 @@ public class MenuFragment{
                     })
                 ).size(200, 60);
 
-                // Switch to lower major version (v6)
-                c.bottom().right().button("@client.version.swap.v6", Icon.download, () -> {
+                // Switch to lower major version (v7)
+                c.bottom().right().button("@client.version.swap.v7", Icon.download, () -> {
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
@@ -112,12 +112,12 @@ public class MenuFragment{
                         } else {
                             becontrol.showUpdateDialog();
                         }
-                    }, "mindustry-antigrief/mindustry-client-v6-builds");
+                    }, "mindustry-antigrief/mindustry-client-v7-builds");
                 }).size(200, 60).padRight(10);
 
                 // "Switch to (un)stable" button
                 c.button("", Icon.refresh, () -> {
-                    Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-v7-builds").replaceFirst("((-v6|-v7)?-builds) {2}", ""));
+                    Core.settings.put("updateurl", (Core.settings.getString("updateurl") + "-v8-builds").replaceFirst("((-v[6-8])?-builds) {2}", ""));
                     ui.loadfrag.show();
                     becontrol.checkUpdate(result -> {
                         ui.loadfrag.hide();
