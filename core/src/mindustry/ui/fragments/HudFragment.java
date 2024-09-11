@@ -290,7 +290,7 @@ public class HudFragment{
                 }
                 addInfoTable(st.table().growX().get());
             }).marginTop(6).marginBottom(3).growX().get();
-            powPayStat.visible(() -> powerInfo || player.unit() instanceof Payloadc p && p.payloadUsed() > 0 || player.unit().statusBits() != null && !player.unit().statusBits().isEmpty());
+            powPayStat.visible(() -> powerInfo || !player.dead() && (player.unit() instanceof Payloadc p && p.payloadUsed() > 0 || player.unit().statusBits() != null && !player.unit().statusBits().isEmpty()));
 
             editorMain.name = "editor";
 
