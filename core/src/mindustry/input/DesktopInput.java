@@ -627,7 +627,7 @@ public class DesktopInput extends InputHandler{
                 }).disabled(b -> state.rules.pvp && Server.io.b());
 
                 table.row().fill();
-                table.button("@client.unitpicker", () -> { // Unit Picker / Sniper
+                table.button("@client.unitpicker.title", () -> { // Unit Picker / Sniper
                     ui.unitPicker.show();
                     table.remove();
                 });

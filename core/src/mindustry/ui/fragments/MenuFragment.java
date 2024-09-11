@@ -100,7 +100,7 @@ public class MenuFragment{
                             }, "anuken/mindustry");
                         }
                     })
-                ).size(200, 60);
+                ).size(200, 60).padRight(10);
 
                 // Switch to lower major version (v7)
                 c.bottom().right().button("@client.version.swap.v7", Icon.download, () -> {
@@ -109,7 +109,7 @@ public class MenuFragment{
                         ui.loadfrag.hide();
                         if(!result){
                             ui.showInfo("@be.noupdates");
-                        } else {
+                        }else{
                             becontrol.showUpdateDialog();
                         }
                     }, "mindustry-antigrief/mindustry-client-v7-builds");
@@ -140,7 +140,7 @@ public class MenuFragment{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).padRight(10).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
+                }).size(200, 60).name("becheck").update(t -> t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white));
             });
         }
 
@@ -252,7 +252,7 @@ public class MenuFragment{
                     new MenuButton("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
                     new MenuButton("@loadgame", Icon.download, () -> checkPlay(ui.load::show))
                 ),
-                new MenuButton("@client", Icon.wrench,
+                new MenuButton("@client.name", Icon.wrench,
                     new MenuButton("Discord", Icon.discord, () -> { // Link to client discord
                         if (!Core.app.openURI(clientDiscord)) {
                             ui.showErrorMessage("@linkfail");
@@ -260,14 +260,14 @@ public class MenuFragment{
                         }
                     }),
                     new MenuButton("Github", Icon.github, () -> { // Link to client github
-                        if (!Core.app.openURI("https://github.com/blahblahbloopster/mindustry-client-v6")) {
+                        if (!Core.app.openURI("https://github.com/mindustry-antigrief/mindustry-client")) {
                             ui.showErrorMessage("@linkfail");
-                            Core.app.setClipboardText("https://github.com/blahblahbloopster/mindustry-client-v6");
+                            Core.app.setClipboardText("https://github.com/mindustry-antigrief/mindustry-client");
                         }
                     }),
                     new MenuButton("@client.changelog", Icon.edit, ChangelogDialog.INSTANCE::show),
                     new MenuButton("@client.features", Icon.list, FeaturesDialog.INSTANCE::show),
-                    new MenuButton("@client.keyshare", Icon.lock, () -> new TLSKeyDialog().show())
+                    new MenuButton("@client.certs.manage.title", Icon.lock, () -> new TLSKeyDialog().show())
                 ), // End of client section
                 new MenuButton("@database.button", Icon.menu,
                     new MenuButton("@schematics", Icon.paste, ui.schematics::show),

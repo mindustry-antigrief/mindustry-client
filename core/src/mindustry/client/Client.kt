@@ -117,8 +117,8 @@ object Client {
             }
         } else if (spawnTime != 0f && travelTime != 0f && spawner.spawns.size < 50 && timer.get(0, travelTime)) {
             if (timer.get(1, spawnTime)) {
-                spawner.eachGroundSpawn { x, y -> tiles.add(world.tile(x, y)) }
-                spawner.eachGroundSpawn { x, y -> tilesNaval.add(world.tile(x, y)) }
+                spawner.eachGroundSpawn { x, y -> tiles.add(world.tile(x, y) ?: run { Log.debug("Invalid ground tile at $x $y"); return@eachGroundSpawn }) }
+                spawner.eachGroundSpawn { x, y -> tilesNaval.add(world.tile(x, y) ?: run { Log.debug("Invalid naval tile at $x $y"); return@eachGroundSpawn }) }
             }
 //            if (timer.get(1, spawnTime)) tiles.addAll(spawner.spawns)
             for (i in tiles.size - 1 downTo 0) {

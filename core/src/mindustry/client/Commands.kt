@@ -692,16 +692,16 @@ fun setupCommands() {
         mutedPlayers.clear()
     }
 
-    register("ohno", "Runs the auto ohno procedure on fish servers") { _, player -> // FINISHME: This is great and all but it would be nice to run this automatically every minute or so
+    register("ohno", "client.command.autoohno.description".bundle()) { _, player -> // FINISHME: This is great and all but it would be nice to run this automatically every minute or so
         if (!Server.fish()) return@register
-        player.sendMessage("[accent]Running auto ohno") // FINISHME: Bundle
+        player.sendMessage("client.command.autoohno.running".bundle())
         Server.ohnoTask?.cancel()
         Server.ohnoTask = Server.ohno()
     }
     
     // Special commands
 
-    register("seer", "Clientside moderation") { _, player -> // FINISHME
+    register("seer", "client.command.seer.description".bundle()) { _, player ->
         if (!Core.settings.getBool("seer-enabled")) {
             player.sendMessage(Core.bundle.get("client.command.seer.disabled"))
             return@register

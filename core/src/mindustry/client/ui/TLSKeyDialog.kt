@@ -13,7 +13,7 @@ import mindustry.ui.*
 import mindustry.ui.dialogs.*
 import java.security.cert.*
 
-class TLSKeyDialog : BaseDialog("@client.keyshare") {
+class TLSKeyDialog : BaseDialog("@client.certs.manage.title") {
     private val keys = Table()
     private lateinit var importDialog: Dialog
     private lateinit var aliasDialog: Dialog
@@ -33,14 +33,14 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                 if (Main.keyStorage.builtInCerts.contains(cert)) return@button
                 store.untrust(cert)
                 regenerate()
-            }.padRight(20f).tooltip(if (Main.keyStorage.builtInCerts.contains(cert)) "@client.cantdelete" else "@save.delete")
+            }.padRight(20f).tooltip(if (Main.keyStorage.builtInCerts.contains(cert)) "@client.cert.cantdelete" else "@save.delete").disabled(Main.keyStorage.builtInCerts.contains(cert))
 
-            table.button(Icon.edit, Styles.settingTogglei, 16f) button2@ {
-                aliasDialog = dialog("@client.alias") {
+            table.button(Icon.edit, Styles.settingTogglei, 16f) {
+                aliasDialog = dialog("@client.cert.alias") {
                     addCloseListener()
                     val aliasInput = TextField("")
                     aliasInput.setFilter { _, c -> c.isLetterOrDigit() }
-                    aliasInput.messageText = "@client.noalias"
+                    aliasInput.messageText = "@client.cert.noalias"
                     cont.row(aliasInput).width(400f)
 
                     cont.row().table { ta ->
@@ -53,7 +53,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                                 return@button
                             }
                             if ((store.trusted().any { it.readableName.equals(aliasInput.text, true) }) || store.aliases().any { it.second.equals(aliasInput.text, true) }) {
-                                Toast(3f).label("@client.aliastaken")
+                                Toast(3f).label("@client.cert.aliastaken")
                                 return@button
                             }
                             store.alias(cert, aliasInput.text)
@@ -64,9 +64,9 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                         ta.button("@close", ::hide)
                     }
                 }.show()
-            }.padRight(10f).tooltip("@client.editcert")
+            }.padRight(10f).tooltip("@edit")
             table.label(cert.readableName).padRight(10f)
-            table.label("(${store.alias(cert) ?: "client.noalias".bundle()})").right()
+            table.label("(${store.alias(cert) ?: "client.cert.noalias".bundle()})").right()
             keys.row(table)
         }
     }
@@ -77,13 +77,13 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
 
         if (!store.loaded()) {
             Core.app.post(::hide)
-            Vars.ui.showText("@client.keyshare.loading.title", "@client.keyshare.loading.text")
+            Vars.ui.showText("@client.certs.loading.title", "@client.certs.loading.text")
             return
         }
 
-        if (store.cert() == null || store.key() == null || store.chain() == null) {
+        if (store.cert() == null || store.key() == null || store.chain() == null) { // Create cert
             Core.app.post { // Post is needed otherwise this will show up behind the key dialog
-                Vars.ui.showTextInput("@client.certname.title", "@client.certname.text", 32, Core.settings.getString("name", ""), false, { text -> // On submission
+                Vars.ui.showTextInput("@client.cert.name.title", "@client.cert.name.text", 32, Core.settings.getString("name", ""), false, { text -> // On submission
                     if (text.length < 2) {
                         hide()
                         return@showTextInput
@@ -123,7 +123,7 @@ class TLSKeyDialog : BaseDialog("@client.keyshare") {
                 importDialog = dialog("@client.importkey") {
                     addCloseListener()
                     val keyInput = TextField("")
-                    keyInput.messageText = "@client.key"
+                    keyInput.messageText = "@client.cert.word"
                     keyInput.setValidator { k -> k.isNotEmpty() }
                     cont.row(keyInput).width(400f)
 

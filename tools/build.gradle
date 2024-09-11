@@ -327,7 +327,7 @@ task updateBundles{
         Log.info("Updating bundles...")
 
         Fi.get("core/assets/bundles").walk(child -> {
-            if(child.name() == "bundle.properties" || child.toString().contains("output")) return
+            if(child.name().equals("bundle.properties") || child.toString().contains("output")) return
             if(project.hasProperty("bundle") && child.name() != project.property("bundle")) return
 
             Log.info("| @", child.nameWithoutExtension())
@@ -377,10 +377,9 @@ task updateBundles{
                 }
             }
 
-            Func2<String, String, String> processor = { key, value ->
-                (comments.containsKey(key) ? comments.get(key) : "") + //append last known comment if present
-                    (key + " =" + (value.trim().isEmpty() ? "" : " ") + uniEscape(value)).replace("\n", "\\n") + "\n"
-            }
+            Func2<String, String, String> processor = (key, value) ->
+                    (comments.containsKey(key) ? comments.get(key) : "") + //append last known comment if present
+                            (key + " =" + (value.trim().isEmpty() ? "" : " ") + uniEscape(value)).replace("\n", "\\n") + "\n"
             Fi output = child.sibling("output/" + child.name())
 
             if(added > 0) Log.info("&lc@ keys added.", added)
