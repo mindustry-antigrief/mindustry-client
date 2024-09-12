@@ -30,7 +30,8 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     private val rtv: Cmd = Cmd("/rtv", -1),
     @JvmField val freeze: Cmd = Cmd("/freeze", -1),
     @JvmField val ghost: Boolean = false,
-    private val votekickString: String = "Type[orange] /vote <y/n>[] to agree."
+    private val votekickString: String = "Type[orange] /vote <y/n>[] to agree.",
+    @JvmField var blockAnnoyances: Boolean = true
 ) {
     other(null),
     nydus("nydus"),
@@ -57,7 +58,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     },
     phoenix("Phoenix Network", null, Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
-    fish("Fish", null, Cmd("/msg")) {
+    fish("Fish", null, Cmd("/msg"), blockAnnoyances = Core.settings.getBool("blockfishannoyances")) {
         override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
             msg ?: return false
             if (sender == null && ohnoTask != null) { // Very hacky way of handling autoOhno
@@ -78,7 +79,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 
         /** Fish staff spam obnoxious particle rings */
         override fun blockEffect(fx: Effect, rot: Float): Boolean {
-            return rot == 0F && fx == Fx.pointBeam
+            return blockAnnoyances && rot == 0F && fx == Fx.pointBeam
         }
     },
     darkdustry("Darkdustry")
