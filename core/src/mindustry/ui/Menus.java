@@ -133,7 +133,7 @@ public class Menus{
     @Remote(variants = Variant.both, unreliable = true)
     public static void label(String message, float duration, float worldx, float worldy){
         if(message == null) return;
-        if(Server.fish.b()) return; // Fish admins spam stupid labels
+        if(Server.fish.b() && Server.fish.blockAnnoyances) return; // Fish admins spam stupid labels
 
         ui.showLabel(message, duration, worldx, worldy);
     }

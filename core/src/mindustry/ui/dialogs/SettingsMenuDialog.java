@@ -441,6 +441,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("forceallowschematics", true);
+        client.checkPref("blockfishannoyances", true, i -> Server.fish.blockAnnoyances = i);
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
