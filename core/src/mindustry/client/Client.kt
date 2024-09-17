@@ -113,7 +113,7 @@ object Client {
             Draw.alpha(.5F)
             for (i in 0..<tilesFlying.size step 2) { // Draw air paths FINISHME: Instead of direct path to core, we should check the types of all existing and upcoming units and draw a path for each of their main targets. See FlyingAI.findMainTarget
                 val target = Geometry.findClosest(tilesFlying.get(i), tilesFlying.get(i+1), indexer.getEnemy(state.rules.waveTeam, BlockFlag.core))
-                Lines.line(tilesFlying.get(i), tilesFlying.get(i+1), target.x, target.y)
+                if (target != null) Lines.line(tilesFlying.get(i), tilesFlying.get(i+1), target.x, target.y)
             }
         } else if (spawnTime != 0f && travelTime != 0f && spawner.spawns.size < 50 && timer.get(0, travelTime)) {
             if (timer.get(1, spawnTime)) {
