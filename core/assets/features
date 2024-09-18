@@ -43,6 +43,7 @@
  * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)
  * Shift {schematic_menu} - Schematic browser
  * {force_place_modifier} {select} - Force places selection/schematics by marking overlapping buildings for deconstruction and placing overlapped plans into frozen queue.
+ * {focus_block_search_modifier} {focus_block_search} - Focus block search bar
 
 # Commands
  * If you're unfamiliar with mindustry command syntax, <name> indicates a required argument, and [name] an optional one

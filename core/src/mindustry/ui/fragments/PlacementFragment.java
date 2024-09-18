@@ -722,4 +722,11 @@ public class PlacementFragment{
 
         return null;
     }
+
+    public void focusBlockSearch() {
+        // search is null if setting `placementfragmentsearch` is false
+        if (search != null) {
+            Core.scene.setKeyboardFocus(search);
+        }
+    }
 }

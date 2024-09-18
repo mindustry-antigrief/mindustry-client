@@ -55,6 +55,8 @@ public enum Binding implements KeyBind{
     block_select_08(KeyCode.num8),
     block_select_09(KeyCode.num9),
     block_select_10(KeyCode.num0),
+    focus_block_search(KeyCode.space),
+    focus_block_search_modifier(KeyCode.shiftLeft),
 
     zoom(new Axis(KeyCode.scroll), "view"),
     menu(Core.app.isAndroid() ? KeyCode.back : KeyCode.escape),
