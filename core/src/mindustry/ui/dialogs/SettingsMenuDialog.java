@@ -464,6 +464,7 @@ public class SettingsMenuDialog extends BaseDialog{
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
             client.category("experimental");
             client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
+            client.checkPref("modiconloadingoptimization", false);
 
             client.checkPref("seer-warnings", false);
             client.checkPref("seer-scoring", false);
