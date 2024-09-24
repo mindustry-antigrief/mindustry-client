@@ -442,6 +442,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("forceallowschematics", true);
+        client.checkPref("blockfishannoyances", true, i -> Server.fish.blockAnnoyances = i);
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
@@ -464,6 +465,7 @@ public class SettingsMenuDialog extends BaseDialog{
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
             client.category("experimental");
             client.checkPref("trackcoreitems", false, i -> CoreItemsDisplay.trackItems = i && !net.server());
+            client.checkPref("modiconloadingoptimization", false);
 
             client.checkPref("seer-warnings", false);
             client.checkPref("seer-scoring", false);

@@ -15,6 +15,7 @@ import arc.util.io.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
 import kotlin.*;
+import mindustry.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
@@ -222,13 +223,13 @@ public class Mods implements Loadable{
             hasLoadedIcons = false;
             var startM = Time.nanos();
             if(Time.nanosToMillis(startM) - start > limit) return;
-            m.attemptedIconLoad = true;
             loadIcon(m);
             Log.debug("Attempted icon load for mod '@' in @ms", m.meta.name, Time.millisSinceNanos(startM));
         });
     }
 
     private void loadIcon(LoadedMod mod){
+        mod.attemptedIconLoad = true;
         //try to load icon for each mod that can have one
         if(mod.root.child("icon.png").exists() && !headless){
             try{
@@ -1167,6 +1168,8 @@ public class Mods implements Loadable{
 
         /** Foo's addition to track whether we have tried to load this mod's icon */
         public boolean attemptedIconLoad;
+        private static boolean iconLoadingOptimization = Core.settings.getBool("modiconloadingoptimization");
+        private static ObjectSet<String> iconDeferralUnsupported = ObjectSet.with("mi2-utilities-java", "olupis");
 
         public LoadedMod(Fi file, Fi root, Mod main, ClassLoader loader, ModMeta meta){
             this.root = root;
@@ -1175,6 +1178,9 @@ public class Mods implements Loadable{
             this.main = main;
             this.meta = meta;
             this.name = meta.name.toLowerCase(Locale.ROOT).replace(" ", "-");
+            if(shouldBeEnabled() && (!iconLoadingOptimization || iconDeferralUnsupported.contains(this.name))){ // This is terrible.
+                Core.app.post(() -> Vars.mods.loadIcon(this));
+            }
         }
 
         /** @return whether this is a java class mod. */
