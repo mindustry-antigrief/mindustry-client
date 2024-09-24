@@ -151,6 +151,11 @@ public class BeControl{
         }
     }
 
+    /** Convenience method to download a jar so that this doesn't need to get copied multiple times */
+    public void downloadJar(String url, Fi dest, Runnable done, Cons<Throwable> error){
+        download(url, dest, l -> {}, p -> {}, () -> false, done, error);
+    }
+
     private void download(String furl, Fi dest, Intc length, Floatc progressor, Boolp canceled, Runnable done, Cons<Throwable> error){
         mainExecutor.submit(() -> {
             try{
