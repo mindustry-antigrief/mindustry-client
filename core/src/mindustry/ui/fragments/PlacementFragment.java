@@ -161,7 +161,7 @@ public class PlacementFragment{
                     break;
                 }
             }
-            if (!found) {
+            if (!found && player.unit() != null) {
                 for(BuildPlan req : player.unit().plans()){
                     if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
                         tryRecipe = req.block;
