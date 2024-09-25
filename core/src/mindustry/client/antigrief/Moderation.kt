@@ -101,15 +101,15 @@ class Moderation {
             // Dont send in admin chat as it can get spammy
 //            if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
 //            else sendMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
-            Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+            Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
         }
 
         for (n in traces.size - 1 downTo 0) {
             val i = traces[n]
             if (i.trace.ip == info.uuid || i.trace.ip == info.ip) { // Update info
-                if (i.trace.uuid != info.uuid) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed UUID: ${i.trace.uuid} -> ${info.uuid}")
-                if (i.trace.ip != info.ip) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed IP: ${i.trace.ip} -> ${info.ip}")
-                if (i.name != player.name) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed name, was previously: ${i.name}")
+                if (i.trace.uuid != info.uuid) Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has changed UUID: ${i.trace.uuid} -> ${info.uuid}")
+                if (i.trace.ip != info.ip) Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has changed IP: ${i.trace.ip} -> ${info.ip}")
+                if (i.name != player.name) Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has changed name, was previously: ${i.name}")
             }
         }
 
