@@ -171,7 +171,7 @@ public class PausedDialog extends BaseDialog{
 
         if (!wasClient) Events.fire(new EventType.MenuReturnEvent());
 
-        if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient || state.gameOver){
+        if(control.saves.getCurrent() == null || !control.saves.getCurrent().isAutosave() || wasClient || state.gameOver || disableSave){
             logic.reset();
             return;
         }

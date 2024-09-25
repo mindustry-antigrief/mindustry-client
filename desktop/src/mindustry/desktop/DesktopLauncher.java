@@ -7,7 +7,6 @@ import arc.backend.sdl.jni.*;
 import arc.discord.*;
 import arc.discord.DiscordRPC.*;
 import arc.files.*;
-import arc.func.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
@@ -23,6 +22,7 @@ import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
+import mindustry.mod.Mods.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.service.*;
@@ -263,27 +263,30 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     static void handleCrash(Throwable e){
-        Cons<Runnable> dialog = Runnable::run;
         boolean badGPU = false;
         String finalMessage = Strings.getFinalMessage(e);
         String total = Strings.getCauses(e).toString();
 
         if(total.contains("Couldn't create window") || total.contains("OpenGL 2.0 or higher") || total.toLowerCase().contains("pixel format") || total.contains("GLEW")|| total.contains("unsupported combination of formats")){
 
-            dialog.get(() -> message(
+            message(
                 total.contains("Couldn't create window") ? "A graphics initialization error has occured! Try to update your graphics drivers:\n" + finalMessage :
                     "Your graphics card does not support the right OpenGL features.\n" +
                     "Try to update your graphics drivers. If this doesn't work, your computer may not support Mindustry.\n\n" +
-                    "Full message: " + finalMessage));
+                    "Full message: " + finalMessage);
             badGPU = true;
         }
 
         boolean fbgp = badGPU;
 
-        CrashSender.send(e, file -> {
+        LoadedMod cause = CrashHandler.getModCause(e);
+        String causeString = cause == null ? (Structs.contains(e.getStackTrace(), st -> st.getClassName().contains("rhino.gen.")) ? "A mod or script has caused Mindustry to crash.\nConsider disabling your mods if the issue persists.\n" : "Mindustry has crashed.") :
+            "'" + cause.meta.displayName + "' (" + cause.name + ") has caused Mindustry to crash.\nConsider disabling this mod if issues persist.\n";
+
+        CrashHandler.handle(e, file -> {
             Throwable fc = Strings.getFinalCause(e);
             if(!fbgp){
-                dialog.get(() -> message("A crash has occurred. It has been saved in:\n" + file.getAbsolutePath() + "\n" + fc.getClass().getSimpleName().replace("Exception", "") + (fc.getMessage() == null ? "" : ":\n" + fc.getMessage())));
+                message(causeString + "\nThe logs have been saved in:\n" + file.getAbsolutePath() + "\n" + fc.getClass().getSimpleName().replace("Exception", "") + (fc.getMessage() == null ? "" : ":\n" + fc.getMessage()));
             }
         });
     }
@@ -306,7 +309,7 @@ public class DesktopLauncher extends ClientLauncher{
     @Override
     public void checkIntegrity(){ // This whole method is a disaster. It works though and I can't find any less convoluted way to do this
         try{
-            var out = new UnpackJars().unpackSteamUninstaller();
+            Fi out = new UnpackJars().unpackSteamUninstaller();
             if(OS.isWindows) Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", javaPath, "-jar", out.absolutePath()});
             else Runtime.getRuntime().exec(new String[]{"sh", "-c", '"' + javaPath + "\" -jar \"" + out.absolutePath() + '"'});
             Core.app.exit();

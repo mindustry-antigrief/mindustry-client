@@ -62,12 +62,12 @@ public class StatusEffects{
             color = Pal.lightishGray;
             speedMultiplier = 0.4f;
 
-	    init(() -> opposite(fast));
+            init(() -> opposite(fast));
         }};
 
         fast = new StatusEffect("fast"){{
-                color = Pal.boostTo;
-                speedMultiplier = 1.6f;
+            color = Pal.boostTo;
+            speedMultiplier = 1.6f;
 
             init(() -> opposite(slow));
         }};
@@ -90,7 +90,7 @@ public class StatusEffects{
                 opposite(burning, melting);
             });
         }};
-		
+
         muddy = new StatusEffect("muddy"){{
             color = Color.valueOf("46382a");
             speedMultiplier = 0.94f;

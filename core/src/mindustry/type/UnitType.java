@@ -469,6 +469,9 @@ public class UnitType extends UnlockableContent implements Senseable{
         Unit unit = constructor.get();
         unit.team = team;
         unit.setType(this);
+        if(controller instanceof CommandAI command && defaultCommand != null){
+            command.command = defaultCommand;
+        }
         unit.ammo = ammoCapacity; //fill up on ammo upon creation
         unit.elevation = flying ? 1f : 0;
         unit.heal();
@@ -863,7 +866,7 @@ public class UnitType extends UnlockableContent implements Senseable{
                     cmds.add(UnitCommand.mineCommand);
                 }
                 if(example instanceof Payloadc){
-                    cmds.addAll(UnitCommand.loadUnitsCommand, UnitCommand.loadBlocksCommand, UnitCommand.unloadPayloadCommand);
+                    cmds.addAll(UnitCommand.loadUnitsCommand, UnitCommand.loadBlocksCommand, UnitCommand.unloadPayloadCommand, UnitCommand.loopPayloadCommand);
                 }
             }
 
@@ -1286,7 +1289,9 @@ public class UnitType extends UnlockableContent implements Senseable{
         if(drawCell) drawCell(unit);
         drawWeapons(unit);
         if(drawItems) drawItems(unit);
-        drawLight(unit);
+        if(!isPayload){
+            drawLight(unit);
+        }
 
         if(unit.shieldAlpha > 0 && drawShields){
             drawShield(unit);

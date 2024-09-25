@@ -127,7 +127,7 @@ public class MenuFragment{
                             becontrol.showUpdateDialog();
                         }
                     });
-                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.switchstable" : "@client.switchunstable")).disabled(true); // FINISHME: Re-enable when v7 releases
+                }).size(200, 60).padRight(10).update(t -> t.getLabel().setText(Core.settings.getString("updateurl").endsWith("-builds") ? "@client.version.swap.stable" : "@client.version.swap.unstable")).disabled(true); // FINISHME: Re-enable when v7 releases
 
                 // "Check for updates" button
                 c.bottom().right().button("@be.check", Icon.refresh, () -> {
