@@ -146,7 +146,7 @@ public class PlacementFragment{
             Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
             boolean wasShard = tryRecipe == Blocks.coreShard;
-            if (wasShard || tryRecipe == Blocks.coreFoundation) tryRecipe = // If core was middle-clicked, selects the best affordable core
+            if (wasShard || tryRecipe == Blocks.coreFoundation) tryRecipe = // If core was middle-clicked, selects the best affordable core FINISHME: This is hardcoded and doesn't even support erekir cores. Fix this.
                 Blocks.coreNucleus.isVisible() && Blocks.coreNucleus.unlockedNow() && (state.rules.infiniteResources || player.team().items().has(Blocks.coreNucleus.requirements, state.rules.buildCostMultiplier)) ? Blocks.coreNucleus :
                 Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlockedNow() ? Blocks.coreFoundation :
                 null;
