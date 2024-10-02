@@ -1,6 +1,7 @@
 package mindustry.client
 
 import arc.*
+import arc.files.*
 import arc.func.*
 import arc.graphics.*
 import arc.math.*
@@ -202,11 +203,23 @@ fun setupCommands() {
         Log.debug(out)
     }
 
-    // Removed as the dependency was like 50MB. If i ever add this back, it will probably just download the jar when needed and then cache it between client builds so that each update isn't massive.
-//        val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
-//        register("kts <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player ->
-//            player.sendMessage("[accent]${try{ kts.eval(args[0]) }catch(e: ScriptException){ e.message }}")
-//        }
+    var installingKt = false
+    // This command doesn't work unless the supporting jar file is on the class path
+    register("kt <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player ->
+        try { ScriptEngineHolder } catch (_: Throwable) { player.sendMessage("[scarlet]The current java install does not support scripting. Please install a full jvm"); return@register }
+
+        if (installingKt) player.sendMessage("[scarlet]Already installing kotlin script support")
+            if (ScriptEngineHolder.kts == null) ui.showConfirm("It seems that you do not have kotlin script support installed. Would you like to download it? (~60MB)") { // FINISHME: Bundle
+            installingKt = true
+            becontrol.downloadJar(
+                "https://github.com/mindustry-antigrief/kotlinScriptSupport/releases/latest/download/fooKotlinScriptSupport.jar",
+                Fi(ScriptEngineHolder::class.java.protectionDomain.codeSource.location.toURI().path).sibling("fooKotlinScriptSupport.jar"),
+                { ui.showConfirm("Finished downloading kotlin script support. You must restart the game to use it. Restart now?") { restartGame() } },
+                { player.sendMessage("[scarlet]Problem downloading kotlin script support ${it.printStackTrace()}") }
+            )
+        }
+        player.sendMessage("[accent]${try { ScriptEngineHolder.kts?.eval(args[0]) ?: return@register } catch (e: Throwable /* ScriptException */) { e.message }}")
+    }
 
     register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
         player.sendMessage("[accent]${mods.scripts.runConsole(args[0])}")
@@ -754,7 +767,7 @@ fun setupCommands() {
             val current = ui.join.lastHost ?: return@register
             if (current.group == null) current.group = ui.join.communityHosts.find { it == current } ?.group ?: return@register
             switchTo = ui.join.communityHosts.filterTo(arrayListOf<Any>()) { it.group == current.group && it != current && (it.version == Version.build || Version.build == -1) }.apply { add(current); add(u) }
-            val first = switchTo!!.removeFirst() as Host
+            val first = switchTo!!.removeAt(0) as Host
             NetClient.connect(first.address, first.port)
         }
 

@@ -64,7 +64,7 @@ task dist(type: Jar, dependsOn: configurations.runtimeClasspath){
 
     manifest{
         attributes 'Main-Class': project.mainClassName
-        attributes 'Class-Path': "bcprov-jdk15on.jar bcpkix-jdk15on.jar bctls-jdk15on.jar bcutil-jdk15on.jar"
+        attributes 'Class-Path': "bcprov-jdk15on.jar bcpkix-jdk15on.jar bctls-jdk15on.jar bcutil-jdk15on.jar fooKotlinScriptSupport.jar"
     }
 }
 
