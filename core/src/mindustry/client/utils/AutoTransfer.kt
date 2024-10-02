@@ -146,7 +146,7 @@ class AutoTransfer {
 
     /** Transfers outputs from blocks into core/containers */
     private fun drain(): Boolean { // FINISHME: Until this class is refactored to have a more generic input output system I'm just gonna copy a lot of code into this function
-        core = player.closestCore()
+        core = player.closestCore() ?: return@drain false
         val nearCore = player.within(core, itemTransferRange)
         if (!nearCore) core = null
 
