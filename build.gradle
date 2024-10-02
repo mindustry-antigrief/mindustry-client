@@ -249,6 +249,7 @@ project(":desktop"){
 //        implementation "com.github.mindustry-antigrief:steamworks4j:1.10.0-SNAPSHOT" // Local steamworks4j
 
         implementation arcModule("backends:backend-sdl")
+        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 }
 
@@ -416,6 +417,7 @@ project(":server"){
     dependencies{
         implementation project(":core")
         implementation arcModule("backends:backend-headless")
+        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 }
 

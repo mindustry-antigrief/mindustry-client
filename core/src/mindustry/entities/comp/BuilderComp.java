@@ -153,21 +153,28 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                         //make sure there's at least 1 item of each type first
                         !Structs.contains(current.block.requirements, i -> core != null && !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
 
-                        if(hasAll){
-                            Call.beginPlace(self(), current.block, team, current.x, current.y, current.rotation);
-                        }else{
-                            current.stuck = true;
+                    if(hasAll){
+                        Call.beginPlace(self(), current.block, team, current.x, current.y, current.rotation);
+
+                        if(current.block.instantBuild){
+                            if(plans.size > 0){
+                                plans.removeFirst();
+                            }
+                            continue;
                         }
-                    }else if(!current.initialized && current.breaking && Build.validBreak(team, current.x, current.y)){
-                        Call.beginBreak(self(), team, current.x, current.y);
                     }else{
-                        plans.removeFirst();
-                        continue;
+                        current.stuck = true;
                     }
-                }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
+                }else if(!current.initialized && current.breaking && Build.validBreak(team, current.x, current.y)){
+                    Call.beginBreak(self(), team, current.x, current.y);
+                }else{
                     plans.removeFirst();
                     continue;
                 }
+            }else if((tile.team() != team && tile.team() != Team.derelict) || (!current.breaking && (cb.current != current.block || cb.tile != current.tile()))){
+                plans.removeFirst();
+                continue;
+            }
 
                 if(tile.build instanceof ConstructBuild && !current.initialized){
                     BuildPlan cur = current;

@@ -81,6 +81,13 @@ public class SchematicsDialog extends BaseDialog{
                     rebuildPane.run();
                 }).growX().get();
                 searchField.setMessageText("@schematic.search");
+                searchField.clicked(KeyCode.mouseRight, () -> {
+                    if(!search.isEmpty()){
+                        search = "";
+                        searchField.clearText();
+                        rebuildPane.run();
+                    }
+                });
             }).growX();
             t.table(s -> {
                 s.setWidth(t.getWidth() / 2);
@@ -90,6 +97,13 @@ public class SchematicsDialog extends BaseDialog{
                     descSearch = res;
                     rebuildPane.run();
                 }).growX().get();
+                descSearchField.clicked(KeyCode.mouseRight, () -> {
+                    if(!descSearch.isEmpty()){
+                        descSearch = "";
+                        descSearchField.clearText();
+                        rebuildPane.run();
+                    }
+                });
                 descSearchField.setMessageText("@schematic.searchdescription");
             }).growX().padLeft(4);
         }).fillX().padBottom(4);

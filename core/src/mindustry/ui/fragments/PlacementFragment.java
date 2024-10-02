@@ -171,10 +171,22 @@ public class PlacementFragment{
                 }
             }
 
-            if(wasShard || (tryRecipe != null && tryRecipe.isVisible() && unlocked(tryRecipe))){
+            if(tryRecipe == null && state.rules.editor){
+                var tile = world.tileWorld(Core.input.mouseWorldX(), Core.input.mouseWorldY());
+                if(tile != null){
+                    tryRecipe =
+                        tile.block() != Blocks.air ? tile.block() :
+                        tile.overlay() != Blocks.air ? tile.overlay() :
+                        tile.floor() != Blocks.air ? tile.floor() : null;
+                }
+            }
+
+            if(wasShard || tryRecipe != null && ((tryRecipe.isVisible() && unlocked(tryRecipe)) || state.rules.editor)){
                 input.block = tryRecipe;
-                if (tryRecipe != null) tryRecipe.lastConfig = tryConfig;
-                currentCategory = input.block == null ? Blocks.coreShard.category : input.block.category;
+                if(tryRecipe != null) tryRecipe.lastConfig = tryConfig;
+                if(wasShard || tryRecipe.isVisible()){
+                    currentCategory = input.block == null ? Blocks.coreShard.category : input.block.category;
+                }
                 return true;
             }
         }
