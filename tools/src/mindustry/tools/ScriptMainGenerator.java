@@ -10,6 +10,7 @@ import arc.graphics.gl.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import com.google.common.reflect.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.io.*;
@@ -18,9 +19,6 @@ import mindustry.world.*;
 
 import java.io.*;
 import java.lang.reflect.*;
-import java.net.*;
-import java.util.*;
-import java.util.zip.*;
 
 public class ScriptMainGenerator{
 
@@ -56,7 +54,7 @@ public class ScriptMainGenerator{
         classes.sortComparing(Class::getName);
         ObjectSet<String> used = ObjectSet.with();
 
-        StringBuilder result = new StringBuilder("//Generated script file. Modify base.js, not this.\n");
+        StringBuilder result = new StringBuilder("//Generated class. Do not modify.\n");
         result.append("\n").append(new Fi("core/assets/scripts/base.js").readString()).append("\n");
         for(Class type : classes){
             if(used.contains(type.getPackage().getName()) || nopackage.contains(s -> type.getName().startsWith(s))) continue;
@@ -65,7 +63,6 @@ public class ScriptMainGenerator{
         }
 
         Log.info("Imported @ packages.", used.size);
-        result.append("\n");
 
         for(Class type : EventType.class.getClasses()){
             result.append("const ").append(type.getSimpleName()).append(" = ").append("Packages.").append(type.getName().replace('$', '.')).append("\n");
@@ -117,53 +114,15 @@ public class ScriptMainGenerator{
     }
 
     public static Seq<Class> getClasses(String packageName) throws Exception{
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
 
-        Seq<File> dirs = new Seq<>();
+        var result = new Seq<Class>();
 
-        for(URL resource : Collections.list(classLoader.getResources(packageName.replace('.', '/')))){
-            dirs.add(new File(resource.getFile()));
-        }
-
-        Seq<Class> classes = new Seq<>();
-        for(File directory : dirs){
-            classes.addAll(findClasses(directory, packageName));
-        }
-        return classes;
-    }
-
-    public static Seq<Class> findClasses(File directory, String packageName) throws Exception{
-        Seq<Class> classes = new Seq<>();
-        String dir = directory.toString();
-        if(dir.startsWith("file:")){
-            directory = new File(dir.substring("file:".length()).replace("!/arc", "").replace("!/mindustry", ""));
-        }
-        if(!directory.exists()) return classes;
-
-        if(directory.getName().endsWith(".jar")){
-            ZipInputStream zip = new ZipInputStream(new FileInputStream(directory));
-            for(ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()){
-                if(!entry.isDirectory() && entry.getName().endsWith(".class")){
-                    String className = entry.getName().replace('/', '.');
-                    className = className.substring(0, className.length() - ".class".length());
-                    if(className.startsWith(packageName)){
-                        Class res = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
-                        classes.add(res);
-                        //classes.addAll(res.getDeclaredClasses()); //????
-                    }
-                }
-            }
-        }else{
-            File[] files = directory.listFiles();
-            for(File file : files){
-                if(file.isDirectory()){
-                    classes.addAll(findClasses(file, packageName + "." + file.getName()));
-                }else if(file.getName().endsWith(".class")){
-                    classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6), false, Thread.currentThread().getContextClassLoader()));
-                }
+        for(ClassPath.ClassInfo info : ClassPath.from(loader).getAllClasses()){
+            if(info.getName().startsWith(packageName + ".")){
+                result.add(info.load());
             }
         }
-
-        return classes;
+        return result;
     }
 }

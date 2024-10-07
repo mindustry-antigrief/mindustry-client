@@ -1,4 +1,4 @@
-//Generated script file. Modify base.js, not this.
+//Generated class. Do not modify.
 
 "use strict";
 
@@ -64,9 +64,7 @@ function targetedBuilding(){
 
 importPackage(Packages.arc)
 importPackage(Packages.arc.audio)
-importPackage(Packages.arc.files)
 importPackage(Packages.arc.func)
-importPackage(Packages.arc.flabel)
 importPackage(Packages.arc.graphics)
 importPackage(Packages.arc.graphics.g2d)
 importPackage(Packages.arc.graphics.gl)
@@ -92,6 +90,16 @@ importPackage(Packages.mindustry.ai)
 importPackage(Packages.mindustry.ai.types)
 importPackage(Packages.mindustry.async)
 importPackage(Packages.mindustry.audio)
+importPackage(Packages.mindustry.client)
+importPackage(Packages.mindustry.client.antigrief)
+importPackage(Packages.mindustry.client.claj)
+importPackage(Packages.mindustry.client.communication)
+importPackage(Packages.mindustry.client.communication.syncing)
+importPackage(Packages.mindustry.client.crypto)
+importPackage(Packages.mindustry.client.navigation)
+importPackage(Packages.mindustry.client.navigation.waypoints)
+importPackage(Packages.mindustry.client.ui)
+importPackage(Packages.mindustry.client.utils)
 importPackage(Packages.mindustry.content)
 importPackage(Packages.mindustry.core)
 importPackage(Packages.mindustry.ctype)
@@ -146,15 +154,6 @@ importPackage(Packages.mindustry.world.consumers)
 importPackage(Packages.mindustry.world.draw)
 importPackage(Packages.mindustry.world.meta)
 importPackage(Packages.mindustry.world.modules)
-importPackage(Packages.mindustry.client)
-importPackage(Packages.mindustry.client.antigrief)
-importPackage(Packages.mindustry.client.communication)
-importPackage(Packages.mindustry.client.crypto)
-importPackage(Packages.mindustry.client.navigation)
-importPackage(Packages.mindustry.client.navigation.waypoints)
-importPackage(Packages.mindustry.client.ui)
-importPackage(Packages.mindustry.client.utils)
-
 const SendChatMessageEvent = Packages.mindustry.game.EventType.SendChatMessageEvent
 const AdminRequestEvent = Packages.mindustry.game.EventType.AdminRequestEvent
 const PlayerIpUnbanEvent = Packages.mindustry.game.EventType.PlayerIpUnbanEvent
@@ -209,9 +208,12 @@ const ConfigEvent = Packages.mindustry.game.EventType.ConfigEvent
 const DepositEvent = Packages.mindustry.game.EventType.DepositEvent
 const WithdrawEvent = Packages.mindustry.game.EventType.WithdrawEvent
 const SectorCaptureEvent = Packages.mindustry.game.EventType.SectorCaptureEvent
+const ClientChatEvent = Packages.mindustry.game.EventType.ClientChatEvent
 const PlayerChatEventClient = Packages.mindustry.game.EventType.PlayerChatEventClient
 const PlayerChatEvent = Packages.mindustry.game.EventType.PlayerChatEvent
+const TextInputEvent = Packages.mindustry.game.EventType.TextInputEvent
 const MenuOptionChooseEvent = Packages.mindustry.game.EventType.MenuOptionChooseEvent
+const ClientServerConnectEvent = Packages.mindustry.game.EventType.ClientServerConnectEvent
 const ClientPreConnectEvent = Packages.mindustry.game.EventType.ClientPreConnectEvent
 const SchematicCreateEvent = Packages.mindustry.game.EventType.SchematicCreateEvent
 const SectorLaunchLoadoutEvent = Packages.mindustry.game.EventType.SectorLaunchLoadoutEvent
@@ -222,8 +224,9 @@ const SectorLoseEvent = Packages.mindustry.game.EventType.SectorLoseEvent
 const SaveLoadEvent = Packages.mindustry.game.EventType.SaveLoadEvent
 const WorldLoadEndEvent = Packages.mindustry.game.EventType.WorldLoadEndEvent
 const WorldLoadBeginEvent = Packages.mindustry.game.EventType.WorldLoadBeginEvent
-const ServerJoinEvent = Packages.mindustry.game.EventType.ServerJoinEvent
 const WorldLoadEvent = Packages.mindustry.game.EventType.WorldLoadEvent
+const MenuReturnEvent = Packages.mindustry.game.EventType.MenuReturnEvent
+const ServerJoinEvent = Packages.mindustry.game.EventType.ServerJoinEvent
 const FileTreeInitEvent = Packages.mindustry.game.EventType.FileTreeInitEvent
 const MusicRegisterEvent = Packages.mindustry.game.EventType.MusicRegisterEvent
 const ClientLoadEvent = Packages.mindustry.game.EventType.ClientLoadEvent
