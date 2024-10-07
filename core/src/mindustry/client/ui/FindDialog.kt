@@ -33,6 +33,7 @@ object FindDialog : BaseDialog("@client.find") {
     init {
         for ((i, img) in images.withIndex()) {
             img.clicked { // When image clicked, select it
+                if (guesses.size <= i) return@clicked
                 val gi = guesses[i]
                 guesses[i] = guesses[0]
                 guesses[0] = gi

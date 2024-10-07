@@ -1,6 +1,7 @@
 package mindustry.client.antigrief
 
 import arc.*
+import arc.struct.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
@@ -101,15 +102,19 @@ class Moderation {
             // Dont send in admin chat as it can get spammy
 //            if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
 //            else sendMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
-            Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
+            Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
         }
 
+        // These next three lines are the laziest way of deduplicating the messages but it works so we don't really care.
+        val ids = ObjectSet<String>()
+        val ips = ObjectSet<String>()
+        val names = ObjectSet<String>()
         for (n in traces.size - 1 downTo 0) {
             val i = traces[n]
             if (i.trace.ip == info.uuid || i.trace.ip == info.ip) { // Update info
-                if (i.trace.uuid != info.uuid) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed UUID: ${i.trace.uuid} -> ${info.uuid}")
-                if (i.trace.ip != info.ip) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed IP: ${i.trace.ip} -> ${info.ip}")
-                if (i.name != player.name) Vars.player.sendMessage("[scarlet]${player.name}[scarlet] has changed name, was previously: ${i.name}")
+                if (i.trace.uuid != info.uuid && ids.add(i.trace.uuid)) Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has changed UUID: ${i.trace.uuid} -> ${info.uuid}")
+                if (i.trace.ip != info.ip && ips.add(i.trace.ip)) Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has changed IP: ${i.trace.ip} -> ${info.ip}")
+                if (i.name != player.name && names.add(i.name)) Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has changed name, was previously: ${i.name}")
             }
         }
 

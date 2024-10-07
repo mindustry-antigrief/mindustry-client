@@ -45,7 +45,6 @@ import java.time.*
 import java.time.temporal.*
 import java.util.concurrent.*
 import java.util.regex.*
-import javax.script.*
 import kotlin.math.*
 import kotlin.random.*
 
@@ -204,21 +203,22 @@ fun setupCommands() {
         Log.debug(out)
     }
 
-    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts")?.apply { eval("import arc.*;import arc.audio.*;import arc.files.*;import arc.func.*;import arc.flabel.*;import arc.graphics.*;import arc.graphics.g2d.*;import arc.graphics.gl.*;import arc.input.*;import arc.math.*;import arc.math.geom.*;import arc.scene.*;import arc.scene.actions.*;import arc.scene.event.*;import arc.scene.style.*;import arc.scene.ui.*;import arc.scene.ui.layout.*;import arc.scene.utils.*;import arc.struct.*;import arc.util.*;import arc.util.io.*;import arc.util.noise.*;import arc.util.pooling.*;import arc.util.serialization.*;import arc.util.viewport.*;import mindustry.*;import mindustry.ai.*;import mindustry.ai.types.*;import mindustry.async.*;import mindustry.audio.*;import mindustry.content.*;import mindustry.core.*;import mindustry.ctype.*;import mindustry.editor.*;import mindustry.entities.*;import mindustry.entities.abilities.*;import mindustry.entities.bullet.*;import mindustry.entities.effect.*;import mindustry.entities.part.*;import mindustry.entities.pattern.*;import mindustry.entities.units.*;import mindustry.game.*;import mindustry.gen.*;import mindustry.graphics.*;import mindustry.graphics.g3d.*;import mindustry.input.*;import mindustry.io.*;import mindustry.logic.*;import mindustry.maps.*;import mindustry.maps.filters.*;import mindustry.maps.generators.*;import mindustry.maps.planet.*;import mindustry.net.*;import mindustry.service.*;import mindustry.type.*;import mindustry.type.ammo.*;import mindustry.type.unit.*;import mindustry.type.weapons.*;import mindustry.type.weather.*;import mindustry.ui.*;import mindustry.ui.dialogs.*;import mindustry.ui.fragments.*;import mindustry.ui.layout.*;import mindustry.world.*;import mindustry.world.blocks.*;import mindustry.world.blocks.campaign.*;import mindustry.world.blocks.defense.*;import mindustry.world.blocks.defense.turrets.*;import mindustry.world.blocks.distribution.*;import mindustry.world.blocks.environment.*;import mindustry.world.blocks.heat.*;import mindustry.world.blocks.legacy.*;import mindustry.world.blocks.liquid.*;import mindustry.world.blocks.logic.*;import mindustry.world.blocks.payloads.*;import mindustry.world.blocks.power.*;import mindustry.world.blocks.production.*;import mindustry.world.blocks.sandbox.*;import mindustry.world.blocks.storage.*;import mindustry.world.blocks.units.*;import mindustry.world.consumers.*;import mindustry.world.draw.*;import mindustry.world.meta.*;import mindustry.world.modules.*;import mindustry.client.*;import mindustry.client.antigrief.*;import mindustry.client.communication.*;import mindustry.client.crypto.*;import mindustry.client.navigation.*;import mindustry.client.navigation.waypoints.*;import mindustry.client.ui.*;import mindustry.client.utils.*;") } }
     var installingKt = false
     // This command doesn't work unless the supporting jar file is on the class path
     register("kt <code...>", Core.bundle.get("client.command.kts.description")) { args, player: Player ->
+        try { ScriptEngineHolder } catch (_: Throwable) { player.sendMessage("[scarlet]The current java install does not support scripting. Please install a full jvm"); return@register }
+
         if (installingKt) player.sendMessage("[scarlet]Already installing kotlin script support")
-            if (kts == null) ui.showConfirm("It seems that you do not have kotlin script support installed. Would you like to download it? (~60MB)") { // FINISHME: Bundle
+            if (ScriptEngineHolder.kts == null) ui.showConfirm("It seems that you do not have kotlin script support installed. Would you like to download it? (~60MB)") { // FINISHME: Bundle
             installingKt = true
             becontrol.downloadJar(
                 "https://github.com/mindustry-antigrief/kotlinScriptSupport/releases/latest/download/fooKotlinScriptSupport.jar",
-                Fi("fooKotlinScriptSupport.jar", Files.FileType.local),
+                Fi(ScriptEngineHolder::class.java.protectionDomain.codeSource.location.toURI().path).sibling("fooKotlinScriptSupport.jar"),
                 { ui.showConfirm("Finished downloading kotlin script support. You must restart the game to use it. Restart now?") { restartGame() } },
                 { player.sendMessage("[scarlet]Problem downloading kotlin script support ${it.printStackTrace()}") }
             )
         }
-        player.sendMessage("[accent]${try{ kts?.eval(args[0]) ?: return@register }catch(e: ScriptException){ e.message }}")
+        player.sendMessage("[accent]${try { ScriptEngineHolder.kts?.eval(args[0]) ?: return@register } catch (e: Throwable /* ScriptException */) { e.message }}")
     }
 
     register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
