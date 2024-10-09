@@ -81,10 +81,10 @@ public class UnAssistPath extends Path {
 
     @Override
     public void follow() {
-        if (target == null || Vars.player == null) return;
+        if (target == null || Vars.player == null || player.unit() == null) return;
 
         try {
-            if (target.unit().canBuild()) {
+            if (target.unit() != null && target.unit().canBuild()) {
                 BuildPlan plan = target.unit().buildPlan();
                 if (plan != null) {
                     if (plan.initialized) {
@@ -150,7 +150,7 @@ public class UnAssistPath extends Path {
 
     @Override
     public synchronized void draw() {
-        if (target == null) return;
+        if (target == null || target.unit() == null) return;
         target.unit().drawBuildPlans();
     }
 }

@@ -29,6 +29,8 @@ public class RepairPath extends Path {
 
     @Override
     public void follow() {
+        if (player.unit() == null) return;
+
         Building build = Units.findDamagedTile(player.team(), player.x, player.y);
         if (build == null || player.unit() == null || (build != current && !delay.check(0, 5))) return;
         current = build;
