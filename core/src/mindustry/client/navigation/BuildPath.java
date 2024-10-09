@@ -139,6 +139,8 @@ public class BuildPath extends Path { // FINISHME: Dear god, this file does not 
 
     @Override
     public void follow() {
+        if (player.core() == null) return;
+
         var core = player.core();
         if (timer.get(delay) && core != null) {
             if (mineItems != null) {
