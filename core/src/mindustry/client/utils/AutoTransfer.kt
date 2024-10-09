@@ -133,6 +133,7 @@ class AutoTransfer {
             else null
 
         Time.run(delay/2F) {
+            if (player.unit() == null) return@run // FINISHME: Should we reset the delay?
             if (item != null && core != null && player.within(core, itemTransferRange) && ratelimitRemaining > 1) {
                 if (held > 0 && item != player.unit().stack.item && (!net.server() || player.unit().stack.amount > 0)) Call.transferInventory(player, core)
                 else if (held == 0 || item != player.unit().stack.item || counts[maxID] > held) Call.requestItem(player, core, item, Int.MAX_VALUE)
@@ -146,7 +147,7 @@ class AutoTransfer {
 
     /** Transfers outputs from blocks into core/containers */
     private fun drain(): Boolean { // FINISHME: Until this class is refactored to have a more generic input output system I'm just gonna copy a lot of code into this function
-        core = player.closestCore() ?: return@drain false
+        core = player.closestCore() ?: return false
         val nearCore = player.within(core, itemTransferRange)
         if (!nearCore) core = null
 
@@ -213,6 +214,7 @@ class AutoTransfer {
         }
 
         Time.run(delay/2F) {
+            if (player.unit() == null) return@run // FINISHME: Should we reset the delay?
             if (core != null) { // Standard single target drain
                 if (ratelimitRemaining > 1 && (maxCount != player.unit().maxAccepted(item) || maxCount == 0)) { // If theres ratelimit remaining and the player has grabbed anything or if the player is holding something else
                     if (maxCount == 0) { // We're holding something else and we need to dispose of it somehow
