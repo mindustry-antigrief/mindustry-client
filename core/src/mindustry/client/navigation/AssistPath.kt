@@ -137,7 +137,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
         assisting ?: return
         if (type != Type.FreeMove && player.dst(assisting) > aStarTolerance) waypoints.draw()
 
-        if (Spectate.pos != assisting) assisting.unit().drawBuildPlans() // Don't draw plans twice
+        if (Spectate.pos != assisting) assisting.unit()?.drawBuildPlans() // Don't draw plans twice
     }
 
     override fun progress(): Float {
