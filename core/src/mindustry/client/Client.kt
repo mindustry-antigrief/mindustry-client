@@ -141,7 +141,7 @@ object Client {
             if (showingTurrets || showingInvTurrets) {
                 val enemyunits = Core.settings.getBool("enemyunitranges")
                 val showall = Core.settings.getBool("showallturrets")
-                val flying = player.unit() == null || player.unit().isFlying
+                val flying = player.unit()?.isFlying
                 val mousev = Core.input.mouseWorld()
                 val mouseBuild = world.buildWorld(mousev.x, mousev.y)
                 getTree().use {
