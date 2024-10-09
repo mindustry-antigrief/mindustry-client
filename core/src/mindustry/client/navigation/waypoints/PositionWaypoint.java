@@ -80,7 +80,7 @@ public class PositionWaypoint extends Waypoint implements Position {
     }
 
     protected void moveTo(Position target, float circleLength, float smooth){
-        if(target == null || (target.getX() == -1f && target.getY() == -1f)) return;
+        if(target == null || (target.getX() == -1f && target.getY() == -1f) || player.unit() == null) return;
 
         vec.set(target).sub(player.unit());
 
