@@ -62,6 +62,7 @@ class MinePath @JvmOverloads constructor(
     override fun getShow() = false
 
     override fun follow() {
+        if (player.unit() == null) return
         if (AutoTransfer.enabled) AutoTransfer.enabled = false // AutoTransfer doesn't play well with MinePath
 
         val core = player.closestCore() ?: return
