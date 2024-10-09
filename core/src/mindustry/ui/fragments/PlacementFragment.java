@@ -128,9 +128,7 @@ public class PlacementFragment{
         toggler.setZIndex(index);
     }
 
-    boolean gridUpdate(InputHandler input){
-        scrollPositions.put(currentCategory, blockPane.getScrollY());
-
+    boolean updatePick(InputHandler input){
         if(Core.input.keyTap(Binding.pick) && !Core.scene.hasDialog() /*&& player.isBuilder()*/){ //mouse eyedropper select
             var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
 
@@ -175,9 +173,9 @@ public class PlacementFragment{
                 var tile = world.tileWorld(Core.input.mouseWorldX(), Core.input.mouseWorldY());
                 if(tile != null){
                     tryRecipe =
-                        tile.block() != Blocks.air ? tile.block() :
-                        tile.overlay() != Blocks.air ? tile.overlay() :
-                        tile.floor() != Blocks.air ? tile.floor() : null;
+                    tile.block() != Blocks.air ? tile.block() :
+                    tile.overlay() != Blocks.air ? tile.overlay() :
+                    tile.floor() != Blocks.air ? tile.floor() : null;
                 }
             }
 
@@ -189,6 +187,15 @@ public class PlacementFragment{
                 }
                 return true;
             }
+        }
+        return false;
+    }
+
+    boolean gridUpdate(InputHandler input){
+        scrollPositions.put(currentCategory, blockPane.getScrollY());
+
+        if(updatePick(input)){
+            return true;
         }
 
         if(ui.chatfrag.shown() || ui.consolefrag.shown() || Core.scene.hasKeyboard()) return false;
@@ -292,7 +299,14 @@ public class PlacementFragment{
     public void build(Group parent){
         parent.fill(full -> {
             toggler = full;
-            full.bottom().right().visible(() -> ui.hudfrag.shown);
+            full.bottom().right().visible(() -> {
+                if(state.rules.editor){
+                    //force update the mouse picking, since it otherwise would not happen
+                    updatePick(control.input);
+                }
+
+                return ui.hudfrag.shown && !state.rules.editor;
+            });
 
             full.table(frame -> {
 
@@ -435,7 +449,7 @@ public class PlacementFragment{
                                 }
                             }).growX().left().margin(3);
 
-                            if(!displayBlock.isPlaceable() || !player.isBuilder()){
+                            if((!displayBlock.isPlaceable() || !player.isBuilder()) && !state.rules.editor){
                                 topTable.row();
                                 topTable.table(b -> {
                                     b.image(Icon.cancel).padRight(2).color(Color.scarlet);
@@ -688,7 +702,11 @@ public class PlacementFragment{
                         }).grow().get();
                         blockPane.setStyle(Styles.smallPane);
                         blocksSelect.row();
-                        blocksSelect.table(control.input::buildPlacementUI).name("inputTable").growX();
+                        blocksSelect.table(t -> {
+                            t.image().color(Pal.gray).height(4f).colspan(4).growX();
+                            t.row();
+                            control.input.buildPlacementUI(t);
+                        }).name("inputTable").growX();
                     }).fillY().bottom().touchable(Touchable.enabled);
                     blockCatTable.table(categories -> {
                         categories.bottom();
@@ -778,13 +796,14 @@ public class PlacementFragment{
         return control.input.block != null || menuHoverBlock != null || hover != null || Core.settings.getBool("placementfragmentsearch");
     }
 
-    /** Returns the thing being hovered over. */
-    @Nullable
-    Displayable hovered(){
-        Vec2 v = topTable.stageToLocalCoordinates(Core.input.mouse());
+    /** @return the thing being hovered over. */
+    public @Nullable Displayable hovered(){
+        if(!state.rules.editor){
+            Vec2 v = topTable.stageToLocalCoordinates(Core.input.mouse());
 
-        //if the mouse intersects the table or the UI has the mouse, no hovering can occur
-        if(Core.scene.hasMouse() || topTable.hit(v.x, v.y, false) != null) return hover;
+            //if the mouse intersects the table or the UI has the mouse, no hovering can occur
+            if(Core.scene.hasMouse() || topTable.hit(v.x, v.y, false) != null) return hover;
+        }
 
         if (!ClientVars.hidingUnits) {
             //check for a unit

@@ -60,10 +60,6 @@ public class DesktopInput extends InputHandler{
     public float selectScale;
     /** Selected build plan for movement. */
     public @Nullable BuildPlan splan;
-    /** Used to track whether the splan was moved. */
-    public boolean splanMoved = false;
-    /** Used to keep track of where in the tile a build plan was clicked for dragging. */
-    public final Vec2 buildPlanClickOffset = new Vec2();
     /** Whether player is currently deleting removal plans. */
     public boolean deleting = false, shouldShoot = false, panning = false;
     /** Mouse pan speed. */
@@ -78,6 +74,8 @@ public class DesktopInput extends InputHandler{
     public int lastCtrlGroup;
     /** Time of most recent control group selection */
     public long lastCtrlGroupSelectMillis;
+
+    private float buildPlanMouseOffsetX, buildPlanMouseOffsetY;
 
     boolean showHint(){
         return ui.hudfrag.shown && Core.settings.getBool("hints") && selectPlans.isEmpty() && !player.dead() &&
@@ -873,8 +871,6 @@ public class DesktopInput extends InputHandler{
 
     @Override
     public void buildPlacementUI(Table table){
-        table.image().color(Pal.gray).height(4f).colspan(4).growX();
-        table.row();
         table.left().margin(0f).defaults().size(48f).left();
 
         table.button(Icon.paste, Styles.clearNonei, () -> {
@@ -979,11 +975,10 @@ public class DesktopInput extends InputHandler{
         }
 
         if(splan != null){
-            int x = World.toTile(Core.input.mouseWorld().x + buildPlanClickOffset.x);
-            int y = World.toTile(Core.input.mouseWorld().y + buildPlanClickOffset.y);
-            if(splan.x != x || splan.y != y) splanMoved = true;
-            splan.x = x;
-            splan.y = y;
+            float x = Core.input.mouseWorld().x + buildPlanMouseOffsetX;
+            float y = Core.input.mouseWorld().y + buildPlanMouseOffsetY;
+            splan.x = Math.round(x / tilesize);
+            splan.y = Math.round(y / tilesize);
         }
 
         if(block == null || mode != placing){
@@ -1021,6 +1016,15 @@ public class DesktopInput extends InputHandler{
             tappedOne = false;
             BuildPlan plan = getPlan(cursorX, cursorY);
 
+            if(plan != null){
+                //move selected to front
+                int index = player.unit().plans.indexOf(plan, true);
+                if(index != -1){
+                    player.unit().plans.removeIndex(index);
+                    player.unit().plans.addFirst(plan);
+                }
+            }
+
             if(Core.input.keyDown(Binding.break_block)){
                 mode = none;
             }else if(selectPlans.any()){
@@ -1034,8 +1038,8 @@ public class DesktopInput extends InputHandler{
                 updateLine(selectX, selectY);
             }else if(plan != null && !plan.breaking && mode == none && !plan.initialized && plan.progress <= 0f){
                 splan = plan;
-                buildPlanClickOffset.x = splan.x * tilesize - Core.input.mouseWorld().x;
-                buildPlanClickOffset.y = splan.y * tilesize - Core.input.mouseWorld().y;
+                buildPlanMouseOffsetX = splan.x * tilesize - Core.input.mouseWorld().x;
+                buildPlanMouseOffsetY = splan.y * tilesize - Core.input.mouseWorld().y;
             }else if(plan != null && plan.breaking){
                 deleting = true;
             }else if(commandMode){
@@ -1131,9 +1135,7 @@ public class DesktopInput extends InputHandler{
                 if(getPlan(splan.x, splan.y, splan.block.size, splan) != null){
                     player.unit().plans().remove(splan, true);
                 }
-                if(!splanMoved) player.unit().addBuild(splan, false); // Add the plan to the top of the queue
                 splan = null;
-                splanMoved = false;
             }
 
             mode = none;

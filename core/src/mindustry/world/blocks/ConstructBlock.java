@@ -140,16 +140,6 @@ public class ConstructBlock extends Block{
             }
         }
 
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock));
-
-        if (tile.build instanceof ConstructBuild b) { // FINISHME: Does this even work?
-            for (var item : b.prevBuild != null ? b.prevBuild : new Seq<Building>()) {
-                Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
-            }
-        }
-
-        Fx.placeBlock.at(tile.drawx(), tile.drawy(), block.size);
-        if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
         if(fogControl.isVisibleTile(team, tile.x, tile.y)){
             block.placeEffect.at(tile.drawx(), tile.drawy(), block.size);
             if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
@@ -160,6 +150,8 @@ public class ConstructBlock extends Block{
                 Events.fire(new BlockBuildEventTile(item.tile, item.team, builder, item.block, block, item.config(), null));
             }
         }
+
+        block.placeEnded(tile, builder);
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock)); // FINISHME: Yet another case of a changed vanilla event. Vanilla: Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
     }

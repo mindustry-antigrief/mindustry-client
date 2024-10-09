@@ -119,8 +119,7 @@ public class MultiPacker implements Disposable{
         //main page can be massive, but 8192 throws GL_OUT_OF_MEMORY on some GPUs and I can't deal with it yet.
         main(4096),
 
-        //TODO stuff like this throws OOM on some devices
-        environment(4096, 2048),
+        environment(4096),
         editor(4096, 2048),
         rubble(4096, 2048),
         ui(4096);

@@ -1989,7 +1989,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     /** Tries to begin mining a tile, returns true if successful. */
     boolean tryBeginMine(Tile tile){
-        if(canMine(tile)){
+        if(!player.dead() && canMine(tile)){
             player.unit().mineTile = tile;
             return true;
         }
@@ -1998,7 +1998,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     /** Tries to stop mining, returns true if mining was stopped. */
     boolean tryStopMine(){
-        if(player.unit().mining()){
+        if(!player.dead() && player.unit().mining()){
             player.unit().mineTile = null;
             return true;
         }
@@ -2006,7 +2006,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     boolean tryStopMine(Tile tile){
-        if(player.unit().mineTile == tile){
+        if(!player.dead() && player.unit().mineTile == tile){
             player.unit().mineTile = null;
             return true;
         }

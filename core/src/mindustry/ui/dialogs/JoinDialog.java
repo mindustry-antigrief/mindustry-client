@@ -649,7 +649,7 @@ public class JoinDialog extends BaseDialog{
                 connect(lastIp, lastPort);
             }, exception -> {});
         }, 1, 1);
-        
+
         ui.loadfrag.setButton(() -> {
             ui.loadfrag.hide();
             if(ping == null) return;
@@ -681,7 +681,7 @@ public class JoinDialog extends BaseDialog{
             Core.settings.remove("server-list");
         }
 
-        loadCommunityServers(beList ? serverJsonBeURL : serverJsonURL, 5, false);
+        loadCommunityServers(beList || Vars.forceBeServers ? serverJsonBeURL : serverJsonURL, 5, false);
     }
 
     private void loadCommunityServers(String url, int attempts, boolean refreshCommunity) {

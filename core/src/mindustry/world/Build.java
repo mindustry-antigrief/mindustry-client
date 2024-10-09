@@ -211,6 +211,10 @@ public class Build{
 
         if(tile == null) return false;
 
+        if(!type.canPlaceOn(tile, team, rotation)){
+            return false;
+        }
+
         //floors have different checks
         if(type.isFloor()){
             return type.isOverlay() ? tile.overlay() != type : tile.floor() != type;
@@ -222,10 +226,6 @@ public class Build{
         }
 
         if(!type.requiresWater && !contactsShallows(tile.x, tile.y, type) && !type.placeableLiquid){
-            return false;
-        }
-
-        if(!type.canPlaceOn(tile, team, rotation)){
             return false;
         }
 
