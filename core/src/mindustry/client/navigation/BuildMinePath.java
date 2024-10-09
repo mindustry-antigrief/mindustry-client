@@ -26,6 +26,8 @@ public class BuildMinePath extends Path{ // This is so scuffed. Help.
     
     @Override
     public void follow() {
+        if (player.unit() == null) return;
+
         // this is more of a personal use thing. You might not want to have this.
         if (control.input.isBuilding && !player.unit().plans.isEmpty()) {
             if (initBuild) {
