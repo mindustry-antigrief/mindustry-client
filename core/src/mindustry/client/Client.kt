@@ -38,7 +38,6 @@ object Client {
     val tilesNaval = Seq<Tile>()
     val timer = Interval(4)
     val autoTransfer by lazy(::AutoTransfer) // FINISHME: Awful
-//    val kts by lazy { ScriptEngineManager().getEngineByExtension("kts") }
 
     private val massDriverGreen: Color = Color.green.cpy().a(.7f)
     private val massDriverYellow: Color = Color.yellow.cpy().a(.7f)

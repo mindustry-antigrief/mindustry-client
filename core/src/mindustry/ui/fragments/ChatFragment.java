@@ -145,7 +145,7 @@ public class ChatFragment extends Table{
             }
             @Override
             public void paste(String content, boolean fireChangeEvent) {
-                if (content != null && content.startsWith("!js ") &&
+                if (content != null && (content.startsWith("!js ") || content.startsWith("!kt ")) &&
                     Math.min(hasSelection ? selectionStart : Integer.MAX_VALUE, cursor) == 0) // Only increase length if pasting into front of text
                         chatfield.setMaxLength(0);
                 super.paste(content, fireChangeEvent);
@@ -157,7 +157,7 @@ public class ChatFragment extends Table{
         chatfield.setProgrammaticChangeEvents(true);
         chatfield.setFilter((f, c) -> c != '\t'); // Using .changed(...) and allowing tabs causes problems for tab completion and cursor position, .typed(...) doesn't do what I need
         chatfield.changed(() -> {
-            chatfield.setMaxLength(chatfield.getText().startsWith("!js ") ? 0 : maxTextLength - 2); // Scuffed way to allow long js
+            chatfield.setMaxLength(chatfield.getText().startsWith("!js ") || chatfield.getText().startsWith("!kt ") ? 0 : maxTextLength - 2); // Scuffed way to allow long js
 
             // FINISHME: Implement proper replacement & string interpolation system
             var replacement = switch (chatfield.getText().replaceFirst("^" + mode.normalizedPrefix(), "")) {
@@ -526,7 +526,7 @@ public class ChatFragment extends Table{
     }
 
     public void updateChat(){
-        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") ? 0 : maxTextLength - 2);
+        chatfield.setMaxLength(history.get(historyPos).startsWith("!js ") || history.get(historyPos).startsWith("!kt ") ? 0 : maxTextLength - 2);
         chatfield.setText(mode.normalizedPrefix() + history.get(historyPos));
         updateCursor();
     }
