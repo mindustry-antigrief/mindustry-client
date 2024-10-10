@@ -1,19 +1,13 @@
 package mindustry.client.claj
 
 import arc.*
-import arc.func.*
 import arc.net.*
 import arc.net.Server
-import arc.scene.*
 import arc.scene.ui.*
 import arc.struct.*
 import arc.util.*
-import arc.util.serialization.*
-import arc.util.serialization.Json.*
 import mindustry.*
 import mindustry.client.claj.ClajManagerDialog.*
-import mindustry.client.utils.*
-import mindustry.game.*
 import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.io.*

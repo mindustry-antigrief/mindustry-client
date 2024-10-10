@@ -8,13 +8,13 @@ import mindustry.ui.*
 import mindustry.ui.dialogs.*
 
 class ClajJoinDialog : BaseDialog("@client.claj.join") {
-    var lastLink = "CLaJLink#ip:port"
+    var lastLink = ""
     var valid = false
     var output: String? = null
 
     init {
         cont.add("@client.claj.link").padRight(5f).right()
-        cont.field(lastLink) { link -> setLink(link) }.size(550f, 54f).maxTextLength(100).valid { link -> setLink(link) }.left() // FINISHME: Cursed
+        cont.field(lastLink) { link -> setLink(link) }.size(550f, 54f).maxTextLength(100).valid { link -> setLink(link) }.left().get().messageText = "CLaJLink#ip:port" // FINISHME: Cursed
         cont.row().label { if (lastLink.isBlank()) "[grey]${Core.bundle["client.claj.info"]}" else output }.fillX().wrap().center().colspan(2).get().clicked { Menus.openURI("https://mindustry.dev/CLaJ") }
         addCloseButton()
         buttons.button("@ok") {
