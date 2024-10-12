@@ -54,7 +54,8 @@ public class ConsoleFragment extends Table{
         });
 
         update(() -> {
-            if(input.keyTap(Binding.chat) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null)){
+            // don't get console focus if modifier to "submit" schematic is held
+            if(input.keyTap(Binding.chat) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null) && !input.keyDown(Binding.schematic_submit_modifier)){
                 toggle();
             }
 

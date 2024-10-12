@@ -181,7 +181,9 @@ public class PlacementFragment{
         if(ui.chatfrag.shown() || ui.consolefrag.shown() || Core.scene.hasKeyboard()) return false;
 
         for(int i = 0; i < blockSelect.length; i++){
-            if(Core.input.keyTap(blockSelect[i])){
+            // don't listen to arrow keys for block selection
+            // if we are listening to arrow keys for schematic offset
+            if(Core.input.keyTap(blockSelect[i]) && !Core.input.keyDown(Binding.schematic_offset_modifier)){
                 if(i > 9){ //select block directionally
                     Seq<Block> blocks = getUnlockedByCategory(currentCategory);
                     Block currentBlock = getSelectedBlock(currentCategory);

@@ -43,6 +43,8 @@
  * Click Assist - Shift (Regular), Shift + Alt (Free Move), Ctrl (Follow Cursor), Ctrl + Alt (BuildPath)
  * Shift {schematic_menu} - Schematic browser
  * {force_place_modifier} {select} - Force places selection/schematics by marking overlapping buildings for deconstruction and placing overlapped plans into frozen queue.
+ * {schematic_submit_modifier} {schematic_submit} - Submit/place schematic
+ * {schematic_offset_modifier} {schematic_offset_y_up} / {schematic_offset_y_down} / {schematic_offset_x_left} / {schematic_offset_x_right} - Offset schematic one tile at a time
 
 # Commands
  * If you're unfamiliar with mindustry command syntax, <name> indicates a required argument, and [name] an optional one
