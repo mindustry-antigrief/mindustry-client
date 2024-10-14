@@ -9,7 +9,6 @@ import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.ClientVars.*
 import mindustry.client.antigrief.*
-import mindustry.client.communication.*
 import mindustry.client.navigation.*
 import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
@@ -142,14 +141,6 @@ class ClientLogic {
             Navigation.navigator.init()
 
             Migrations().runMigrations()
-
-            if (isDeveloper()) {
-                register("update <name/id...>") { args, _ ->
-                    val name = args.joinToString(" ")
-                    val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { biasedLevenshtein(Strings.stripColors(it.name), name) }!!
-                    Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
-                }
-            }
         }
 
         Events.on(PlayerJoin::class.java) { e -> // Run when a player joins the server

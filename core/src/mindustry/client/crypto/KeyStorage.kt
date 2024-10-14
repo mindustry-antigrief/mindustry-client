@@ -1,9 +1,13 @@
 package mindustry.client.crypto
 
+import arc.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
+import mindustry.client.*
+import mindustry.client.communication.*
 import mindustry.client.utils.*
+import mindustry.gen.*
 import java.io.*
 import java.math.*
 import java.security.*
@@ -36,7 +40,7 @@ open class KeyStorage(val directory: File) {
     }
 
     init {
-        Vars.mainExecutor.execute {
+        Vars.mainExecutor.submit {
             val file = directory.resolve("keys")
             val aliasFile = directory.resolve("aliases")
             if (file.exists()) {
@@ -66,6 +70,16 @@ open class KeyStorage(val directory: File) {
                 }
             }
             loaded = true
+
+            Core.app.post {
+                if (isDeveloper()) {
+                    register("update <name/id...>") { args, _ ->
+                        val name = args.joinToString(" ")
+                        val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { biasedLevenshtein(Strings.stripColors(it.name), name) }!!
+                        Main.send(CommandTransmission(CommandTransmission.Commands.UPDATE, Main.keyStorage.cert() ?: return@register, player))
+                    }
+                }
+            }
         }
     }
 
@@ -109,7 +123,7 @@ open class KeyStorage(val directory: File) {
     }
 
     fun cert(): X509Certificate? {
-        return store.getCertificate("cert") as? X509Certificate
+        return if (!loaded) null else store.getCertificate("cert") as? X509Certificate
     }
 
     fun chain(): List<X509Certificate>? {
