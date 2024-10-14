@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.*
 
 plugins {
@@ -12,7 +13,7 @@ repositories {
 dependencies {
     val arcHash = Properties(20).apply { load(file("../gradle.properties").inputStream()) }["archash"]
     val localArc = File(rootDir.parentFile.parent, "Arc").exists() && !project.hasProperty("noLocalArc")
-    implementation("com.github.mindustry-antigrief${if (localArc) "" else ".Arc"}:arc-core:$arcHash")
+    implementation("com.github.mindustry-antigrief${if (localArc) "" else ".arc"}:arc-core:$arcHash")
 }
 
 // I swear gradle is the worst
