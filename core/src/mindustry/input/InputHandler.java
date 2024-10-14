@@ -1511,6 +1511,13 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         block.drawPlan(bplan, allPlans(), validPlace(x, y, block, rotation));
     }
 
+    /** Draws a placement icon for a specific block */
+    protected void drawPlan(int x, int y, Block block, int rotation, float alpha){
+        bplan.set(x, y, rotation, block);
+        bplan.animScale = 1f;
+        block.drawPlan(bplan, allPlans(), validPlace(x, y, block, rotation), alpha);
+    }
+
     /** Remove everything from the queue in a selection. */
     protected void removeSelection(int x1, int y1, int x2, int y2){
         removeSelection(x1, y1, x2, y2, false);

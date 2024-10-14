@@ -124,6 +124,7 @@
  * Shift click up/down in schematic tag list to send to top/bottom respectively
  * Shift click delete in schematic tag list to delete tag without prompt
  * Alt {pickupCargo} pick up buildings but not units
+ * Set schema/place opacity
 
 # Credits
  * Game by anuke, client by foo, buthed010203, Zxtej, SBytes, and BalaM314

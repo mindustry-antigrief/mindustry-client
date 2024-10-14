@@ -218,20 +218,21 @@ public class DesktopInput extends InputHandler{
 
         var items = selectPlans.items;
         int size = selectPlans.size;
-        var alpha = Core.settings.getInt("schemalpha", 100) / 100f;
+
+        var schemAlpha = Core.settings.getInt("schemalpha", 100) / 100f;
 
         //draw schematic plans
         for(int i = 0; i < size; i++){
             var plan = items[i];
             plan.animScale = 1f;
-            drawPlan(plan, plan.cachedValid = validPlace(plan.x, plan.y, plan.block, plan.rotation), alpha);
+            drawPlan(plan, plan.cachedValid = validPlace(plan.x, plan.y, plan.block, plan.rotation), schemAlpha);
         }
 
         //draw schematic plans - over version, cached results
         for(int i = 0; i < size; i++){
             var plan = items[i];
             //use cached value from previous invocation
-            drawOverPlan(plan, plan.cachedValid, alpha);
+            drawOverPlan(plan, plan.cachedValid, schemAlpha);
         }
 
 //        if(player.isBuilder()){
@@ -252,11 +253,15 @@ public class DesktopInput extends InputHandler{
                 }
                 Draw.color();
                 boolean valid = validPlace(cursorX, cursorY, block, rot);
-                drawPlan(cursorX, cursorY, block, rot);
+
+                var placeAlpha = Core.settings.getInt("placeopacity", 100) / 100f;
+
+                drawPlan(cursorX, cursorY, block, rot, placeAlpha);
                 block.drawPlace(cursorX, cursorY, rot, valid);
 
                 if(block.saveConfig){
                     Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
+                    Draw.alpha(placeAlpha);
                     bplan.set(cursorX, cursorY, rot, block);
                     bplan.config = block.lastConfig;
                     block.drawPlanConfig(bplan, allPlans());
