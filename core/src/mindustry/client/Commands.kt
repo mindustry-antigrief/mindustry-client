@@ -410,6 +410,7 @@ fun setupCommands() {
             Build Cost (Refund): ${rules.buildCostMultiplier}x (${rules.deconstructRefundMultiplier}x)
             Block Health (Damage): ${rules.blockHealth(team)}x (${rules.blockDamage(team)}x)
             Unit Damage: ${rules.unitDamage(team)}x
+            Unit Health: ${rules.unitHealth(team)}x
             Core Capture: ${rules.coreCapture}
             Core Incinerates: ${rules.coreIncinerates}
             Core Modifies Unit Cap: ${rules.unitCapVariable}
