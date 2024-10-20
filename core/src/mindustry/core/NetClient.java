@@ -307,9 +307,25 @@ public class NetClient implements ApplicationListener{
         findLinks(output, 0);
 
         if (Server.current.isVotekick(message)) { // Vote kick clickable buttons
+            String msg = message;
             String yes = Core.bundle.get("client.voteyes"), no = Core.bundle.get("client.voteno");
             output.message = output.message + '\n' + yes + "  " + no;
             output.format();
+
+            Func2<Player, Boolean, String> getName = (p, strip) -> strip ? p.plainName() : p.name();
+            for (int j = 0; j < 2; ++j) {
+                boolean strip = j == 1;
+                Seq<Player> names = Groups.player.array.select(p -> msg.contains(getName.get(p, strip)))
+                        .sort(p -> -getName.get(p, strip).length());
+                if (names.size >= 2) {
+                    for (int i = 0; i < 2; ++i) {
+                        Player p = names.get(i);
+                        output.addButton(getName.get(p, strip), () -> Spectate.INSTANCE.spectate(p));
+                    }
+                    break;
+                }
+            }
+
             output.addButton(yes, () -> Call.sendChatMessage("/vote y"));
             output.addButton(no, () -> Call.sendChatMessage("/vote n"));
         }
