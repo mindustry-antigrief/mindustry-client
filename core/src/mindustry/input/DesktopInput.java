@@ -897,6 +897,10 @@ public class DesktopInput extends InputHandler{
             lastLineY = cursorY;
         }
 
+        if (Core.settings.getBool("placementfragmentsearch") && Core.input.keyTap(Binding.focus_block_search) && Core.input.keyDown(Binding.focus_block_search_modifier)){
+            ui.hudfrag.blockfrag.focusBlockSearch();
+        }
+
         //select some units
         if(Core.input.keyRelease(Binding.select) && commandRect){
             selectUnitsRect();
