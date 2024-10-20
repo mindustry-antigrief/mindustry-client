@@ -188,7 +188,7 @@ class ClientLogic {
         // Warn about turrets that are built with an enemy void in range
         Events.on(BlockBuildBeginEventBefore::class.java) { event ->
             val block = event.newBlock
-            if (block !is Turret) return@on
+            if (!((block as? Turret)?.targetGround ?: false)) return@on
             if (event.unit?.player == null) return@on
             if (state.rules.infiniteResources) return@on
 
