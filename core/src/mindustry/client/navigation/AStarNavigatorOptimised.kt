@@ -21,7 +21,7 @@ object AStarNavigatorOptimised : Navigator() {
     private val pool = Pools.get(PositionWaypoint::class.java, ::PositionWaypoint)
     private var grid: Array<Cell> = emptyArray()
     private var gridSize = Point2()
-    private var open = BinaryHeap<Cell>(65_536, false)
+    private var open = BinaryHeap<Cell>(1024, false)
     private var startX = -1
     private var startY = -1
     private var endX = 0
@@ -242,14 +242,14 @@ object AStarNavigatorOptimised : Navigator() {
         tileWidth = ceil(width / tilesize).toInt()
         tileHeight = ceil(height / tilesize).toInt()
 
-        start.clamp(0f, 0f, width, height)
-        end.clamp(0f, 0f, width, height)
+        start.clamp(0f, 0f, width - 1f, height - 1f)
+        end.clamp(0f, 0f, width - 1f, height - 1f)
 
         //Reset
-        startX = World.toTile(start.x).coerceIn(0, tileWidth)
-        startY = World.toTile(start.y).coerceIn(0, tileHeight)
-        endX = World.toTile(end.x).coerceIn(0, tileWidth)
-        endY = World.toTile(end.y).coerceIn(0, tileHeight)
+        startX = World.toTile(start.x).coerceIn(0, tileWidth - 1)
+        startY = World.toTile(start.y).coerceIn(0, tileHeight - 1)
+        endX = World.toTile(end.x).coerceIn(0, tileWidth - 1)
+        endY = World.toTile(end.y).coerceIn(0, tileHeight - 1)
 
         if (!gridSize.equals(tileWidth, tileHeight)) {
             grid = Array(tileWidth * tileHeight) { Cell(it % tileWidth, it / tileWidth) }
