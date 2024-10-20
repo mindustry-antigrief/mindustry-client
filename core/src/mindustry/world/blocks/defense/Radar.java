@@ -1,5 +1,6 @@
 package mindustry.world.blocks.defense;
 
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -7,8 +8,13 @@ import arc.struct.*;
 import arc.util.io.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.client.navigation.*;
+import mindustry.client.utils.*;
+import mindustry.core.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.logic.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
 
@@ -45,11 +51,38 @@ public class Radar extends Block{
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, fogRadius * tilesize, Pal.accent);
     }
 
-    public class RadarBuild extends Building{
+    public class RadarBuild extends Building implements Ranged{ // Client: implement Ranged
         public float progress;
         public float lastRadius = 0f;
         public float smoothEfficiency = 1f;
         public float totalProgress;
+
+        // Client stuff
+        public float range(){
+            return World.unconv(fogRadius);
+        }
+        protected TurretPathfindingEntity turretEnt;
+
+        @Override
+        public void add(){
+            super.add();
+            Core.app.post(() -> {
+                if(team == Team.blue && CustomMode.flood.b()){
+                    turretEnt = new TurretPathfindingEntity(
+                        this,
+                        () -> true ? range() : 0f, true, true, () -> true
+                    );
+                    Navigation.addEnt(turretEnt);
+                }
+            });
+        }
+
+        @Override
+        public void remove(){
+            super.remove();
+            if (turretEnt != null) Navigation.removeEnt(turretEnt);
+        }
+        // end client stuff
 
         @Override
         public float fogRadius(){
@@ -78,7 +111,9 @@ public class Radar extends Block{
 
         @Override
         public void drawSelect(){
-            Drawf.dashCircle(x, y, fogRadius() * tilesize, Pal.accent);
+            if(team == Team.blue && CustomMode.flood.b()){
+                Drawf.dashCircle(x, y, range(), team.color, Color.lightGray);
+            } else Drawf.dashCircle(x, y, fogRadius() * tilesize, Pal.accent);
         }
 
         @Override
