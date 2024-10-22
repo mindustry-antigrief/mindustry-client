@@ -1016,7 +1016,14 @@ public class DesktopInput extends InputHandler{
                 if(getPlan(splan.x, splan.y, splan.block.size, splan) != null){
                     player.unit().plans().remove(splan, true);
                 }
-                if(!splanMoved) player.unit().addBuild(splan, false); // Add the plan to the top of the queue
+                if(!splanMoved && input.ctrl()) {
+                    inv.hide();
+                    config.hideConfig();
+                    planConfig.showConfig(splan);
+                } else {
+                    planConfig.hide();
+                    if (!splanMoved) player.unit().addBuild(splan, false); // Add the plan to the top of the queue
+                }
                 splan = null;
                 splanMoved = false;
             }
