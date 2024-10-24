@@ -65,6 +65,7 @@ function targetedBuilding(){
 importPackage(Packages.arc)
 importPackage(Packages.arc.audio)
 importPackage(Packages.arc.files)
+importPackage(Packages.arc.flabel)
 importPackage(Packages.arc.func)
 importPackage(Packages.arc.graphics)
 importPackage(Packages.arc.graphics.g2d)
