@@ -97,6 +97,8 @@ public class DesktopInput extends InputHandler{
         shouldShoot = false;
         deleting = false;
     }
+    /** Whether the current selected building being dragged from*/
+    private boolean configDragging = false;
 
     @Override
     public void buildUI(Group group){
@@ -217,6 +219,16 @@ public class DesktopInput extends InputHandler{
                 drawRebuildSelection(schemX, schemY, cursorX, cursorY);
             }
         }
+
+        if (configDragging && config.getSelected() != null) {
+            Vec2 mouseCoords = input.mouseWorld();
+            Building selected = config.getSelected();
+            Draw.color(Pal.accent);
+            Lines.line(mouseCoords.x, mouseCoords.y, selected.x, selected.y);
+            Draw.reset();
+        }
+
+        drawCommanded();
 
         Draw.reset();
     }
@@ -976,6 +988,22 @@ public class DesktopInput extends InputHandler{
         int cursorX = tileX(Core.input.mouseX());
         int cursorY = tileY(Core.input.mouseY());
         int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
+
+        // Handle drag to config behaviour
+        if (config.selectedCanDrag) {
+            if (input.keyDown(Binding.select)) {
+                if (selected.build == config.getSelected()) configDragging = true;
+            } else if (configDragging) {
+                Building hovered = world.build(cursorX, cursorY);
+                if (hovered != config.getSelected()) {
+                    if (hovered != null) {
+                        config.getSelected().onConfigureBuildTapped(hovered);
+                    }
+                    config.hideConfig();
+                }
+                configDragging = false;
+            }
+        }
 
         //automatically pause building if the current build queue is empty
         if(Core.settings.getBool("buildautopause") && isBuilding && !isBuildingIgnoreNetworking()){

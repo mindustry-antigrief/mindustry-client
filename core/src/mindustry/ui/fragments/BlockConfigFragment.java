@@ -5,16 +5,26 @@ import arc.math.*;
 import arc.scene.*;
 import arc.scene.actions.*;
 import arc.scene.ui.layout.*;
+import arc.struct.ObjectSet;
 import arc.util.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.world.blocks.distribution.BufferedItemBridge.BufferedItemBridgeBuild;
+import mindustry.world.blocks.distribution.ItemBridge.ItemBridgeBuild;
+import mindustry.world.blocks.distribution.MassDriver.MassDriverBuild;
+import mindustry.world.blocks.liquid.LiquidBridge.LiquidBridgeBuild;
+import mindustry.world.blocks.payloads.PayloadMassDriver.PayloadDriverBuild;
 
 import static mindustry.Vars.*;
 
 public class BlockConfigFragment{
+    static ObjectSet<Class<? extends Building>> validBuilds = ObjectSet.with(
+            BufferedItemBridgeBuild.class, ItemBridgeBuild.class, LiquidBridgeBuild.class, MassDriverBuild.class, PayloadDriverBuild.class
+    );
     Table table = new Table();
     Building selected;
+    public boolean selectedCanDrag = false;
 
     public void build(Group parent){
         table.visible = false;
@@ -26,6 +36,7 @@ public class BlockConfigFragment{
     public void forceHide(){
         table.visible = false;
         selected = null;
+        selectedCanDrag = false;
     }
 
     public boolean isShown(){
@@ -40,7 +51,7 @@ public class BlockConfigFragment{
         if(selected != null) selected.onConfigureClosed();
         if(tile.configTapped()){
             selected = tile;
-
+            selectedCanDrag = validBuilds.contains(selected.getClass());
             table.visible = true;
             table.clear();
             table.background(null); // clear the background as some blocks set custom ones
@@ -74,6 +85,7 @@ public class BlockConfigFragment{
     public void hideConfig(){
         if(selected != null) selected.onConfigureClosed();
         selected = null;
+        selectedCanDrag = false;
         table.actions(Actions.scaleTo(0f, 1f, 0.06f, Interp.pow3Out), Actions.visible(false));
     }
 }
