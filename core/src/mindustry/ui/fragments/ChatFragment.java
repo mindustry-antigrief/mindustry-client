@@ -67,7 +67,8 @@ public class ChatFragment extends Table{
 
         update(() -> {
 
-            if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.consolefrag.shown()){
+            // don't get chat focus if modifier to "submit" schematic is held
+            if(input.keyTap(Binding.chat) && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null || ui.minimapfrag.shown()) && !ui.consolefrag.shown() && !input.keyDown(Binding.schematic_submit_modifier)){
                 toggle();
             }
 
