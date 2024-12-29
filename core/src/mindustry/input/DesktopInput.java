@@ -220,7 +220,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if (configDragging && config.getSelected() != null) {
+        if (config.dragging) {
             Vec2 mouseCoords = input.mouseWorld();
             Building selected = config.getSelected();
             Draw.color(Pal.accent);
@@ -989,22 +989,6 @@ public class DesktopInput extends InputHandler{
         int cursorY = tileY(Core.input.mouseY());
         int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
 
-        // Handle drag to config behaviour
-        if (config.selectedCanDrag) {
-            if (input.keyDown(Binding.select)) {
-                if (selected.build == config.getSelected()) configDragging = true;
-            } else if (configDragging) {
-                Building hovered = world.build(cursorX, cursorY);
-                if (hovered != config.getSelected()) {
-                    if (hovered != null) {
-                        config.getSelected().onConfigureBuildTapped(hovered);
-                    }
-                    config.hideConfig();
-                }
-                configDragging = false;
-            }
-        }
-
         //automatically pause building if the current build queue is empty
         if(Core.settings.getBool("buildautopause") && isBuilding && !isBuildingIgnoreNetworking()){
             isBuilding = false;
@@ -1119,6 +1103,16 @@ public class DesktopInput extends InputHandler{
                     player.unit().plans.removeIndex(index);
                     player.unit().plans.addFirst(plan);
                 }
+            }
+        }
+
+        // Handle drag to config behaviour
+        if(config.dragging && Core.input.keyRelease(Binding.select)){
+            config.dragging = false;
+            Building hovered = selected == null ? null : selected.build;
+            if(hovered != config.getSelected()){
+                if(hovered != null) config.getSelected().onConfigureBuildTapped(hovered);
+                config.hideConfig();
             }
         }
 

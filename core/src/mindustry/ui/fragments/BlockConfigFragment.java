@@ -24,7 +24,7 @@ public class BlockConfigFragment{
     );
     Table table = new Table();
     Building selected;
-    public boolean selectedCanDrag = false;
+    public boolean dragging = false;
 
     public void build(Group parent){
         table.visible = false;
@@ -36,7 +36,7 @@ public class BlockConfigFragment{
     public void forceHide(){
         table.visible = false;
         selected = null;
-        selectedCanDrag = false;
+        dragging = false;
     }
 
     public boolean isShown(){
@@ -51,7 +51,7 @@ public class BlockConfigFragment{
         if(selected != null) selected.onConfigureClosed();
         if(tile.configTapped()){
             selected = tile;
-            selectedCanDrag = validBuilds.contains(selected.getClass());
+            dragging = validBuilds.contains(selected.getClass());
             table.visible = true;
             table.clear();
             table.background(null); // clear the background as some blocks set custom ones
@@ -85,7 +85,7 @@ public class BlockConfigFragment{
     public void hideConfig(){
         if(selected != null) selected.onConfigureClosed();
         selected = null;
-        selectedCanDrag = false;
+        dragging = false;
         table.actions(Actions.scaleTo(0f, 1f, 0.06f, Interp.pow3Out), Actions.visible(false));
     }
 }
