@@ -889,7 +889,20 @@ public class SchematicsDialog extends BaseDialog{
             cont.clear();
             title.setText("[[" + Core.bundle.get("schematic") + "] " +schem.name());
 
-            cont.add(Core.bundle.format("schematic.info", schem.width, schem.height, schem.tiles.size)).color(Color.lightGray).row();
+            float buildTime = schem.tiles
+                    .retainAll(tile -> !tile.block.isHidden())
+                    .reduce(0f, (tile, sum) -> sum + (tile.block.buildCost / 60f));
+
+            cont.add(
+                    Core.bundle.format(
+                    "schematic.info",
+                        schem.width, schem.height, schem.tiles.size,
+                        buildTime / ( player.unit().isValid() ? player.unit().type.buildSpeed : 1f ) / state.rules.buildSpeedMultiplier,
+                        buildTime
+                    )
+                )
+            .color(Color.lightGray).row();
+
             cont.table(tags -> buildTags(schem, tags)).fillX().left().row();
             cont.add(new SchematicImage(schem)).maxSize(800f).row();
 
