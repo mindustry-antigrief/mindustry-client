@@ -1323,9 +1323,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         drawSelection(x1, y1, x2, y2, maxLength, Pal.accentBack, Pal.accent);
     }
 
+//    TODO: https://discord.com/channels/741710208501547161/741711654693240945/1329379708764426280
     protected void drawSelection(int x1, int y1, int x2, int y2, int maxLength, Color col1, Color col2){
         NormalizeDrawResult result = Placement.normalizeDrawArea(Blocks.air, x1, y1, x2, y2, false, maxLength, 1f);
-
         if(Core.settings.getBool("drawselectionvanilla")){
             Lines.stroke(2f);
             Draw.color(col1);
@@ -1346,7 +1346,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         var snapToCursor = Core.settings.getBool("selectionsizeoncursor");
         var textOffset = Core.settings.getInt("selectionsizeoncursoroffset", 5);
         // FINISHME: When not snapping to cursor, perhaps it would be best to choose the corner closest to the cursor that's at least a block away?
-        font.draw((int)((result.x2 - result.x) / 8) + "x" + (int)((result.y2 - result.y) / 8), snapToCursor ? input.mouseWorldX() + textOffset * (4 / renderer.camerascale) : result.x2, snapToCursor ? input.mouseWorldY() - textOffset * (4 / renderer.camerascale) : result.y);
+        font.draw((int)((result.x2 - result.x) / 8) + "x" + (int)((result.y2 - result.y) / 8) + " (" + (int)((result.x2 - result.x) / 8) * (int)((result.y2 - result.y) / 8) + ")", snapToCursor ? input.mouseWorldX() + textOffset * (4 / renderer.camerascale) : result.x2, snapToCursor ? input.mouseWorldY() - textOffset * (4 / renderer.camerascale) : result.y);
         font.setColor(Color.white);
         font.getData().setScale(1);
         font.setUseIntegerPositions(ints);
