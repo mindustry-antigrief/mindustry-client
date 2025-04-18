@@ -59,8 +59,10 @@ public class PlayerListFragment{
                 pane.row();
 
                 hostButton = pane.button("", Styles.nonetdef, () -> {
-                    String copyText = Core.input.shift() ? ui.join.lastHost.address : Strings.stripColors(ui.join.lastHost.name);
-                    Core.app.setClipboardText(copyText);
+                    if(ui.join.lastHost != null) {
+                        String copyText = Core.input.shift() ? ui.join.lastHost.address : Strings.stripColors(ui.join.lastHost.name);
+                        Core.app.setClipboardText(copyText);
+                    }
                 }).wrap().growY().width(400).get();
                 pane.row();
 
@@ -97,7 +99,10 @@ public class PlayerListFragment{
 
             if (hostButton != null) {
                 hostButton.setText(display);
+
             }
+        } else if (player.con == null) {
+            hostButton.setText("");
         }
 
         float h = 74f;
