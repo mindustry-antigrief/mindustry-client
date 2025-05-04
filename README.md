@@ -26,14 +26,18 @@ Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/
 
 ### Mac OS
 1. [Download](../../../mindustry-client-v8-builds/releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
-1. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
-1. Navigate to the `Resources` folder `Contents > Resources`.
-1. Replace the `desktop.jar` with the one you just downloaded.
-1. Launching the game should now start the client.
+2. Open the game install folder, right click the `Mindustry.app` file and click `Show Package Contents`.
+3. Navigate to the `Resources` folder `Contents > Resources`.
+4. Replace the `desktop.jar` with the one you just downloaded.
+5. Launching the game should now start the client.
 - To uninstall the client, delete the `desktop.jar` file in `Resources` as well as the `Mindustry` file in the `MacOS` folder. Start the game, accept the error and start it again.
 
 ### Linux
-1. You are using linux, I'm sure you can figure this out yourself.
+1. [Download](../../../mindustry-client-v8-builds/releases/latest/download/desktop.jar) the `desktop.jar` file from the latest release.
+2. In Steam, right-click the game, navigate to `Manage` > `Browse Local Files`
+3. Open the `jre` directory and rename the vanilla `desktop.jar` to `desktop.jar.old` (or delete it)
+4. Place the downloaded `desktop.jar` in the same `jre` directory as the one you just renamed/deleted.
+5. Launch the game on Steam.
 
 ## Contributing
 
