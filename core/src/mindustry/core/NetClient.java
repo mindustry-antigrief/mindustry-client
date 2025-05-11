@@ -103,7 +103,7 @@ public class NetClient implements ApplicationListener{
             }
 
             var c = new ConnectPacket();
-            c.name = player.name;
+            c.name = ServerUtils.playerName(player.name);
             c.locale = locale;
             c.mods = mods.getModStrings();
             c.mobile = mobile;

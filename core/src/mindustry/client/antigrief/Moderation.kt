@@ -51,6 +51,17 @@ class Moderation {
                         }
                     }
                 }
+                if (Server.cn()) {
+                    val json = JsonReader().parse(it)
+                    if (Core.settings.getBool("logplayerdata")) Log.debug(json)
+
+                    fun String.i() = json.getInt(this, Int.MAX_VALUE)
+
+                    val id = "id".i()
+                    val player = Groups.player.getByID(id) ?: return@addPacketHandler
+                    val rank = "rank".i() // staff starts at 2 ends at 5
+                    if (player == Vars.player) ClientVars.rank = rank
+                }
             }
 
             Vars.netClient.addPacketHandler("freeze_confirm") {

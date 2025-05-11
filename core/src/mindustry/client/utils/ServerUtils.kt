@@ -33,7 +33,15 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 ) {
     other(null),
     nydus("nydus"),
-    cn("Chaotic Neutral", rtv = Cmd("/rtv")),
+    cn("Chaotic Neutral", whisper = Cmd("/w"), rtv = Cmd("/rtv")) {
+        override fun adminui() = player.admin || ClientVars.rank >= 3
+        override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
+            msg ?: return false
+            // Auto excavate, its cringe i might add a packet handler for this instead of a message handler
+            if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg) return Call.sendChatMessage("/e y")
+        }
+        // TODO: Handle ban packets, requires CN plugin update first
+    },
     io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4) {
         override fun run(vararg args: String) { // Freeze command requires admin in game but the packet does not
             if (!player.admin) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
@@ -96,7 +104,14 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             return blockAnnoyances && rot == 0F && fx == Fx.pointBeam
         }
     },
-    darkdustry("Darkdustry")
+    darkdustry("Darkdustry"),
+    ddns("mindustry.ddns.net") {
+        override fun playerName(p: String) {
+            // ddns name system is so restrictive
+            val newName = p.replace(Regex("[^ -~]"), "")
+            ClientVars.strippedName = newName
+        }
+    }
     ;
 
     companion object {
@@ -160,7 +175,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     open fun handleVoteButtons(msg: ChatMessage) {
         if (rtv.canRun()) msg.addButton(rtv.str, rtv::invoke) // FINISHME: I believe cn has a no option? not too sure
 //        if (kick.canRun()) msg.addButton(kick.str, kick::invoke) FINISHME: Implement votekick buttons here
-//        FINISHME: Add cn excavate buttons
+//        FINISHME: Add cn excavate buttons | Do you have to if it auto votes?
     }
 
     /** Run when banning [p] */
@@ -182,6 +197,10 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 
     /** Used to block effects on servers that spam them. */
     open fun blockEffect(fx: Effect, rot: Float): Boolean = false
+
+    /** Used to modify the player name when the server has name restrictions, only sets the player name */
+    /** Input is handled via the connect packet! Default is Vars.player.name */
+    open fun playerName(p: String): String = ClientVars.strippedname
 }
 
 enum class CustomMode(
