@@ -20,6 +20,7 @@ import mindustry.net.Packets.*
 import mindustry.ui.fragments.ChatFragment.*
 import java.lang.reflect.*
 import kotlin.properties.*
+import kotlin.random.*
 
 enum class Server( // FINISHME: This is horrible. Why have I done this?
     private val groupName: String?,
@@ -40,9 +41,9 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             msg ?: return false
             // Auto excavate, this is cringe add a packet handler for this instead of a message handler
             if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg) {
-                var vote = Core.settings.getInt("autoexcavatevote")
+                var vote: Any = Core.settings.getInt("autoexcavatevote")
                 when (vote) {
-                    0 -> return false
+                    0 -> return
                     1 -> vote = "y"
                     2 -> vote = "n"
                     3 -> {
@@ -51,10 +52,10 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                         else vote = "n"
                     }
                 }
-                Call.sendChatMessage("/e ${vote}")
-                return false
+                Call.sendChatMessage("/e $vote")
             }
             // TODO: Handlers for moderation packets? (skips the menus)
+            return false
         }
     },
     io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4) {
