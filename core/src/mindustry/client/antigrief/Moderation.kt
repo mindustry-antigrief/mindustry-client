@@ -22,13 +22,12 @@ class Moderation {
         @JvmField var freezeState: String = "unknown"
         init {
             Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins
+                val json = JsonReader().parse(it)
+                fun String.i() = json.getInt(this, Int.MAX_VALUE)
+                fun String.s() = json.getString(this, "unknown")
+                if (Core.settings.getBool("logplayerdata")) Log.debug(json)
+                
                 if (Server.io() || Server.phoenix()) {
-                    val json = JsonReader().parse(it)
-                    if (Core.settings.getBool("logplayerdata")) Log.debug(json)
-
-                    fun String.i() = json.getInt(this, Int.MAX_VALUE)
-                    fun String.s() = json.getString(this, "unknown")
-
                     val id = "id".i()
                     val player = Groups.player.getByID(id) ?: return@addPacketHandler
                     player.serverID = "playercode".s()
@@ -52,13 +51,8 @@ class Moderation {
                     }
                 }
                 if (Server.cn()) {
-                    val json = JsonReader().parse(it)
-                    if (Core.settings.getBool("logplayerdata")) Log.debug(json)
-
-                    fun String.i() = json.getInt(this, Int.MAX_VALUE)
-
                     val id = "id".i()
-                    val player = Groups.player.getByID(id) ?: return@addPacketHandler
+                    val player = Groups.player.getByID(id) ?: return@addPacketHandler // Do i need this, we only send *this* players playerdata to the connection
                     val rank = "rank".i() // staff starts at 2 ends at 5
                     if (player == Vars.player) ClientVars.rank = rank
                 }

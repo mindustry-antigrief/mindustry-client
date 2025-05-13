@@ -34,13 +34,28 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     other(null),
     nydus("nydus"),
     cn("Chaotic Neutral", whisper = Cmd("/w"), rtv = Cmd("/rtv")) {
-        override fun adminui() = player.admin || ClientVars.rank >= 3
+        // Implement freeze button on tab menu... i really need it :'(
+        override fun adminui() = player.admin || ClientVars.rank >= 2
         override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
             msg ?: return false
-            // Auto excavate, its cringe i might add a packet handler for this instead of a message handler
-            if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg) return Call.sendChatMessage("/e y")
+            // Auto excavate, this is cringe add a packet handler for this instead of a message handler
+            if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg) {
+                var vote = Core.settings.getInt("autoexcavatevote")
+                when (vote) {
+                    0 -> return false
+                    1 -> vote = "y"
+                    2 -> vote  "n"
+                    3 -> {
+                        val rand = Random.nextInt(1, 3)
+                        if (rand == 1) vote = "y"
+                        else vote = "n"
+                    }
+                }
+                Call.sendChatMessage("/e ${vote}")
+                return false
+            }
+            // TODO: Handlers for moderation packets? (skips the menus)
         }
-        // TODO: Handle ban packets, requires CN plugin update first
     },
     io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4) {
         override fun run(vararg args: String) { // Freeze command requires admin in game but the packet does not
