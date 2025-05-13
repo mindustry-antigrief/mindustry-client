@@ -72,5 +72,5 @@ public class ClientVars {
     public static boolean isBuildingLock; // Whether the building state is being controlled by networking
     public static float pluginVersion; // Version of the foo plugin that is found on the server
     public static int spoofedBuild; // Spoofed Version.build, used for joining servers on any version
-    @NotNull public static String strippedName = Vars.player.name; // The name of the player without any of the specificed content in ServerUtils
+    // @NotNull public static String strippedName = Vars.player.name; // The name of the player without any of the specificed content in ServerUtils
 }
