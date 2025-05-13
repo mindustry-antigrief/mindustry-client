@@ -43,7 +43,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg) {
                 var vote: Any = Core.settings.getInt("autoexcavatevote")
                 when (vote) {
-                    0 -> return
+                    0 -> return false
                     1 -> vote = "y"
                     2 -> vote = "n"
                     3 -> {
