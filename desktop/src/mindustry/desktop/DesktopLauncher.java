@@ -303,8 +303,8 @@ public class DesktopLauncher extends ClientLauncher{
     @Override
     public void checkIntegrity(){ // This whole method is a disaster. It works though and I can't find any less convoluted way to do this
         try{
-            var out = new UnpackJars().unpackSteamUninstaller();
-            if(OS.isWindows) Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", javaPath, "-jar", out.absolutePath()});
+            Fi out = new UnpackJars().unpackSteamUninstaller();
+            if(OS.isWindows) Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", "", javaPath, "-jar", out.absolutePath()});
             else Runtime.getRuntime().exec(new String[]{"sh", "-c", '"' + javaPath + "\" -jar \"" + out.absolutePath() + '"'});
             Core.app.exit();
         }catch(IOException ignored){
