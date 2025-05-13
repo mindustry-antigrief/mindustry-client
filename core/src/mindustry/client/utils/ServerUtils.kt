@@ -44,7 +44,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 when (vote) {
                     0 -> return false
                     1 -> vote = "y"
-                    2 -> vote  "n"
+                    2 -> vote = "n"
                     3 -> {
                         val rand = Random.nextInt(1, 3)
                         if (rand == 1) vote = "y"
@@ -120,13 +120,13 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         }
     },
     darkdustry("Darkdustry"),
-    ddns("mindustry.ddns.net") {
+    /* ddns("mindustry.ddns.net") {
         override fun playerName(p: String) {
             // ddns name system is so restrictive
             val newName = p.replace(Regex("[^ -~]"), "")
             ClientVars.strippedName = newName
         }
-    }
+    }, */
     ;
 
     companion object {
@@ -215,7 +215,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 
     /** Used to modify the player name when the server has name restrictions, only sets the player name */
     /** Input is handled via the connect packet! Default is Vars.player.name */
-    open fun playerName(p: String): String = ClientVars.strippedname
+    // open fun playerName(p: String): String = ClientVars.strippedname
 }
 
 enum class CustomMode(
