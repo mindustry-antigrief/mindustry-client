@@ -35,7 +35,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     other(null),
     nydus("nydus"),
     cn("Chaotic Neutral", whisper = Cmd("/w"), rtv = Cmd("/rtv")) {
-        // Implement freeze button on tab menu... i really need it :'(
+        // TODO: Implement freeze button on tab menu... i really need it :'(
         override fun adminui() = player.admin || ClientVars.rank >= 2
         override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
             msg ?: return false

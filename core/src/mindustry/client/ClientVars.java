@@ -8,7 +8,6 @@ import arc.struct.*;
 import arc.util.Nullable;
 import arc.util.*;
 import kotlin.*;
-import mindustry.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.net.*;
