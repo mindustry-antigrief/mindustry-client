@@ -36,7 +36,7 @@ public class Menus{
         if(options == null) options = new String[0][0];
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
-            (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() return; // phoenix network and cn are equally annoying
+            (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() return; // phoenix network is annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
         Log.debug("Displaying menu @ with title: @", menuId, title);
