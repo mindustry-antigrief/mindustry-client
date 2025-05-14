@@ -42,6 +42,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             // Auto excavate, this is cringe add a packet handler for this instead of a message handler
             if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg) {
                 var vote: Any = Core.settings.getInt("autoexcavatevote")
+                // I hate this but dont know how to do it better
                 when (vote) {
                     0 -> return false
                     1 -> vote = "y"
@@ -121,13 +122,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         }
     },
     darkdustry("Darkdustry"),
-    /* ddns("mindustry.ddns.net") {
-        override fun playerName(p: String) {
-            // ddns name system is so restrictive
-            val newName = p.replace(Regex("[^ -~]"), "")
-            ClientVars.strippedName = newName
-        }
-    }, */
+    ddns("mindustry.ddns.net"),
     ;
 
     companion object {
@@ -213,10 +208,6 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 
     /** Used to block effects on servers that spam them. */
     open fun blockEffect(fx: Effect, rot: Float): Boolean = false
-
-    /** Used to modify the player name when the server has name restrictions, only sets the player name */
-    /** Input is handled via the connect packet! Default is Vars.player.name */
-    // open fun playerName(p: String): String = ClientVars.strippedname
 }
 
 enum class CustomMode(
