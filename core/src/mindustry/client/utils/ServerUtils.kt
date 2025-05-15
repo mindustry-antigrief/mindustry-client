@@ -40,17 +40,18 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
             msg ?: return false
             // Auto excavate, this is cringe add a packet handler for this instead of a message handler
-            if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg) {
+            if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg && !(player.name.stripColors() in msg.stripColors())) {
                 var vote: Any = Core.settings.getInt("autoexcavatevote")
                 // I hate this but dont know how to do it better
                 when (vote) {
                     0 -> return false
-                    1 -> vote = "y"
-                    2 -> vote = "n"
+                    1 -> if(ClientVars.rank >= 2 || player.admin) {vote = "c"} else vote = "n"
+                    2 -> if(ClientVars.rank >= 2 || player.admin) {vote = "f"} else vote = "y"
                     3 -> {
+                        // We dont use staff for random votes
                         val rand = Random.nextInt(1, 3)
-                        if (rand == 1) vote = "y"
-                        else vote = "n"
+                        if (rand == 1) vote = "n"
+                        else vote = "y"
                     }
                 }
                 Call.sendChatMessage("/e $vote")
@@ -153,6 +154,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         fun onServerJoin() { // Called once on server join before WorldLoadEvent (and by extension ServerJoinEvent), the player will not be added here hence the need for ServerJoinEvent
             val grouped = ui.join.communityHosts.groupBy({ it.group }) { it.address }
             val address = ui.join.lastHost?.address ?: ""
+            Log.debug("Address lasthost: $address")
             if (ui.join.lastHost?.name?.contains("nydus") == true) current = nydus
             else entries.forEach {
                 if (it.groupName != null && grouped[it.groupName]?.contains(address) == true) {
