@@ -3,7 +3,6 @@ name: Release Update
 on:
   push:
     tags: v*
-  workflow_dispatch:
 
 jobs:
   build:
@@ -23,10 +22,10 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      #- name: Cancel Previous Workflows
-      #  uses: styfle/cancel-workflow-action@0.6.0
-      #  with:
-      #    access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cancel Previous Workflows
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout Commit
         uses: actions/checkout@v2
