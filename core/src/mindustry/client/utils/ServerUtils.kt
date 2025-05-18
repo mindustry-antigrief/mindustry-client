@@ -32,32 +32,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     private val votekickString: String = "Type[orange] /vote <y/n>[] to agree.",
     @JvmField var blockAnnoyances: Boolean = true
 ) {
-    other(null, whisper = Cmd("/w"), rtv = Cmd("/rtv")) {
-        // TODO: Implement freeze button on tab menu... i really need it :'(
-        override fun adminui() = player.admin || ClientVars.rank >= 2
-        override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
-            msg ?: return false
-            // Auto excavate, this is cringe add a packet handler for this instead of a message handler
-            if ("Type [accent]/e y[] to remove the walls in-between [red](" in msg && !(player.name.stripColors() in msg.stripColors())) {
-                var vote: Any = Core.settings.getInt("autoexcavatevote")
-                // I hate this but dont know how to do it better
-                when (vote) {
-                    0 -> return false
-                    1 -> if(ClientVars.rank >= 2 || player.admin) {vote = "c"} else vote = "n"
-                    2 -> if(ClientVars.rank >= 2 || player.admin) {vote = "f"} else vote = "y"
-                    3 -> {
-                        // We dont use staff for random votes
-                        val rand = Random.nextInt(1, 3)
-                        if (rand == 1) vote = "n"
-                        else vote = "y"
-                    }
-                }
-                Call.sendChatMessage("/e $vote")
-            }
-            // TODO: Handlers for moderation packets? (skips the menus)
-            return false
-        }
-    },
+    other(null),
     nydus("nydus"),
     cn("Chaotic Neutral", whisper = Cmd("/w"), rtv = Cmd("/rtv")) {
         // TODO: Implement freeze button on tab menu... i really need it :'(
