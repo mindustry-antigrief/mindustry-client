@@ -6,8 +6,6 @@ import arc.util.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.utils.*;
-import mindustry.client.utils.ClientUtils;
-import mindustry.client.utils.ServerUtils;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 
@@ -38,11 +36,6 @@ public class Menus{
         if(title == null) title = "";
         newTitle = title;
         if(options == null) options = new String[0][0];
-
-            Log.debug("Menu Message: " + message);
-            Log.debug("Title: " + newTitle);
-            Log.debug("MenuId: " + menuId);
-
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
             options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b()) return; // phoenix network is annoying
