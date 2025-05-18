@@ -32,15 +32,13 @@ public class Menus{
 
     @Remote(variants = Variant.both)
     public static void menu(int menuId, String title, String message, String[][] options){
-        String newTitle;
         if(title == null) title = "";
-        newTitle = title;
         if(options == null) options = new String[0][0];
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
             options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b()) return; // phoenix network is annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
-
+        if(title.contains(""))
         Log.debug("Displaying menu @ with title: @", menuId, title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
     }
@@ -75,7 +73,7 @@ public class Menus{
     public static void textInput(int textInputId, String title, String message, int textLength, String def, boolean numeric){
         if(title == null) title = "";
         String newTitle = title;
-        if(Core.settings.getString("cnpw").isNotEmpty() && Server.cn.b()) {
+        if(!Core.settings.getString("cnpw").isEmpty() && Server.cn.b()) {
             if(Strings.stripColors(newTitle).equals("Login (1/2)") && textLength == 64) {
                 Call.textInputResult(player, textInputId, Core.settings.getString("cnpw").split(" ")[0]);
             } else if(Strings.stripColors(newTitle).equals("Login (2/2)") && textLength == 64) {
