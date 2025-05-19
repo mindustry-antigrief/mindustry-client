@@ -3,6 +3,7 @@ package mindustry.ui;
 import arc.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.utils.*;
@@ -15,6 +16,7 @@ import static mindustry.Vars.*;
 public class Menus{
     private static final Seq<MenuListener> menuListeners = new Seq<>();
     private static final Seq<TextInputListener> textInputListeners = new Seq<>();
+    private static int retryCount = 0;
 
     /** Register a *global* menu listener. If no option is chosen, the option is returned as -1. */
     public static int registerMenu(MenuListener listener){
@@ -26,6 +28,10 @@ public class Menus{
     public static int registerTextInput(TextInputListener listener){
         textInputListeners.add(listener);
         return textInputListeners.size - 1;
+    }
+
+    public static void resetRetryCount(){
+        retryCount = 0;
     }
 
     //do not invoke any of the methods below directly, use Call
@@ -72,11 +78,13 @@ public class Menus{
     public static void textInput(int textInputId, String title, String message, int textLength, String def, boolean numeric){
         if(title == null) title = "";
         String newTitle = title;
-        if(!Core.settings.getString("cnpw").isEmpty() && Server.cn.b()) {
+        if(Core.settings.getString("cnpw", null) != null && Server.cn.b() && retryCount == 0) {
             if(Strings.stripColors(newTitle).equals("Login (1/2)") && textLength == 64) {
                 Call.textInputResult(player, textInputId, Core.settings.getString("cnpw").split(" ")[0]);
+                return;
             } else if(Strings.stripColors(newTitle).equals("Login (2/2)") && textLength == 64) {
                 Call.textInputResult(player, textInputId, Core.settings.getString("cnpw").split(" ")[1]);
+                return;
             }
         }
         ui.showTextInput(title, message, textLength, def, numeric, (text) -> {
@@ -84,6 +92,7 @@ public class Menus{
         }, () -> {
             Call.textInputResult(player, textInputId, null);
         });
+        retryCount = 0; // Reset the retry count
     }
 
     @Remote(targets = Loc.both, called = Loc.both)
@@ -125,7 +134,25 @@ public class Menus{
     public static void infoMessage(String message){
         if(message == null) return;
         if((Server.io.b() || Server.phoenix.b()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
-
+        if(Server.cn.b()) { 
+            if (message.contains("You have been logged in successfully")) {
+                // This popup is annoying
+                Vars.player.sendMessage(Core.bundle.get("client.command.login.success"));
+                retryCount = 0;
+                return;
+            } else if (message.contains("You are already logged in")) {
+                // For the login command
+                Vars.player.sendMessage(Core.bundle.get("client.command.login.alreadylogged"));
+                retryCount = 0;
+                return;
+            } else if (message.contains("Invalid username or password")) {
+                if(retryCount >= 2) {
+                    // Send this menu only once, may get more depending on user ping
+                    Vars.player.sendMessage(Core.bundle.get("client.command.login.incorrect"));
+                    return;
+                } else retryCount++;
+            }
+        }
         ui.showText("", message);
     }
 
