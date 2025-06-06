@@ -737,6 +737,26 @@ fun setupCommands() {
         }
     }
 
+    register("team [id]", Core.bundle.get("client.command.team.description")) { args, player ->
+        try {
+            lateinit var team: Team
+            val arg = if (args.isEmpty()) "" else args[0]
+            for (fteam in Team.baseTeams) {
+                if (arg.lowercase() == fteam.name.lowercase()) {
+                    team = fteam
+                    break
+                }
+            }
+            if (!::team.isInitialized) {
+                team = arg.toInt()
+            }
+            Vars.player.team(Team.get(team))
+        } catch (e: NumberFormatException) {
+            player.sendMessage(Core.bundle.get("client.invalidTeam"))
+            return@register
+        }
+    }
+
     // FINISHME: Still as bad as before, but i dont want to make "secure" storage
     // Only works in CN, can change if other servers have a /login command
     register("login [username] [password]", Core.bundle.get("client.command.login.description")) { args, player ->
