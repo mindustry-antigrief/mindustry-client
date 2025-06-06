@@ -737,20 +737,20 @@ fun setupCommands() {
         }
     }
 
-    register("team [id]", Core.bundle.get("client.command.team.description")) { args, player ->
+    register("team [id/name]", Core.bundle.get("client.command.team.description")) { args, player ->
         try {
-            lateinit var team: Team
+            var team: Int? = null
             val arg = if (args.isEmpty()) "" else args[0]
             for (fteam in Team.baseTeams) {
                 if (arg.lowercase() == fteam.name.lowercase()) {
-                    team = fteam
+                    team = fteam.id
                     break
                 }
             }
-            if (!::team.isInitialized) {
+            if (team == null) {
                 team = arg.toInt()
             }
-            Vars.player.team(Team.get(team))
+            player.team(Team.get(team))
         } catch (e: NumberFormatException) {
             player.sendMessage(Core.bundle.get("client.invalidTeam"))
             return@register
