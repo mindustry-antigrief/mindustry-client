@@ -749,7 +749,7 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
             if (team == null) team = team ?: arg.toInt()
 
             if (!net.client()) player.team(Team.get(team))
-            else Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
+            else if (player.admin) Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
 
         } catch (e: NumberFormatException) {
             player.sendMessage(Core.bundle.get("client.command.team.invalidTeam"))
