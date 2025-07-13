@@ -29,6 +29,8 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.net.Packets.*
+import mindustry.ui.*
 import mindustry.ui.fragments.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
@@ -734,7 +736,54 @@ fun setupCommands() {
             else -> player.sendMessage("[scarlet]Invalid option specified, options are:\nSettings, Leaves")
         }
     }
+register("team [id/name]", Core.bundle.get("client.command.team.description")) { args, player ->
+        try {
+            var team: Int? = null
+            val arg = if (args.isEmpty()) "" else args[0]
+            for (fteam in Team.baseTeams) {
+                if (arg.lowercase() == fteam.name.lowercase()) {
+                    team = fteam.id
+                    break
+                }
+            }
+            if (team == null) team = team ?: arg.toInt()
 
+            if (!net.client()) player.team(Team.get(team))
+            else Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
+
+        } catch (e: NumberFormatException) {
+            player.sendMessage(Core.bundle.get("client.command.team.invalidTeam"))
+            return@register
+        }
+    }
+
+    // FINISHME: Still as bad as before, but i dont want to make "secure" storage
+    // Only works in CN, can change if other servers have a /login command
+    register("login [username] [password]", Core.bundle.get("client.command.login.description")) { args, player ->
+        Menus.resetRetryCount()
+        if (args.size == 0) {
+            if (Core.settings.getString("cnpw", null) == null) {
+                player.sendMessage(Core.bundle.get("client.command.login.nopw"))
+                return@register
+            } else {
+                Call.sendChatMessage("/login")
+                return@register
+            }
+        }
+
+        if (args.size < 2) {
+            player.sendMessage(Core.bundle.get("client.command.login.badargs"))
+            return@register
+        }
+        val username = args[0]
+        val password = args[1]
+        if (username.length > 64 || password.length > 64) {
+            player.sendMessage(Core.bundle.get("client.command.login.toolong"))
+            return@register
+        }
+        Core.settings.put("cnpw", args[0] + " " + args[1])
+        player.sendMessage(Core.bundle.get("client.command.login.added"))
+    }
 
     // Symbol replacements
 

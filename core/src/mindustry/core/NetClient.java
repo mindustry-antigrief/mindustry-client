@@ -131,8 +131,11 @@ public class NetClient implements ApplicationListener{
                         c.color = get != null ? get.rgba() : Color.valueOf(col).rgba();
                     } catch (IndexOutOfBoundsException ignored) {}
                 }
-            } else if (ui.join.communityHosts.contains(h -> "Chaotic Neutral".equals(h.group) && h.address.equals(address))) {
-                if (!Structs.contains(playerColors, col -> col.rgba() == c.color)) c.color = playerColors[0].rgba();
+            } else if (ui.join.communityHosts.contains(h -> "mindustry.ddns.net".equals(h.group) && h.address.equals(address))) {
+                // such a bad naming system
+                // https://github.com/BnDLett/NameValidation/blob/master/src/org/lettsn/NameValidation/Constants.java#L9
+                var matcher = Pattern.compile("[^ -~]").matcher(player.name);
+                if (matcher.find()) c.name = matcher.replaceAll("");
             }
 
             if(c.uuid == null){

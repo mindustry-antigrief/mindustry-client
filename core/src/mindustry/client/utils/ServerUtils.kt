@@ -20,6 +20,7 @@ import mindustry.net.Packets.*
 import mindustry.ui.fragments.ChatFragment.*
 import java.lang.reflect.*
 import kotlin.properties.*
+import kotlin.random.*
 
 enum class Server( // FINISHME: This is horrible. Why have I done this?
     private val groupName: String?,
@@ -33,7 +34,42 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 ) {
     other(null),
     nydus("nydus"),
-    cn("Chaotic Neutral", rtv = Cmd("/rtv")),
+    cn("Chaotic Neutral", whisper = Cmd("/w"), rtv = Cmd("/rtv")) {
+        // TODO: Implement freeze button on tab menu... i really need it :'(
+        override fun adminui() = player.admin || ClientVars.rank >= 2
+        override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
+            msg ?: return false
+
+            if ("Type [accent]/e y[] to remove the walls in-between [red](" !in msg) return false
+
+            val voteSetting = Core.settings.getInt("autoexcavatevote")
+            val isAdmin = player.admin || ClientVars.rank >= 2
+            val isOwnVote = player.name.stripColors() in msg.stripColors()
+
+            if (voteSetting == 0) return false // Disabled: no action.
+
+            if (isOwnVote) {
+                if (!isAdmin) return false // Non-admin can't interact with own vote.
+                when (voteSetting) {
+                    1 -> Call.sendChatMessage("/e c") // Always no -> cancel
+                    2 -> Call.sendChatMessage("/e f") // Always yes -> force
+                    3 -> { // Random not allowed on own vote, but force randomly c/f
+                        val rand = if (Random.nextBoolean()) "f" else "c"
+                        Call.sendChatMessage("/e $rand")
+                    }
+                }
+            } else {
+                val vote = when (voteSetting) {
+                    1 -> "n"
+                    2 -> "y"
+                    3 -> if (Random.nextBoolean()) "y" else "n"
+                    else -> return false
+                }
+                Call.sendChatMessage("/e $vote")
+            }
+            return false
+        }
+    },
     io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4) {
         override fun run(vararg args: String) { // Freeze command requires admin in game but the packet does not
             if (!player.admin) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen

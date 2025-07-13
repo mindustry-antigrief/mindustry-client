@@ -3,6 +3,7 @@ package mindustry.ui;
 import arc.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.utils.*;
@@ -15,6 +16,7 @@ import static mindustry.Vars.*;
 public class Menus{
     private static final Seq<MenuListener> menuListeners = new Seq<>();
     private static final Seq<TextInputListener> textInputListeners = new Seq<>();
+    private static int retryCount = 0;
 
     /** Register a *global* menu listener. If no option is chosen, the option is returned as -1. */
     public static int registerMenu(MenuListener listener){
@@ -28,6 +30,10 @@ public class Menus{
         return textInputListeners.size - 1;
     }
 
+    public static void resetRetryCount(){
+        retryCount = 0;
+    }
+
     //do not invoke any of the methods below directly, use Call
 
     @Remote(variants = Variant.both)
@@ -37,8 +43,7 @@ public class Menus{
         if(options == null) options = new String[0][0];
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
-            (options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b() ||
-            options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b())) return; // phoenix network and cn are equally annoying
+            options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b()) return; // phoenix network is annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
         Log.debug("Displaying menu @ with title: @", menuId, title);
@@ -50,7 +55,8 @@ public class Menus{
         if(title == null) title = "";
         if(message == null) message = "";
         if(options == null) options = new String[0][0];
-        if(title.equals("Hello there") && Server.cn.b()) return; // Cn join popup
+        // if(title.equals("Hello there") && Server.cn.b()) return; // Cn join popup
+        // I will replace this with auto-optout when the plugin updates, we want ppl to read the rules >:(
 
         Log.debug("Displaying followup menu @ with title: @", menuId, title);
         ui.showFollowUpMenu(menuId, title, message, options, (option) -> Call.menuChoose(player, menuId, option));
@@ -81,12 +87,24 @@ public class Menus{
         if(title == null) title = "";
         if(message == null) message = "";
         if(def == null) def = "";
+        String newTitle = title;
+
+        if(Core.settings.getString("cnpw", null) != null && Server.cn.b() && retryCount == 0) {
+            if(Strings.stripColors(newTitle).equals("Login (1/2)") && textLength == 64) {
+                Call.textInputResult(player, textInputId, Core.settings.getString("cnpw").split(" ")[0]);
+                return;
+            } else if(Strings.stripColors(newTitle).equals("Login (2/2)") && textLength == 64) {
+                Call.textInputResult(player, textInputId, Core.settings.getString("cnpw").split(" ")[1]);
+                return;
+            }
+        }
 
         ui.showTextInput(title, message, textLength, def, numeric, allowEmpty, (text) -> {
             Call.textInputResult(player, textInputId, text);
         }, () -> {
             Call.textInputResult(player, textInputId, null);
         });
+        retryCount = 0; // Reset the retry count
     }
 
     @Remote(targets = Loc.both, called = Loc.both)
@@ -128,6 +146,26 @@ public class Menus{
     public static void infoMessage(String message){
         if(message == null) return;
         if((Server.io.b() || Server.phoenix.b()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
+
+        if(Server.cn.b()) { 
+            if (message.contains("You have been logged in successfully")) {
+                // This popup is annoying
+                Vars.player.sendMessage(Core.bundle.get("client.command.login.success"));
+                retryCount = 0;
+                return;
+            } else if (message.contains("You are already logged in")) {
+                // For the login command
+                Vars.player.sendMessage(Core.bundle.get("client.command.login.alreadylogged"));
+                retryCount = 0;
+                return;
+            } else if (message.contains("Invalid username or password")) {
+                if(retryCount >= 2) {
+                    // Send this menu only once, may get more depending on user ping
+                    Vars.player.sendMessage(Core.bundle.get("client.command.login.incorrect"));
+                    return;
+                } else retryCount++;
+            }
+        }
 
         ui.showText("", message);
     }
