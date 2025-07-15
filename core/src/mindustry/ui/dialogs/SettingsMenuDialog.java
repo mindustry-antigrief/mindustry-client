@@ -386,6 +386,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("formationopacity", 30, 10, 100, 5, s -> { UnitType.formationAlpha = s / 100f; return s + "%"; });
         client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "@off" : s + "%"; });
         client.sliderPref("transferrangeopacity", 30, 0, 100, 5, s -> s == 0 ? "@off" : s + "%");
+        client.checkPref("pantocore", true)
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("placementfragmentsearch", true);

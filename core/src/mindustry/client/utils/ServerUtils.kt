@@ -60,8 +60,8 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 }
             } else {
                 val vote = when (voteSetting) {
-                    1 -> "n"
-                    2 -> "y"
+                    1 -> if (isAdmin) "c" else "n"
+                    2 -> if (isAdmin) "f" else "y"
                     3 -> if (Random.nextBoolean()) "y" else "n"
                     else -> return false
                 }
