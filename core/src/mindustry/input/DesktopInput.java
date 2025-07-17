@@ -504,7 +504,7 @@ public class DesktopInput extends InputHandler{
             }else if((!player.dead() || spectating != null) && !panning){
                 //TODO do not pan
                 Team corePanTeam = state.won ? state.rules.waveTeam : player.team();
-                Position coreTarget = state.gameOver && !state.rules.pvp && corePanTeam.data().lastCore != null && Core.settings.get("pantocore", false) ? corePanTeam.data().lastCore : null;
+                Position coreTarget = state.gameOver && !state.rules.pvp && corePanTeam.data().lastCore != null && Core.settings.get("pantocore", false) == true ? corePanTeam.data().lastCore : null;
                 Position panTarget = coreTarget != null && followGameEndPan ? coreTarget : spectating != null ? spectating : player;
 
                 Core.camera.position.lerpDelta(panTarget, Core.settings.getBool("smoothcamera") ? 0.08f : 1f);
