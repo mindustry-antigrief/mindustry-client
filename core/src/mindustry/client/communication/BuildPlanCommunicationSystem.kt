@@ -75,7 +75,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         Vars.player.unit().updateBuilding = false
         Vars.player.unit().addBuild(plan, false)
         Timer.schedule({
-            Vars.player.unit().plans.remove(plan)
+            Vars.player.unit()?.plans?.remove(plan)
             Vars.control.input.isBuilding = toggle
             ClientVars.isBuildingLock = false
         }, 0.25f)

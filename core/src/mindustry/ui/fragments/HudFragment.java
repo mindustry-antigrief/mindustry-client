@@ -982,8 +982,8 @@ public class HudFragment{
                         tooltip.background(Styles.black6).margin(4f)
                         .label(() ->
                             !player.dead() && player.unit().shield > 0
-                            ? Strings.format("@: (@ + @)/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), Mathf.round(player.unit().shield, 0.1f), player.unit().maxHealth)
-                            : Strings.format("@: @/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), player.unit().maxHealth)
+                            ? Strings.format("@: (@ + @)/@", Core.bundle.get("stat.health"), Mathf.round(player.dead() ? 0 : player.unit().health, 0.1f), Mathf.round(player.dead() ? 0 : player.unit().shield, 0.1f), player.dead() ? 0 : player.unit().maxHealth)
+                            : Strings.format("@: @/@", Core.bundle.get("stat.health"), Mathf.round(player.dead() ? 0 : player.unit().health, 0.1f), player.dead() ? 0 : player.unit().maxHealth)
                         ).style(Styles.outlineLabel)
                     )
                     .width(bw).growY().padRight(pad)
