@@ -279,9 +279,9 @@ public class ImagePacker{
     }
 
     static void replace(String path, String name, Pixmap image, boolean dispose){
-        save(image, path, dispose);
         Fi.get(path + ".png").writePng(image);
         ((GenRegion)Core.atlas.find(name)).path.delete();
+        if(dispose) image.dispose();
     }
 
     static void replace(TextureRegion region, Pixmap image){
