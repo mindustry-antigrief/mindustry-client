@@ -8,7 +8,6 @@ import arc.util.*;
 import com.codedisaster.steamworks.*;
 import com.codedisaster.steamworks.SteamMatchmaking.*;
 import com.codedisaster.steamworks.SteamNetworking.*;
-import mindustry.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;

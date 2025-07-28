@@ -676,7 +676,7 @@ public class Generators{
                 if(type.needsBodyOutline()){
                     save(image, type.name + "-outline");
                 }else if(type.segments == 0 && type.drawBody){
-                    replace(type.name, type.name, outline.get(get(type.region, false)), true);
+                    replace(type.name, outline.get(get(type.region, false)), true);
                 }
 
                 //draw weapons that are under the base

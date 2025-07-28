@@ -3,7 +3,6 @@ package mindustry.entities.bullet;
 import arc.math.*;
 import mindustry.content.*;
 import mindustry.gen.*;
-import mindustry.type.*;
 
 public class ArtilleryBulletType extends BasicBulletType{
     public float trailMult = 1f, trailSize = 4f;

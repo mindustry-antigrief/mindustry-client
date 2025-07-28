@@ -41,46 +41,30 @@ public class ContentLoader{
     }
 
     /** Creates all base types. */
-    public void createBaseContent(){ // FINISHME: Awful.
-        loadStart = Time.nanos();
-        UnitCommand.loadAll();
-        logLoad("UnitCommand");
-        TeamEntries.load();
-        logLoad("TeamEntries");
-        Items.load();
-        logLoad("Items");
-        UnitStance.loadAll(); //needs to access items
-        logLoad("UnitStance");
-        StatusEffects.load();
-        logLoad("StatusEffects");
-        Liquids.load();
-        logLoad("Liquids");
-        Bullets.load();
-        logLoad("Bullets");
-        UnitTypes.load();
-        logLoad("UnitTypes");
-        Blocks.load();
-        logLoad("Blocks");
-        Loadouts.load();
-        logLoad("Loadouts");
-        Weathers.load();
-        logLoad("Weathers");
-        Planets.load();
-        logLoad("Planets");
-        SectorPresets.load();
-        logLoad("SectorPresets");
-        SerpuloTechTree.load();
-        logLoad("SerpuloTechTree");
-        ErekirTechTree.load();
-        logLoad("ErekirTechTree");
+    public void createBaseContent(){
+        loadAndLog(UnitCommand.class, UnitCommand::loadAll);
+        loadAndLog(TeamEntries.class, TeamEntries::load);
+        loadAndLog(Items.class, Items::load);
+        loadAndLog(UnitStance.class, UnitStance::loadAll); //needs to access items
+        loadAndLog(StatusEffects.class, StatusEffects::load);
+        loadAndLog(Liquids.class, Liquids::load);
+        loadAndLog(Bullets.class, Bullets::load);
+        loadAndLog(UnitTypes.class, UnitTypes::load);
+        loadAndLog(Blocks.class, Blocks::load);
+        loadAndLog(Loadouts.class, Loadouts::load);
+        loadAndLog(Weathers.class, Weathers::load);
+        loadAndLog(Planets.class, Planets::load);
+        loadAndLog(SectorPresets.class, SectorPresets::load);
+        loadAndLog(SerpuloTechTree.class, SerpuloTechTree::load);
+        loadAndLog(ErekirTechTree.class, ErekirTechTree::load);
     }
 
-    private long loadStart;
-    private void logLoad(String type) {
-        if (Log.level != Log.LogLevel.debug) return;
-        float duration = Time.millisSinceNanos(loadStart);
-        Log.debug("Loaded content @ in @ms", type, duration);
-        loadStart = Time.nanos();
+    private void loadAndLog(Class<?> type, Runnable loader) {
+        if (Log.level == Log.LogLevel.debug) {
+            long start = Time.nanos();
+            loader.run();
+            Log.debug("Loaded content @ in @ms", type.getSimpleName(), Time.millisSinceNanos(start));
+        } else loader.run();
     }
 
     /** Creates mod content, if applicable. */

@@ -29,8 +29,8 @@ import java.net.*;
 import static mindustry.Vars.*;
 
 public class JoinDialog extends BaseDialog{
-    public Seq<Host> communityHosts = new Seq<>();
     Seq<ServerGroup> tmpServers = new Seq<>();
+    public Seq<Host> communityHosts = new Seq<>();
     public Seq<Server> servers = new Seq<>();
     Dialog add;
     Server renaming;
@@ -449,7 +449,7 @@ public class JoinDialog extends BaseDialog{
                 String resaddress = address.contains(":") ? address.split(":")[0] : address;
                 int resport = address.contains(":") ? Strings.parseInt(address.split(":")[1]) : port;
 
-                Cons<Host>[] cons = new Cons[]{null};
+                Cons<Host>[] cons = new Cons[] {null};
                 net.pingHost(resaddress, resport, cons[0] = res -> {
                     if(refreshes != cur) return;
                     res.port = resport;
@@ -586,7 +586,6 @@ public class JoinDialog extends BaseDialog{
     }
 
     void finishLocalHosts(){
-
         Table t = new Table(Tex.button);
         Table ta = new Table();
         if(steam){
@@ -750,7 +749,7 @@ public class JoinDialog extends BaseDialog{
             //modify default servers on main thread
             Core.app.post(() -> {
                 if(fetchedServers) return;
-
+                fetchingCommunityServersErrored = false;
                 //cache the server list to a file, so it can be loaded in case of an outage later
                 try{
                     serverCacheFile.writeString(text);
@@ -758,8 +757,8 @@ public class JoinDialog extends BaseDialog{
                     Log.err("Failed to write server cache", e);
                 }
                 defaultServers.addAll(servers);
+                if(refreshCommunity) ui.join.refreshCommunity();
                 fetchedServers = true;
-                if(refreshCommunity) ui.join.refreshCommunity(); // terrible.
                 Log.info("Fetched @ community servers.", defaultServers.sum(s -> s.addresses.length));
                 if(onCommunityFetch != null){
                     onCommunityFetch.run();
@@ -777,7 +776,7 @@ public class JoinDialog extends BaseDialog{
             boolean prioritized = child.getBool("prioritized", false);
             String[] addresses;
             if(child.has("addresses") || (child.has("address") && child.get("address").isArray())){
-                addresses = (child.has("addresses") ? child.get("addresses") : child.get("address")).asArray().map(Jval::asString).toArray(String.class);
+                addresses = (child.has("addresses") ? child.get("addresses") : child.get("address")).asArray().toArray(String.class, Jval::asString);
             }else{
                 addresses = new String[]{child.getString("address", "<invalid>")};
             }

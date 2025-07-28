@@ -6,7 +6,6 @@ import arc.math.geom.QuadTree.*;
 import arc.struct.*;
 import mindustry.*;
 import mindustry.async.PhysicsProcess.PhysicsWorld.*;
-import mindustry.client.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 

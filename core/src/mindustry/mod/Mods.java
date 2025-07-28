@@ -507,11 +507,22 @@ public class Mods implements Loadable{
 
     /** Removes a mod file and marks it for requiring a restart. */
     public void removeMod(LoadedMod mod){
-        if(!android && mod.loader != null){
-            try{
-                ClassLoaderCloser.close(mod.loader);
-            }catch(Exception e){
-                Log.err(e);
+        boolean deleted = true;
+
+        if(mod.loader != null){
+            if(android){
+                //Try to remove cache for Android 14 security problem
+                Fi cacheDir = new Fi(Core.files.getCachePath()).child("mods");
+                Fi modCacheDir = cacheDir.child(mod.file.nameWithoutExtension());
+                if(modCacheDir.exists()){
+                    deleted = modCacheDir.deleteDirectory();
+                }
+            }else{
+                try{
+                    ClassLoaderCloser.close(mod.loader);
+                }catch(Exception e){
+                    Log.err(e);
+                }
             }
         }
 
@@ -519,7 +530,7 @@ public class Mods implements Loadable{
             mod.root.delete();
         }
 
-        boolean deleted = mod.file.isDirectory() ? mod.file.deleteDirectory() : mod.file.delete();
+        deleted &= mod.file.isDirectory() ? mod.file.deleteDirectory() : mod.file.delete();
 
         if(!deleted){
             ui.showErrorMessage("@mod.delete.error");
@@ -1220,11 +1231,18 @@ public class Mods implements Loadable{
                     Runnable handleOverwrite = () -> {
                         //close the classloader for jar mods
                         if(other.loader instanceof URLClassLoader c){
-                            try{
-                                c.close();
-                            }catch(IOException e){
-                                throw new RuntimeException(e);
-                            }
+                            if(android){
+                                //Try to remove cache for Android 14 security problem
+                                Fi cacheDir = new Fi(Core.files.getCachePath()).child("mods");
+                                Fi modCacheDir = cacheDir.child(other.file.nameWithoutExtension());
+                                modCacheDir.deleteDirectory();
+                            }else{
+                                try{
+                                    c.close();
+                                }catch(IOException e){
+                                    throw new RuntimeException(e);
+                                }
+                            } 
                         }
 
                         //close zip file

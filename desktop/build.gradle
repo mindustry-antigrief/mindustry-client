@@ -155,6 +155,7 @@ platforms.each{ platform ->
                 exec{
                     commandLine args.toList()
                     standardOutput = System.out
+                    errorOutput = System.err
                 }
 
                 if(platform != "MacOS"){

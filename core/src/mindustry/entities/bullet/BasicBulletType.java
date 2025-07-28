@@ -7,7 +7,6 @@ import arc.math.*;
 import arc.util.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.*;
 
 /** An extended BulletType for most ammo-based bullets shot from turrets and units. Draws 1-2 sprites that can spin or shrink. */
 public class BasicBulletType extends BulletType{

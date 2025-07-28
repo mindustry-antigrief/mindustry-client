@@ -131,30 +131,25 @@ public class BlockRenderer{
 
         Draw.color(blendShadowColor);
 
-        var playerTeam = player.team();
-        var playerTeamFlag = 1L << playerTeam.id;
         for(Tile tile : world.tiles){
             recordIndex(tile);
 
-            var tileFloor = tile.floor();
-            var tileBuild = tile.build;
-            var tileOverlay = tile.overlay();
-            if(tileFloor.updateRender(tile)){
-                updateFloors.add(new UpdateRenderState(tile, tileFloor));
+            if(tile.floor().updateRender(tile)){
+                updateFloors.add(new UpdateRenderState(tile, tile.floor()));
             }
 
-                if(tileOverlay.updateRender(tile)){
-                    updateFloors.add(new UpdateRenderState(tile, tileOverlay));
-                }
-
-                if(tileBuild != null && (tile.team() == playerTeam || !state.rules.fog || (tileBuild.visibleFlags & playerTeamFlag) != 0)){
-                    tileBuild.wasVisible = true;
-                }
-
-                if(tile.block().displayShadow(tile) && (tile.build == null || tileBuild.wasVisible)){
-                    Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
-                }
+            if(tile.overlay().updateRender(tile)){
+                updateFloors.add(new UpdateRenderState(tile, tile.overlay()));
             }
+
+            if(tile.build != null && (tile.team() == player.team() || !state.rules.fog || (tile.build.visibleFlags & (1L << player.team().id)) != 0)){
+                tile.build.wasVisible = true;
+            }
+
+            if(tile.block().displayShadow(tile) && (tile.build == null || tile.build.wasVisible)){
+                Fill.rect(tile.x + 0.5f, tile.y + 0.5f, 1, 1);
+            }
+        }
 
         Draw.flush();
         Draw.color();
@@ -312,7 +307,6 @@ public class BlockRenderer{
     }
 
     public void processShadows(){
-        if(ClientVars.hidingBlocks) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 
@@ -336,6 +330,7 @@ public class BlockRenderer{
     }
 
     public void drawShadows(){
+        if (ClientVars.hidingBlocks) return;
         processShadows();
 
         float ww = world.width() * tilesize, wh = world.height() * tilesize;

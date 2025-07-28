@@ -20,6 +20,7 @@ const cons = method => new Cons(){get: method}
 const prov = method => new Prov(){get: method}
 const func = method => new Func(){get: method}
 
+const newEffect = (lifetime, renderer) => new Effect.Effect(lifetime, new Effect.EffectRenderer({render: renderer}))
 const msg = text => Vars.ui.chatfrag.addMessage(text)
 
 Call = Packages.mindustry.gen.Call

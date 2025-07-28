@@ -88,17 +88,16 @@ public class Saves{
             var name = file.name();
             if(name.endsWith("backup.msav") || !name.endsWith(".msav") || sectorsOnly && !name.startsWith("sector-")) return;
             if(cons != null) files.add(new FiTi(file, -file.lastModified()));
-            else tasks.add(mainExecutor.submit(callableFor(file)));
+            else loadSave(tasks, file);
         });
 
         if(cons != null){
             files.sort(f -> f.ti);
-            files.each(f -> tasks.add(mainExecutor.submit(callableFor(f.fi))));
+            files.each(f -> loadSave(tasks, f.fi));
         }
 
-        Seq<Remap> remaps = new Seq<>();
-        ObjectSet<Sector> remapped = new ObjectSet<>();
-
+        var remaps = new Seq<SlotRemap>();
+        var remapped = new ObjectSet<Sector>();
         var queued = Time.elapsed();
         var blocked = Time.nanos();
         saves.ensureCapacity(tasks.size);
@@ -112,7 +111,7 @@ public class Saves{
                 waited += Time.nanos() - wait;
                 if(s != null) processSave(s, remaps, remapped);
             }
-            processRemaps(remaps, remapped);
+            processRemap(remaps, remapped);
             saves.shrink();
             Log.debug("Queued saves in: @ms | Blocked for: @/@ms | Loaded @ saves in: @ms", queued, waited/(float)Time.nanosPerMilli, Time.millisSinceNanos(blocked), saves.size, Time.millisSinceNanos(start));
             hasLoaded = true;
@@ -135,7 +134,7 @@ public class Saves{
                     unload();
                     Log.debug("Cancelled loading saves (after unload) | Size: @", saves.size);
                 }else{
-                    processRemaps(remaps, remapped);
+                    processRemap(remaps, remapped);
                     saves.shrink();
                     Log.info("Loading saves asynchronously finished in @ms", Time.millisSinceNanos(start));
                     hasLoaded = true;
@@ -146,8 +145,7 @@ public class Saves{
         }
     }
 
-    private void processRemaps(Seq<Remap> remaps, ObjectSet<Sector> remapped) {
-        //process remaps later to allow swaps of sectors
+    private void processRemap(Seq<SlotRemap> remaps, ObjectSet<Sector> remapped){
         for(var remap : remaps){
             var remapTarget = remap.destSector;
 
@@ -171,33 +169,24 @@ public class Saves{
         }
     }
 
-    private Callable<SaveSlot> callableFor(Fi file){
-        return () -> {
+    private void loadSave(Seq<Future<SaveSlot>> tasks, Fi file){
+        tasks.add(mainExecutor.submit(() -> {
             try{
-                var s = new SaveSlot(file, SaveIO.getMeta(file));
-                //clear saves from build <130 that had the new naval sectors.
-                if(s.getSector() != null && (s.getSector().id == 108 || s.getSector().id == 216) && s.meta.build <= 130 && s.meta.build > 0){
-                    s.getSector().clearInfo();
-                    s.file.delete();
-                }
-                return s;
+                return new SaveSlot(file, SaveIO.getMeta(file));
             }catch(Throwable e){
                 Log.err("Failed to load save '" + file.name() + "'", e);
                 return null;
             }
-        };
+        }));
     }
 
-    private void processSave(SaveSlot s, Seq<Remap> remaps, ObjectSet<Sector> remapped){
-        saves.add(s);
-        var sector = s.getSector();
+    private void processSave(SaveSlot slot, Seq<SlotRemap> remaps, ObjectSet<Sector> remapped){
+        saves.add(slot);
+        var sector = slot.getSector();
         if(sector != null){
-            if(lastSectorSave == null && s.getName().equals(Core.settings.getString("last-sector-save", "<none>"))) lastSectorSave = s;
-            if(sector.save != null) Log.warn("Sector @ has two corresponding saves: @ and @", sector, sector.save.file, s.file);
-            else sector.save = s;
+            if(lastSectorSave == null && slot.getName().equals(Core.settings.getString("last-sector-save", "<none>"))) lastSectorSave = slot;
 
-
-            String name = s.meta.tags.get("sectorPreset");
+            String name = slot.meta.tags.get("sectorPreset");
             Sector remapTarget = null;
 
             if(name != null){
@@ -209,7 +198,7 @@ public class Saves{
                     }
                 }
             }else{ //there was no sector preset in the meta at all, which means this is a legacy save that may need mapping
-                SectorPreset target = content.sectors().find(se -> se.planet == sector.planet && se.originalPosition == sector.id);
+                SectorPreset target = content.sectors().find(s -> s.planet == sector.planet && s.originalPosition == sector.id);
                 if(target != null && target.sector != sector && target.requireUnlock){ //there is indeed a sector preset that used to have this ID, and it needs remapping!
                     remapTarget = target.sector;
                 }
@@ -217,30 +206,27 @@ public class Saves{
 
             if(remapTarget != null){
                 //if the file name matches the destination of the remap, assume it has already been remapped, and skip the file movement procedure
-                if(!s.file.equals(getSectorFile(remapTarget))){
+                if(!slot.file.equals(getSectorFile(remapTarget))){
                     Log.info("Remapping sector: @ -> @ (@)", sector.id, remapTarget.id, remapTarget.preset);
 
                     try{
                         SectorInfo info = Core.settings.getJson(sector.planet.name + "-s-" + sector.id + "-info", SectorInfo.class, SectorInfo::new);
                         Fi tmpRemapFile = saveDirectory.child("remap_" + sector.planet.name + "_" + sector.id + "." + saveExtension);
-                        s.file.moveTo(tmpRemapFile);
+                        slot.file.moveTo(tmpRemapFile);
 
-                        remaps.add(new Remap(s, tmpRemapFile, sector, info, getSectorFile(remapTarget), remapTarget));
+                        remaps.add(new SlotRemap(slot, tmpRemapFile, sector, info, getSectorFile(remapTarget), remapTarget));
                         remapped.add(remapTarget);
                     }catch(Exception e){
                         Log.err("Failed to move sector files when remapping: " + sector.id + " -> " + remapTarget.id, e);
                     }
                 }
 
-                remapTarget.save = s;
-                s.meta.rules.sector = remapTarget;
+                remapTarget.save = slot;
+                slot.meta.rules.sector = remapTarget;
 
             }else{
-                if(sector.save != null){
-                    Log.warn("Sector @ has two corresponding saves: @ and @", sector, sector.save.file, s.file);
-                }else{
-                    sector.save = s;
-                }
+                if(sector.save != null) Log.warn("Sector @ has two corresponding saves: @ and @", sector, sector.save.file, slot.file);
+                else sector.save = slot;
             }
         }
     }
@@ -425,7 +411,7 @@ public class Saves{
         if(needsLoad) unload(); // Unload if we just loaded
     }
 
-    private static class Remap{
+    private static class SlotRemap{
         //file in the temp folder
         Fi sourceFile;
         //slot of source sector to move file for
@@ -439,7 +425,7 @@ public class Saves{
         //destination sector to move to
         Sector destSector;
 
-        Remap(SaveSlot slot, Fi sourceFile, Sector sourceSector, SectorInfo sourceInfo, Fi destFile, Sector destSector){
+        SlotRemap(SaveSlot slot, Fi sourceFile, Sector sourceSector, SectorInfo sourceInfo, Fi destFile, Sector destSector){
             this.slot = slot;
             this.sourceFile = sourceFile;
             this.sourceSector = sourceSector;

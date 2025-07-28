@@ -417,12 +417,11 @@ public class Renderer implements ApplicationListener{
         blocks.drawBlocks();
 
         Groups.draw.draw(Drawc::draw);
-
+        Draw.draw(Layer.space, Client.INSTANCE::draw);
+    
         if(drawDebugHitboxes){
             DebugCollisionRenderer.draw();
         }
-
-        Draw.draw(Layer.space, Client.INSTANCE::draw);
 
         Draw.reset();
         Draw.flush();

@@ -36,8 +36,6 @@ import mindustry.world.modules.*;
 import static mindustry.Vars.*;
 import static mindustry.client.ClientVars.coreItemsDisplay;
 
-import org.jetbrains.annotations.Nullable;
-
 public class CoreBlock extends StorageBlock{
     public static final float cloudScaling = 1700f, cfinScl = -2f, cfinOffset = 0.3f, calphaFinOffset = 0.25f, cloudAlpha = 0.81f;
     public static final float[] cloudAlphas = {0, 0.5f, 1f, 0.1f, 0, 0f};

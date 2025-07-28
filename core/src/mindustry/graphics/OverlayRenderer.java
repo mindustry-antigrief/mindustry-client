@@ -270,7 +270,7 @@ public class OverlayRenderer{
 
         input.drawOverSelect();
 
-        if(ui.hudfrag.blockfrag.hover() instanceof Unit unit && unit.controller() instanceof LogicAI ai && ai.controller != null && ai.controller.isValid() && !hidingUnits && !(hidingAirUnits && unit.isFlying())){
+        if(ui.hudfrag.blockfrag.hover() instanceof Unit unit && unit.controller() instanceof LogicAI ai && ai.controller != null && ai.controller.isValid() && (state.isEditor() || !ai.controller.block.privileged) && !hidingUnits && !(hidingAirUnits && unit.isFlying())){
             var build = ai.controller;
             Drawf.square(build.x, build.y, build.block.size * tilesize/2f + 2f);
             if (Core.settings.getBool("tracelogicunits")) build.drawSelect();
