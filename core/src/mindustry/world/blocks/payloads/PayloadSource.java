@@ -13,6 +13,7 @@ import mindustry.ctype.*;
 import mindustry.entities.units.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.io.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -165,10 +166,16 @@ public class PayloadSource extends PayloadBlock{
         }
 
         @Override
+        public byte version(){
+            return 1;
+        }
+
+        @Override
         public void write(Writes write){
             super.write(write);
             write.s(unit == null ? -1 : unit.id);
             write.s(configBlock == null ? -1 : configBlock.id);
+            TypeIO.writeVecNullable(write, commandPos);
         }
 
         @Override
@@ -176,6 +183,9 @@ public class PayloadSource extends PayloadBlock{
             super.read(read, revision);
             unit = Vars.content.unit(read.s());
             configBlock = Vars.content.block(read.s());
+            if(revision >= 1){
+                commandPos = TypeIO.readVecNullable(read);
+            }
         }
     }
 }

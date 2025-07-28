@@ -75,7 +75,13 @@ public class DesktopInput extends InputHandler{
     /** Time of most recent control group selection */
     public long lastCtrlGroupSelectMillis;
 
+    /** Time of most recent payload pickup/drop key press*/
+    public long lastPayloadKeyTapMillis;
+    /** Time of most recent payload pickup/drop key hold*/
+    public long lastPayloadKeyHoldMillis;
+
     private float buildPlanMouseOffsetX, buildPlanMouseOffsetY;
+    private boolean changedCursor;
 
 
     // Client Vars
@@ -190,7 +196,7 @@ public class DesktopInput extends InputHandler{
         }
         //draw dequeueing selection
         if (mode == dequeue){
-            drawSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize, Color.gray, Color.white);
+            drawSelection(selectX, selectY, cursorX, cursorY, Vars.maxSchematicSize, Color.gray, Color.white, true);
         }
 
         if(!Core.scene.hasKeyboard() && mode != breaking && mode != freezing && mode != dequeue){
@@ -445,6 +451,10 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!scene.hasField() && !scene.hasDialog()){
+            if(input.keyTap(Binding.debugHitboxes)){
+                drawDebugHitboxes = !drawDebugHitboxes;
+            }
+
             if(input.keyTap(Binding.detachCamera)){
                 settings.put("detach-camera", detached = !detached);
                 if(!detached){
@@ -540,10 +550,10 @@ public class DesktopInput extends InputHandler{
                 commandBuildings.clear();
                 if(input.keyDown(Binding.selectAcrossScreen)){
                     camera.bounds(Tmp.r1);
-                    selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height));
+                    selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height).removeAll(u -> !u.type.controlSelectGlobal));
                 }else {
                     for(var unit : player.team().data().units){
-                        if(unit.allowCommand()){
+                        if(unit.isCommandable() && unit.type.controlSelectGlobal){
                             selectedUnits.add(unit);
                         }
                     }
@@ -559,7 +569,7 @@ public class DesktopInput extends InputHandler{
                     selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height, u -> u instanceof Payloadc));
                 }else {
                     for(var unit : player.team().data().units){
-                        if(unit.allowCommand() && unit instanceof  Payloadc){
+                        if(unit.isCommandable() && unit instanceof Payloadc){
                             selectedUnits.add(unit);
                         }
                     }
@@ -570,7 +580,7 @@ public class DesktopInput extends InputHandler{
                 selectedUnits.clear();
                 commandBuildings.clear();
                 for(var build : player.team().data().buildings){
-                    if(build.block.commandable){
+                    if(build.isCommandable()){
                         commandBuildings.add(build);
                     }
                 }
@@ -785,10 +795,6 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(Core.input.keyRelease(Binding.select)){
-            player.shooting = false;
-        }
-
         if(state.isGame() && !scene.hasDialog() && !scene.hasField()){
             if(Core.input.keyTap(Binding.minimap)) ui.minimapfrag.toggle();
             if(Core.input.keyTap(Binding.planetMap) && state.isCampaign()) ui.planet.toggle();
@@ -909,10 +915,19 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(!Core.scene.hasMouse()){
+        if(!Core.scene.hasMouse() && !ui.minimapfrag.shown()){
             Core.graphics.cursor(cursorType);
+            changedCursor = cursorType != SystemCursor.arrow;
         }else{
             cursorType = SystemCursor.arrow;
+            if(changedCursor){
+                graphics.cursor(SystemCursor.arrow);
+                changedCursor = false;
+            }
+        }
+
+        if(Core.input.keyRelease(Binding.select)){
+            player.shooting = false;
         }
     }
 
@@ -1071,7 +1086,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if((cursorX != lastLineX || cursorY != lastLineY) && isPlacing() && mode == placing){
+        if(isPlacing() && mode == placing && (cursorX != lastLineX || cursorY != lastLineY || Core.input.keyTap(Binding.diagonalPlacement) || Core.input.keyRelease(Binding.diagonalPlacement))){
             updateLine(selectX, selectY);
             lastLineX = cursorX;
             lastLineY = cursorY;
@@ -1106,6 +1121,7 @@ public class DesktopInput extends InputHandler{
                     temp.selectFrom(selectPlans, s -> s.block.isVisible() || s.block instanceof CoreBlock),
                     isFreezeQueueing, Core.input.keyDown(Binding.forcePlaceModifier), isFreezeQueueing);
                 temp.clear();
+                movedPlan = true;
             }else if(isPlacing()){
                 selectX = cursorX;
                 selectY = cursorY;
@@ -1371,10 +1387,26 @@ public class DesktopInput extends InputHandler{
         if(unit instanceof Payloadc){
             if(Core.input.keyTap(Binding.pickupCargo)){
                 tryPickupPayload();
+                lastPayloadKeyTapMillis = Time.millis();
+            }
+
+            if(Core.input.keyDown(Binding.pickupCargo)
+            && Time.timeSinceMillis(lastPayloadKeyHoldMillis) > 20
+            && Time.timeSinceMillis(lastPayloadKeyTapMillis) > 200){
+                tryPickupPayload();
+                lastPayloadKeyHoldMillis = Time.millis();
             }
 
             if(Core.input.keyTap(Binding.dropCargo)){
                 tryDropPayload();
+                lastPayloadKeyTapMillis = Time.millis();
+            }
+
+            if(Core.input.keyDown(Binding.dropCargo)
+            && Time.timeSinceMillis(lastPayloadKeyHoldMillis) > 20
+            && Time.timeSinceMillis(lastPayloadKeyTapMillis) > 200){
+                tryDropPayload();
+                lastPayloadKeyHoldMillis = Time.millis();
             }
         }
     }

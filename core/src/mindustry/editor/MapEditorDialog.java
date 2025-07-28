@@ -31,6 +31,7 @@ import mindustry.ui.dialogs.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.storage.*;
+import mindustry.world.blocks.storage.CoreBlock.*;
 import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
@@ -180,9 +181,66 @@ public class MapEditorDialog extends Dialog implements Disposable{
             menu.hide();
             sectorGenDialog.show();
         }).padTop(!steam ? -3 : 1).size(swidth * 2f + 10, 60f);
-        menu.cont.row();
 
         menu.cont.row();
+
+        //this is gated behind a property, because it's (1) not useful to most people, (2) confusing and (3) may crash or otherwise bug out
+        if(OS.hasProp("mindustry.editor.simulate.button")){
+
+            menu.cont.button("Simulate", Icon.logic, () -> {
+                menu.hide();
+
+                BaseDialog dialog = new BaseDialog("Simulate");
+
+                int[] seconds = {60 * 1};
+
+                dialog.cont.add("Seconds: ");
+                dialog.cont.field(seconds[0] + "", text -> seconds[0] = Strings.parseInt(text, 1)).valid(s -> Strings.parseInt(s, 9999999) < 10f * 60f);
+
+                dialog.addCloseButton();
+
+                dialog.buttons.button("@ok", Icon.ok, () -> {
+                    ui.loadAnd(() -> {
+
+                        float deltaScl = 2f;
+                        int steps = Mathf.ceil(seconds[0] * 60f / deltaScl);
+                        float oldDelta = Time.delta;
+                        Time.delta = deltaScl;
+
+                        Seq<Building> builds = new Seq<>();
+                        Time.clear();
+
+                        world.tiles.eachTile(t -> {
+                            if(t.build != null && t.isCenter() && t.block().update && t.build.allowUpdate()){
+                                builds.add(t.build);
+                                t.build.updateProximity();
+                            }
+                        });
+
+                        for(int i = 0; i < steps; i++){
+                            Time.update();
+                            for(var build : builds){
+                                build.update();
+                            }
+                            Groups.powerGraph.update();
+                        }
+
+                        //spawned units will cause havoc, so clear them
+                        Groups.unit.clear();
+
+                        Time.clear();
+                        Time.delta = oldDelta;
+                    });
+
+                    dialog.hide();
+                }).size(210f, 64f);
+
+                dialog.show();
+
+            }).size(swidth * 2f + 10, 60f);
+
+            menu.cont.row();
+        }
 
         menu.cont.button("@quit", Icon.exit, () -> {
             tryExit();
@@ -259,7 +317,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
         state.rules = (lastSavedRules == null ? new Rules() : lastSavedRules);
         lastSavedRules = null;
         saved = false;
-        editor.renderer.updateAll();
+        editor.renderer.recache();
     }
 
     private void editInGame(){
@@ -279,9 +337,8 @@ public class MapEditorDialog extends Dialog implements Disposable{
                 "width", editor.width(),
                 "height", editor.height()
             ));
+            state.set(State.playing);
             world.endMapLoad();
-            player.set(world.width() * tilesize/2f, world.height() * tilesize/2f);
-            Core.camera.position.set(player);
             player.clearUnit();
 
             for(var unit : Groups.unit){
@@ -294,14 +351,17 @@ public class MapEditorDialog extends Dialog implements Disposable{
             Groups.weather.clear();
             logic.play();
 
-            if(player.team().core() == null){
-                player.set(world.width() * tilesize/2f, world.height() * tilesize/2f);
-                var unit = (state.rules.hasEnv(Env.scorching) ? UnitTypes.evoke : UnitTypes.alpha).spawn(player.team(), player.x, player.y);
-                unit.spawnedByCore = true;
-                player.unit(unit);
-            }
+            Point2 center = view.project(Core.graphics.getWidth()/2f, Core.graphics.getHeight()/2f);
 
-            player.checkSpawn();
+            CoreBuild best = player.bestCore();
+
+            player.set(center.x * tilesize, center.y * tilesize);
+            var unit = (best != null ? ((CoreBlock)best.block).unitType : (state.rules.hasEnv(Env.scorching) ? UnitTypes.evoke : UnitTypes.alpha)).spawn(editor.drawTeam, player.x, player.y);
+            unit.spawnedByCore = true;
+            player.unit(unit);
+            player.set(unit);
+
+            Core.camera.position.set(unit.x, unit.y);
         });
     }
 
@@ -337,6 +397,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
     public @Nullable Map save(int autoSave){
         boolean isEditor = state.rules.editor;
         state.rules.editor = false;
+        state.rules.allowEditRules = false;
         state.rules.objectiveFlags.clear();
         state.rules.objectives.each(MapObjective::reset);
         String name = editor.tags.get("name", "").trim();
@@ -716,7 +777,11 @@ public class MapEditorDialog extends Dialog implements Disposable{
         //ctrl keys (undo, redo, save)
         if(Core.input.ctrl()){
             if(Core.input.keyTap(KeyCode.z)){
-                editor.undo();
+                if(Core.input.shift()){
+                    editor.redo();
+                }else{
+                    editor.undo();
+                }
             }
 
             if(Core.input.keyTap(KeyCode.y)){
@@ -733,7 +798,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
 
             if (Core.input.keyTap(Binding.hideBlocks)) { // Ctrl + I: Toggle block visibility
                 ClientVars.hidingBlocks = !ClientVars.hidingBlocks;
-                editor.renderer.updateAll();
+                editor.renderer.recache();
             }
         }
     }
@@ -800,7 +865,9 @@ public class MapEditorDialog extends Dialog implements Disposable{
 
             if(i == 0) editor.drawBlock = block;
 
-            if(++i % 6 == 0){
+            int cols = mobile ? 4 : 6;
+
+            if(++i % cols == 0){
                 blockSelection.row();
             }
         }

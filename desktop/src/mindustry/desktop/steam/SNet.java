@@ -8,6 +8,7 @@ import arc.util.*;
 import com.codedisaster.steamworks.*;
 import com.codedisaster.steamworks.SteamMatchmaking.*;
 import com.codedisaster.steamworks.SteamNetworking.*;
+import mindustry.*;
 import mindustry.core.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -15,6 +16,7 @@ import mindustry.net.ArcNetProvider.*;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.net.Packets.*;
+import mindustry.ui.dialogs.*;
 
 import java.io.*;
 import java.nio.*;
@@ -219,7 +221,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
             smat.setLobbyMemberLimit(currentLobby, Core.settings.getInt("playerlimit"));
         }
     }
-    
+
     void updateWave(){
         if(currentLobby != null && net.server()){
             smat.setLobbyData(currentLobby, "mapname", state.map.name());
@@ -457,9 +459,9 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         if(split.length != 2) return; // Should always be in the format of ip:port
         try{
             ui.loadfrag.show("@loading");
-            if(!ui.join.hasFetchedCommunity){
+            if(!fetchedServers){ // FINISHME: Now that there are cached servers, we should revisit this strategy: we should still run this even if it fails to fetch the list from github
                 String connectF = connect;
-                ui.join.onCommunityFetch = () -> onGameRichPresenceJoinRequested(steamIDFriend, connectF);
+                JoinDialog.onCommunityFetch = () -> onGameRichPresenceJoinRequested(steamIDFriend, connectF);
                 return;
             }
             ui.join.refreshCommunity();

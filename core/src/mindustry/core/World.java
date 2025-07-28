@@ -581,9 +581,18 @@ public class World{
         }
     }
 
+    public WorldContext makeSectorContext(Sector sector){
+        return new Context(sector);
+    }
+
     private class Context implements WorldContext{
+        private Sector sector;
 
         Context(){}
+
+        Context(Sector sector){
+            this.sector = sector;
+        }
 
         @Override
         public Tile tile(int index){
@@ -615,6 +624,12 @@ public class World{
         @Override
         public void end(){
             endMapLoad();
+        }
+
+        @Nullable
+        @Override
+        public Sector getSector(){
+            return sector;
         }
     }
 

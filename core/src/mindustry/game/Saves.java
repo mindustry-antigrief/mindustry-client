@@ -14,6 +14,7 @@ import mindustry.io.*;
 import mindustry.io.SaveIO.*;
 import mindustry.maps.Map;
 import mindustry.type.*;
+import mindustry.world.*;
 
 import java.io.*;
 import java.text.*;
@@ -80,6 +81,7 @@ public class Saves{
                 this.ti = ti;
             }
         }
+
         var tasks = new Seq<Future<SaveSlot>>();
         var files = new Seq<FiTi>();
         saveDirectory.walk(file -> {
@@ -94,6 +96,9 @@ public class Saves{
             files.each(f -> tasks.add(mainExecutor.submit(callableFor(f.fi))));
         }
 
+        Seq<Remap> remaps = new Seq<>();
+        ObjectSet<Sector> remapped = new ObjectSet<>();
+
         var queued = Time.elapsed();
         var blocked = Time.nanos();
         saves.ensureCapacity(tasks.size);
@@ -105,8 +110,9 @@ public class Saves{
                 long wait = Time.nanos();
                 var s = Threads.await(task);
                 waited += Time.nanos() - wait;
-                if(s != null) processSave(s);
+                if(s != null) processSave(s, remaps, remapped);
             }
+            processRemaps(remaps, remapped);
             saves.shrink();
             Log.debug("Queued saves in: @ms | Blocked for: @/@ms | Loaded @ saves in: @ms", queued, waited/(float)Time.nanosPerMilli, Time.millisSinceNanos(blocked), saves.size, Time.millisSinceNanos(start));
             hasLoaded = true;
@@ -117,7 +123,7 @@ public class Saves{
                 previewQueue.add(() -> {
                     var s = Threads.await(task);
                     if(s != null){
-                        processSave(s);
+                        processSave(s, remaps, remapped);
                         cons.get(s);
                     }
                 });
@@ -129,12 +135,39 @@ public class Saves{
                     unload();
                     Log.debug("Cancelled loading saves (after unload) | Size: @", saves.size);
                 }else{
+                    processRemaps(remaps, remapped);
+                    saves.shrink();
                     Log.info("Loading saves asynchronously finished in @ms", Time.millisSinceNanos(start));
                     hasLoaded = true;
                     cons.get(null);
                 }
                 loading = false;
             });
+        }
+    }
+
+    private void processRemaps(Seq<Remap> remaps, ObjectSet<Sector> remapped) {
+        //process remaps later to allow swaps of sectors
+        for(var remap : remaps){
+            var remapTarget = remap.destSector;
+
+            //overwrite the target sector's info with the save's info
+            Core.settings.putJson(remapTarget.planet.name + "-s-" + remapTarget.id + "-info", remap.sourceInfo);
+            remapTarget.loadInfo();
+
+            remapTarget.save = remap.slot;
+            try{
+                //move file from tmp directory back into the correct location
+                remap.sourceFile.moveTo(remap.destFile);
+                remap.slot.file = remap.destFile;
+            }catch(Exception e){
+                Log.err("Failed to move back sector files when remapping: " + remap.sourceSector.id + " -> " + remapTarget.id, e);
+            }
+
+            //clear the info, assuming it wasn't a sector that got mapped to
+            if(!remapped.contains(remap.sourceSector)){
+                remap.sourceSector.clearInfo();
+            }
         }
     }
 
@@ -155,13 +188,60 @@ public class Saves{
         };
     }
 
-    private void processSave(SaveSlot s){
+    private void processSave(SaveSlot s, Seq<Remap> remaps, ObjectSet<Sector> remapped){
         saves.add(s);
         var sector = s.getSector();
         if(sector != null){
             if(lastSectorSave == null && s.getName().equals(Core.settings.getString("last-sector-save", "<none>"))) lastSectorSave = s;
             if(sector.save != null) Log.warn("Sector @ has two corresponding saves: @ and @", sector, sector.save.file, s.file);
             else sector.save = s;
+
+
+            String name = s.meta.tags.get("sectorPreset");
+            Sector remapTarget = null;
+
+            if(name != null){
+                if(!name.isEmpty()){ //if this save had a preset defined...
+                    SectorPreset preset = content.sector(name);
+                    //...place it in the right sector according to its preset
+                    if(preset != null && preset.sector != sector && preset.requireUnlock){
+                        remapTarget = preset.sector;
+                    }
+                }
+            }else{ //there was no sector preset in the meta at all, which means this is a legacy save that may need mapping
+                SectorPreset target = content.sectors().find(se -> se.planet == sector.planet && se.originalPosition == sector.id);
+                if(target != null && target.sector != sector && target.requireUnlock){ //there is indeed a sector preset that used to have this ID, and it needs remapping!
+                    remapTarget = target.sector;
+                }
+            }
+
+            if(remapTarget != null){
+                //if the file name matches the destination of the remap, assume it has already been remapped, and skip the file movement procedure
+                if(!s.file.equals(getSectorFile(remapTarget))){
+                    Log.info("Remapping sector: @ -> @ (@)", sector.id, remapTarget.id, remapTarget.preset);
+
+                    try{
+                        SectorInfo info = Core.settings.getJson(sector.planet.name + "-s-" + sector.id + "-info", SectorInfo.class, SectorInfo::new);
+                        Fi tmpRemapFile = saveDirectory.child("remap_" + sector.planet.name + "_" + sector.id + "." + saveExtension);
+                        s.file.moveTo(tmpRemapFile);
+
+                        remaps.add(new Remap(s, tmpRemapFile, sector, info, getSectorFile(remapTarget), remapTarget));
+                        remapped.add(remapTarget);
+                    }catch(Exception e){
+                        Log.err("Failed to move sector files when remapping: " + sector.id + " -> " + remapTarget.id, e);
+                    }
+                }
+
+                remapTarget.save = s;
+                s.meta.rules.sector = remapTarget;
+
+            }else{
+                if(sector.save != null){
+                    Log.warn("Sector @ has two corresponding saves: @ and @", sector, sector.save.file, s.file);
+                }else{
+                    sector.save = s;
+                }
+            }
         }
     }
 
@@ -345,8 +425,32 @@ public class Saves{
         if(needsLoad) unload(); // Unload if we just loaded
     }
 
+    private static class Remap{
+        //file in the temp folder
+        Fi sourceFile;
+        //slot of source sector to move file for
+        SaveSlot slot;
+        Sector sourceSector;
+        //sector info from source sector to move into
+        SectorInfo sourceInfo;
+
+        //file to copy to
+        Fi destFile;
+        //destination sector to move to
+        Sector destSector;
+
+        Remap(SaveSlot slot, Fi sourceFile, Sector sourceSector, SectorInfo sourceInfo, Fi destFile, Sector destSector){
+            this.slot = slot;
+            this.sourceFile = sourceFile;
+            this.sourceSector = sourceSector;
+            this.sourceInfo = sourceInfo;
+            this.destFile = destFile;
+            this.destSector = destSector;
+        }
+    }
+
     public class SaveSlot{
-        public final Fi file;
+        public Fi file;
         private volatile TextureRegion preview;
         public SaveMeta meta;
 
@@ -360,8 +464,12 @@ public class Saves{
         }
 
         public void load() throws SaveException{
+            load(world.context);
+        }
+
+        public void load(WorldContext context) throws SaveException{
             try{
-                SaveIO.load(file);
+                SaveIO.load(file, context);
                 meta = SaveIO.getMeta(file);
                 current = this;
                 totalPlaytime = meta.timePlayed;
@@ -481,6 +589,7 @@ public class Saves{
         }
 
         public @Nullable Sector getSector(){
+            //TODO remap sectors
             return meta == null || meta.rules == null ? null : meta.rules.sector;
         }
 

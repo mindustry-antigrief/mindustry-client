@@ -86,12 +86,28 @@ public class HudFragment{
             }
         });
 
+        Table[] configTable = {null};
+        Block[] lastBlock = {null};
+
         cont.table(search -> {
             search.image(Icon.zoom).padRight(8);
             search.field("", text -> rebuildBlockSelection(blockSelection, text)).growX()
             .name("editor/search").maxTextLength(maxNameLength).get().setMessageText("@players.search");
         }).growX().pad(-2).padLeft(6f);
         cont.row();
+        cont.collapser(t -> {
+            configTable[0] = t;
+        }, () -> control.input.block != null && control.input.block.editorConfigurable).with(c -> c.setEnforceMinSize(true)).update(col -> {
+
+            if(lastBlock[0] != control.input.block){
+                configTable[0].clear();
+                if(control.input.block != null){
+                    control.input.block.buildEditorConfig(configTable[0]);
+                    col.invalidateHierarchy();
+                }
+                lastBlock[0] = control.input.block;
+            }
+        }).growX().row();
         cont.add(pane).expandY().top().left();
 
         rebuildBlockSelection(blockSelection, "");
@@ -1001,8 +1017,12 @@ public class HudFragment{
                 )
             ).fillY();
             t.image(() -> player.icon()).scaling(Scaling.bounded).grow().maxWidth(54f);
-            t.add(new SideBar(() -> player.dead() ? 0f : player.displayAmmo() ? player.unit().ammof() : player.unit().healthf(), () -> !player.displayAmmo(), false)).width(bw).growY().padLeft(pad).update(b -> {
-                b.color.set(player.displayAmmo() ? player.dead() || player.unit() instanceof BlockUnitc ? Pal.ammo : player.unit().type.ammoType.color() : Pal.health);
+
+            Boolp playerHasPayloads = () -> player.unit() instanceof Payloadc pay && !pay.payloads().isEmpty();
+            Floatp playerPayloadCapacityUsed = () -> player.unit() instanceof Payloadc pay ? pay.payloadUsed() / player.unit().type().payloadCapacity : 0f;
+
+            t.add(new SideBar(() -> player.dead() ? 0f : player.displayAmmo() ? player.unit().ammof() : playerHasPayloads.get() ? playerPayloadCapacityUsed.get() : player.unit().healthf(), () -> !(player.displayAmmo() || playerHasPayloads.get()), false)).width(bw).growY().padLeft(pad).update(b -> {
+                b.color.set(player.displayAmmo() ? player.dead() || player.unit() instanceof BlockUnitc ? Pal.ammo : player.unit().type.ammoType.color() : playerHasPayloads.get() ? Pal.items : Pal.health);
             });
 
             t.getChildren().get(1).toFront();
@@ -1158,7 +1178,7 @@ public class HudFragment{
                         if(applied.get(effect.id) && !effect.isHidden()){
                             t.image(effect.uiIcon).size(iconMed).get()
                             .addListener(new Tooltip(l -> l.label(() ->
-                                effect.localizedName + " [lightgray]" + UI.formatTime(player.unit().getDuration(effect))).style(Styles.outlineLabel)));
+                                player.dead() ? "" : effect.localizedName + " [lightgray]" + UI.formatTime(player.unit().getDuration(effect))).style(Styles.outlineLabel)));
                         }
                     }
 

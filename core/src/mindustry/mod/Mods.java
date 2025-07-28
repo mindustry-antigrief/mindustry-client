@@ -160,7 +160,6 @@ public class Mods implements Loadable{
         pageTypes = IntMap.of(
             Core.atlas.find("white").pid, PageType.main,
             Core.atlas.find("stone1").pid, PageType.environment,
-            Core.atlas.find("clear-editor").pid, PageType.editor,
             Core.atlas.find("whiteui").pid, PageType.ui,
             Core.atlas.find("rubble-1-0").pid, PageType.rubble
         );
@@ -501,7 +500,6 @@ public class Mods implements Loadable{
         String path = file.path();
         return
             path.contains("sprites/blocks/environment") || path.contains("sprites-override/blocks/environment") ? PageType.environment :
-            path.contains("sprites/editor") || path.contains("sprites-override/editor") ? PageType.editor :
             path.contains("sprites/rubble") || path.contains("sprites-override/rubble") ? PageType.rubble :
             path.contains("sprites/ui") || path.contains("sprites-override/ui") ? PageType.ui :
             PageType.main;
@@ -883,7 +881,7 @@ public class Mods implements Loadable{
 
     public void reload(){
         newImports.each(this::updateDependencies);
-        newImports.remove(m -> m.missingDependencies.isEmpty() && m.softDependencies.isEmpty());
+        newImports.removeAll(m -> m.missingDependencies.isEmpty() && m.softDependencies.isEmpty());
 
         if(newImports.any()){
             checkDependencies(newImports, newImports.contains(m -> m.softDependencies.any()));

@@ -70,6 +70,8 @@ public class ConstructBlock extends Block{
 
     @Remote(called = Loc.server)
     public static void deconstructFinish(Tile tile, Block block, Unit builder){
+        if(tile == null) return;
+
         Team team = tile.team();
         tile.getLinkedTiles(t -> Events.fire(new BlockBuildEventTile(t, team, builder, block, Blocks.air, tile.build == null ? null : tile.build.config(), null))); // This line is a client thing FINISHME: Move this line into its own method to make merges less painful
         if(!headless && fogControl.isVisibleTile(Vars.player.team(), tile.x, tile.y)){
@@ -102,7 +104,7 @@ public class ConstructBlock extends Block{
         if(block instanceof OverlayFloor overlay){
             tile.setOverlay(overlay);
         }else if(block instanceof Floor floor){
-            tile.setFloorUnder(floor);
+            tile.setFloor(floor);
         }else{
             tile.setBlock(block, team, rotation);
         }
@@ -147,7 +149,7 @@ public class ConstructBlock extends Block{
             }
         }
 
-        block.placeEnded(tile, builder);
+        block.placeEnded(tile, builder, rotation, config);
 
         Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock)); // FINISHME: Yet another case of a changed vanilla event. Vanilla: Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
     }

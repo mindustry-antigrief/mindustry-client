@@ -14,6 +14,8 @@ public class Version{
     public static String modifier = "unknown";
     /** Git commit hash (short) */
     public static String commitHash = "unknown";
+    /** Date that this version was built. */
+    public static String buildDate = "unknown";
     /** Number specifying the major version, e.g. '4' */
     public static int number;
     /** Build number, e.g. '43'. set to '-1' for custom builds. */
@@ -46,9 +48,10 @@ public class Version{
         type = map.get("type");
         number = Integer.parseInt(map.get("number", "4"));
         modifier = map.get("modifier");
+        commitHash = map.get("commitHash", "unknown");
+        buildDate = map.get("buildDate", "unknown");
         var path = Version.class.getProtectionDomain().getCodeSource().getLocation().getPath().replace('\\', '/');
         if(path.contains("/steamapps/common/Mindustry/")) modifier += " steam";
-        commitHash = map.get("commitHash");
         if(map.get("build").contains(".")){
             String[] split = map.get("build").split("\\.");
             try{

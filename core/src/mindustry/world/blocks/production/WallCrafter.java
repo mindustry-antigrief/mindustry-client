@@ -227,7 +227,7 @@ public class WallCrafter extends Block{
 
             totalTime += edelta() * warmup * (eff <= 0f ? 0f : 1f);
 
-            if(timer(timerDump, dumpTime)){
+            if(timer(timerDump, dumpTime / timeScale)){
                 dump(output);
             }
         }

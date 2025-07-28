@@ -489,18 +489,15 @@ public class SettingsMenuDialog extends BaseDialog{
         game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
         game.checkPref("autotarget", false);
         if(mobile){
-            if(!ios){
-                game.checkPref("keyboard", false, val -> {
-                    control.setInput(val ? new DesktopInput() : new MobileInput());
-                    input.setUseKeyboard(val);
-                });
-                if(Core.settings.getBool("keyboard")){
-                    control.setInput(new DesktopInput());
-                    input.setUseKeyboard(true);
-                }
-            }else{
-                Core.settings.put("keyboard", false);
+            game.checkPref("keyboard", false, val -> {
+                control.setInput(val ? new DesktopInput() : new MobileInput());
+                input.setUseKeyboard(val);
+            });
+            if(Core.settings.getBool("keyboard")){
+                control.setInput(new DesktopInput());
+                input.setUseKeyboard(true);
             }
+
         }
         //the issue with touchscreen support on desktop is that:
         //1) I can't test it
@@ -658,6 +655,9 @@ public class SettingsMenuDialog extends BaseDialog{
         graphics.checkPref("coreitems", !mobile);
         graphics.checkPref("minimap", !mobile);
         graphics.checkPref("smoothcamera", true);
+        if(!mobile){
+            graphics.checkPref("detach-camera", false);
+        }
         graphics.checkPref("position", false);
         graphics.checkPref("fps", false);
         graphics.checkPref("playerindicators", true);

@@ -120,7 +120,6 @@ public class MultiPacker implements Disposable{
         main(4096),
 
         environment(4096),
-        editor(4096, 2048),
         rubble(4096, 2048),
         ui(4096);
 

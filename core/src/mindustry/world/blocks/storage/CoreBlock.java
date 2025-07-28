@@ -13,6 +13,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.io.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
@@ -23,6 +24,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.io.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -77,6 +79,7 @@ public class CoreBlock extends StorageBlock{
         drawDisabled = false;
         configurable = true;
         canOverdrive = false;
+        commandable = true;
         envEnabled |= Env.space;
 
         //support everything
@@ -253,8 +256,24 @@ public class CoreBlock extends StorageBlock{
         public Team lastDamage = Team.derelict;
         public float iframes = -1f;
         public float thrusterTime = 0f;
+        public @Nullable Vec2 commandPos;
 
         protected float cloudSeed, landParticleTimer;
+
+        @Override
+        public boolean isCommandable(){
+            return team != state.rules.defaultTeam && state.rules.editor;
+        }
+
+        @Override
+        public Vec2 getCommandPosition(){
+            return commandPos;
+        }
+
+        @Override
+        public void onCommand(Vec2 target){
+            commandPos = target;
+        }
 
         @Override
         public void draw(){
@@ -841,6 +860,25 @@ public class CoreBlock extends StorageBlock{
                 deselect();
             }).size(40f);
             } // Else deselect
+        }
+
+        @Override
+        public byte version(){
+            return 1;
+        }
+
+        @Override
+        public void write(Writes write){
+            super.write(write);
+            TypeIO.writeVecNullable(write, commandPos);
+        }
+
+        @Override
+        public void read(Reads read, byte revision){
+            super.read(read, revision);
+            if(revision >= 1){
+                commandPos = TypeIO.readVecNullable(read);
+            }
         }
     }
 }

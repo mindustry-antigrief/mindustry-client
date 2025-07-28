@@ -128,8 +128,9 @@ public class PlacementFragment{
     }
 
     boolean updatePick(InputHandler input){
-        if(Core.input.keyTap(Binding.pick) && !Core.scene.hasDialog() /*&& player.isBuilder()*/){ //mouse eyedropper select
-            var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
+        Tile tile = world.tileWorld(Core.input.mouseWorldX(), Core.input.mouseWorldY());
+        if(tile != null && Core.input.keyTap(Binding.pick) && !Core.scene.hasDialog() /*&& player.isBuilder()*/){ //mouse eyedropper select
+            var build = tile.build;
 
             // FOO: allow middle clicking them anyways
 //            //can't middle click buildings in fog
@@ -137,10 +138,10 @@ public class PlacementFragment{
 //                build = null;
 //            }
 
-            Block tryRecipe = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
+            Block tryBlock = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
             Object tryConfig = build == null || !build.block.copyConfig ? null : build.config();
-            boolean wasShard = tryRecipe == Blocks.coreShard;
-            if (wasShard || tryRecipe == Blocks.coreFoundation) tryRecipe = // If core was middle-clicked, selects the best affordable core FINISHME: This is hardcoded and doesn't even support erekir cores. Fix this.
+            boolean wasShard = tryBlock == Blocks.coreShard;
+            if (wasShard || tryBlock == Blocks.coreFoundation) tryBlock = // If core was middle-clicked, selects the best affordable core FINISHME: This is hardcoded and doesn't even support erekir cores. Fix this.
                 Blocks.coreNucleus.isVisible() && Blocks.coreNucleus.unlockedNow() && (state.rules.infiniteResources || player.team().items().has(Blocks.coreNucleus.requirements, state.rules.buildCostMultiplier)) ? Blocks.coreNucleus :
                 Blocks.coreFoundation.isVisible() && Blocks.coreFoundation.unlockedNow() ? Blocks.coreFoundation :
                 null;
@@ -149,7 +150,7 @@ public class PlacementFragment{
             boolean found = false;
             for(BuildPlan req : ClientVars.frozenPlans){
                 if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
-                    tryRecipe = req.block;
+                    tryBlock = req.block;
                     tryConfig = req.config;
                     found = true;
                     break;
@@ -158,29 +159,31 @@ public class PlacementFragment{
             if (!found && player.unit() != null) {
                 for(BuildPlan req : player.unit().plans()){
                     if(!req.breaking && req.block.bounds(req.x, req.y, Tmp.r1).contains(Core.input.mouseWorld())){
-                        tryRecipe = req.block;
+                        tryBlock = req.block;
                         tryConfig = req.config;
                         break;
                     }
                 }
             }
 
-            if(tryRecipe == null && state.rules.editor){
-                var tile = world.tileWorld(Core.input.mouseWorldX(), Core.input.mouseWorldY());
-                if(tile != null){
-                    tryRecipe =
+            if(tryBlock == null && state.rules.editor){
+                tryBlock =
                     tile.block() != Blocks.air ? tile.block() :
                     tile.overlay() != Blocks.air ? tile.overlay() :
                     tile.floor() != Blocks.air ? tile.floor() : null;
-                }
             }
 
-            if(tryRecipe != null && ((tryRecipe.isVisible() && unlocked(tryRecipe)) || state.rules.editor)){
-                input.block = tryRecipe;
-                tryRecipe.lastConfig = tryConfig;
-                if(tryRecipe.isVisible()){
+            if(tryBlock != null && build == null && tryConfig == null){
+                tryConfig = tryBlock.getConfig(tile);
+            }
+
+            if(tryBlock != null && ((tryBlock.isVisible() && unlocked(tryBlock)) || state.rules.editor)){
+                input.block = tryBlock;
+                tryBlock.lastConfig = tryConfig;
+                if(tryBlock.isVisible()){
                     currentCategory = input.block.category;
                 }
+                tryBlock.onPicked(tile);
                 return true;
             }
         }
@@ -271,14 +274,9 @@ public class PlacementFragment{
         }
 
         if(Core.input.keyTap(Binding.blockInfo)){
-            Unit hoveredUnit;
-            if((hoveredUnit = input.selectedUnit(true, true, false)) != null && !Core.input.alt()){
-                //Show info for the unit
-                if(hoveredUnit.type.unlockedNow()){
-                    ui.content.show(hoveredUnit.type);
-                }
-            } else {
-                //Show info for the block
+            if(hovered() instanceof Unit unit && unit.type.unlockedNow()){
+                ui.content.show(unit.type());
+            }else{
                 var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
                 Block hovering = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
                 Block displayBlock = menuHoverBlock != null ? menuHoverBlock : input.block != null ? input.block : hovering;
@@ -400,7 +398,7 @@ public class PlacementFragment{
                                         }
                                     }
                                 }
-                                final String keyComboFinal = keyCombo;
+                                String keyComboFinal = keyCombo;
                                 header.left();
                                 header.add(new Image(displayBlock.uiIcon)).size(8 * 4);
                                 header.labelWrap(() -> !unlocked(displayBlock) ? Core.bundle.get("block.unknown") : displayBlock.localizedName + keyComboFinal)
@@ -633,7 +631,7 @@ public class PlacementFragment{
                                         for(var stance : stances){
 
                                             coms.button(stance.getIcon(), Styles.clearNoneTogglei, () -> {
-                                                Call.setUnitStance(player, units.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance);
+                                                Call.setUnitStance(player, units.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance, !activeStances.get(stance.id));
                                             }).checked(i -> activeStances.get(stance.id)).size(50f).tooltip(stance.localized(), true);
 
                                             if(++scol % 6 == 0) coms.row();
@@ -656,18 +654,18 @@ public class PlacementFragment{
                                 for(var unit : control.input.selectedUnits){
                                     if(unit.controller() instanceof CommandAI cmd){
                                         activeCommands.set(cmd.command.id);
-                                        activeStances.set(cmd.stance.id);
+                                        activeStances.set(cmd.stances);
+                                    }
 
-                                        for(var command : unit.type.commands){
-                                            availableCommands.set(command.id);
-                                        }
+                                    stancesOut.clear();
+                                    unit.type.getUnitStances(unit, stancesOut);
 
-                                        stancesOut.clear();
-                                        unit.type.getUnitStances(unit, stancesOut);
+                                    for(var stance : stancesOut){
+                                        availableStances.set(stance.id);
+                                    }
 
-                                        for(var stance : stancesOut){
-                                            availableStances.set(stance.id);
-                                        }
+                                    for(var command : unit.type.commands){
+                                        availableCommands.set(command.id);
                                     }
                                 }
 
@@ -683,7 +681,7 @@ public class PlacementFragment{
                                 for(UnitStance stance : stances){
                                     //first stance must always be the stop stance
                                     if(stance.keybind != null && Core.input.keyTap(stance.keybind)){
-                                        Call.setUnitStance(player, control.input.selectedUnits.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance);
+                                        Call.setUnitStance(player, control.input.selectedUnits.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance, !activeStances.get(stance.id));
                                     }
                                 }
 
@@ -814,7 +812,7 @@ public class PlacementFragment{
         //if the mouse intersects the table or the UI has the mouse, no hovering can occur
         if(Core.scene.hasMouse(Core.input.mouseX(), Core.input.mouseY()) || topTable.hit(v.x, v.y, false) != null) return null;
 
-        if (!ClientVars.hidingUnits) {
+        if (!ClientVars.hidingUnits) { // FINISHME: respect hidingAirUnits setting
             //check for a unit
             Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), Core.input.shift() ? tilesize * 6 : 5f, u -> !u.isLocal() && u.displayable());
             //if cursor has a unit, display it

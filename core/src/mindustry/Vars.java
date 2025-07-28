@@ -51,6 +51,8 @@ public class Vars implements Loadable{
     public static final int minModGameVersion = 136;
     /** Min game version for java mods specifically - this is higher, as Java mods have more breaking changes. */
     public static final int minJavaModGameVersion = 147;
+    /** If true, a button to view sector submission threads is shown. */
+    public static boolean showSectorSubmissions = true;
     /** If true, the BE server list is always used. */
     public static boolean forceBeServers = false;
     /** If true, mod code and scripts do not run. For internal testing only. This WILL break mods if enabled. */
@@ -89,6 +91,8 @@ public class Vars implements Loadable{
     public static final String reportIssueURL = "https://github.com/Anuken/Mindustry/issues/new?labels=bug&template=bug_report.md";
     /** list of built-in servers.*/
     public static final Seq<ServerGroup> defaultServers = Seq.with();
+    /** cached server list - only used if defaultServers have not been fetched*/
+    public static final Seq<ServerGroup> cachedServers = Seq.with();
     /** maximum openGL errors logged */
     public static final int maxGlErrors = 100;
     /** maximum size of any block, do not change unless you know what you're doing */
@@ -203,6 +207,14 @@ public class Vars implements Loadable{
     /** Whether to draw shadows of blocks at map edges and static blocks.
      * Do not change unless you know exactly what you are doing.*/
     public static boolean enableDarkness = true;
+    /** Whether to draw debug lines for collisions. */
+    public static boolean drawDebugHitboxes = false;
+    /** Whether to draw avoidance fields. */
+    public static boolean debugDrawAvoidance = false;
+    /** Whether the on-disk server file cache has been loaded. */
+    public static boolean loadedServerCache = false;
+    /** Whether the server list has been fetched from Github. */
+    public static boolean fetchedServers = false;
     /** application data directory, equivalent to {@link Settings#getDataDirectory()} */
     public static Fi dataDirectory;
     /** data subdirectory used for screenshots */
@@ -225,6 +237,8 @@ public class Vars implements Loadable{
     public static Fi bebuildDirectory;
     /** file used to store launch ID */
     public static Fi launchIDFile;
+    /** local cache of server list */
+    public static Fi serverCacheFile;
     /** empty map, indicates no current map */
     public static Map emptyMap;
     /** empty tile for payloads */
@@ -258,6 +272,7 @@ public class Vars implements Loadable{
     public static BaseRegistry bases;
     public static GlobalVars logicVars;
     public static MapEditor editor;
+    public static AvoidanceProcess avoidance;
     public static GameService service = new GameService();
 
     public static Universe universe;
@@ -321,6 +336,7 @@ public class Vars implements Loadable{
         schematicDirectory = OS.hasProp("schematicDir") ? Fi.get(OS.prop("schematicDir")) : dataDirectory.child("schematics/");
         schematicRepoDirectory = dataDirectory.child("schematic_repo/");
         bebuildDirectory = dataDirectory.child("be_builds/");
+        serverCacheFile = dataDirectory.child("server_list.json");
         emptyMap = new Map(new StringMap());
 
         if(tree == null) tree = new FileTree();

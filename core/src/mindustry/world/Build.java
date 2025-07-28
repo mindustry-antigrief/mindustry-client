@@ -71,9 +71,9 @@ public class Build{
         Events.fire(new BlockBuildBeginEvent(tile, team, unit, true));
     }
 
-    /** Places a ConstructBlock at this location. */
+    /** Places a ConstructBlock at this location. To preserve bandwidth, a config is only passed in the case of instant-place blocks. */
     @Remote(called = Loc.server)
-    public static void beginPlace(@Nullable Unit unit, Block result, Team team, int x, int y, int rotation){
+    public static void beginPlace(@Nullable Unit unit, Block result, Team team, int x, int y, int rotation, @Nullable Object placeConfig){
         if(!validPlace(result, team, x, y, rotation) || !validPlaceCoreRange(result, team, x, y) || !validPlaceUnit(result, x, y)){
             return;
         }
@@ -134,7 +134,7 @@ public class Build{
         if(result.instantBuild){
             Events.fire(new BlockBuildBeginEvent(tile, team, unit, false));
             result.placeBegan(tile, tile.block, unit);
-            ConstructBlock.constructFinish(tile, result, unit, (byte)rotation, team, null);
+            ConstructBlock.constructFinish(tile, result, unit, (byte)rotation, team, placeConfig);
             return;
         }
 
@@ -290,12 +290,12 @@ public class Build{
             return closest == null || closest.team == team;
         }else return !state.teams.anyEnemyCoresWithin(team, x * tilesize + type.offset, y * tilesize + type.offset, state.rules.enemyCoreBuildRadius + tilesize);
     }
-    
+
     /** Whether a build plan intersects a unit here */
     public static boolean validPlaceUnit(Block type, int x, int y) {
         return state.rules.editor || !((type.solid || type.solidifes) && Units.anyEntities(x * tilesize + type.offset - type.size*tilesize/2f, y * tilesize + type.offset - type.size*tilesize/2f, type.size * tilesize, type.size*tilesize));
     }
-    
+
     public static @Nullable Building getEnemyOverlap(Block block, Team team, int x, int y) {
         return indexer.findEnemyTile(team, x * tilesize + block.size, y * tilesize + block.size, block.placeOverlapRange + 4f, p -> true);
     }

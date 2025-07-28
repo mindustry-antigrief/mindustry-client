@@ -28,8 +28,6 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
     public Object config;
     /** Whether the config is to be sent to the server */
     public transient boolean configLocal;
-    /** Original position, only used in schematics.*/
-    public int originalX, originalY, originalWidth, originalHeight;
 
     /** Last progress.*/
     public float progress;
@@ -136,8 +134,6 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         copy.block = block;
         copy.breaking = breaking;
         copy.config = config;
-        copy.originalX = originalX;
-        copy.originalY = originalY;
         copy.progress = progress;
         copy.initialized = initialized;
         copy.animScale = animScale;
@@ -145,12 +141,8 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         return copy;
     }
 
-    public BuildPlan original(int x, int y, int originalWidth, int originalHeight){
-        originalX = x;
-        originalY = y;
-        this.originalWidth = originalWidth;
-        this.originalHeight = originalHeight;
-        return this;
+    public Rect bounds(Rect rect){
+        return block.bounds(x, y, rect);
     }
 
     public BuildPlan set(int x, int y, int rotation, Block block){
@@ -231,10 +223,6 @@ public class BuildPlan implements Position, Pool.Poolable, QuadTreeObject{
         }else{
             out.setCentered(x * tilesize, y * tilesize, tilesize);
         }
-    }
-
-    public Rect bounds(Rect rect){
-        return block.bounds(x, y, rect);
     }
 
     @Override

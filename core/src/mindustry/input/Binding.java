@@ -35,7 +35,6 @@ public class Binding{
     schematicFlipY = KeyBind.add("schematic_flip_y", KeyCode.x),
     schematicMenu = KeyBind.add("schematic_menu", KeyCode.t),
 
-
     commandMode = KeyBind.add("command_mode", KeyCode.shiftLeft, "command"),
     commandQueue = KeyBind.add("command_queue", KeyCode.mouseMiddle),
     createControlGroup = KeyBind.add("create_control_group", KeyCode.controlLeft),
@@ -57,7 +56,7 @@ public class Binding{
     unitCommandRepair = KeyBind.add("unit_command_repair", KeyCode.unset),
     unitCommandRebuild = KeyBind.add("unit_command_rebuild", KeyCode.unset),
     unitCommandAssist = KeyBind.add("unit_command_assist", KeyCode.unset),
-    unitCommandNine = KeyBind.add("unit_command_mine", KeyCode.unset),
+    unitCommandMine = KeyBind.add("unit_command_mine", KeyCode.unset),
     unitCommandBoost = KeyBind.add("unit_command_boost", KeyCode.unset),
     unitCommandEnterPayload = KeyBind.add("unit_command_enter_payload", KeyCode.unset),
     unitCommandLoadUnits = KeyBind.add("unit_command_load_units", KeyCode.unset),
@@ -104,6 +103,7 @@ public class Binding{
     chatScroll = KeyBind.add("chat_scroll", new Axis(KeyCode.scroll)),
     chatMode = KeyBind.add("chat_mode", KeyCode.tab),
     console = KeyBind.add("console", KeyCode.f8),
+    debugHitboxes = KeyBind.add("debug_hitboxes", KeyCode.unset),
 
     tileActionsMenuModifier = KeyBind.add("tile_actions_menu_modifier", KeyCode.altLeft, "client"),
     freecamModifier = KeyBind.add("freecam_modifier", KeyCode.altLeft),

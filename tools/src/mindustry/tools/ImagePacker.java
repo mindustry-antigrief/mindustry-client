@@ -28,6 +28,8 @@ public class ImagePacker{
         //makes PNG loading slightly faster
         ArcNativesLoader.load();
 
+        fixSubdirectory("blocks/environment/character-overlay");
+
         Core.settings = new MockSettings();
 //        Log.logger = new NoopLogHandler();
         Vars.content = new ContentLoader();
@@ -199,6 +201,15 @@ public class ImagePacker{
         }
     }
 
+    static void fixSubdirectory(String dir){
+        Fi folder = Fi.get("../../../assets-raw/sprites_out/" + dir);
+        Fi parent = folder.parent();
+        folder.walk(fi -> {
+            fi.moveTo(parent.child(fi.name()));
+        });
+        folder.delete();
+    }
+
     static String texname(UnlockableContent c){
         return c.getContentType() + "-" + c.name + "-ui";
     }
@@ -264,11 +275,12 @@ public class ImagePacker{
     }
 
     static void replace(String name, Pixmap image){
-        replace(name, image, false);
+        replace(name, name, image, false);
     }
 
-    static void replace(String name, Pixmap image, boolean dispose){
-        save(image, name, dispose);
+    static void replace(String path, String name, Pixmap image, boolean dispose){
+        save(image, path, dispose);
+        Fi.get(path + ".png").writePng(image);
         ((GenRegion)Core.atlas.find(name)).path.delete();
     }
 
@@ -277,7 +289,8 @@ public class ImagePacker{
     }
 
     static void replace(TextureRegion region, Pixmap image, boolean dispose){
-        replace(((GenRegion)region).name, image);
+        var name = ((GenRegion)region).name;
+        replace(name, name, image, dispose);
     }
 
     static void err(String message, Object... args){

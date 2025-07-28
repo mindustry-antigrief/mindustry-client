@@ -7,7 +7,6 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import mindustry.content.*;
-import mindustry.editor.DrawOperation.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -21,7 +20,7 @@ public class MapEditor{
     public static final float[] brushSizes = {1, 1.5f, 2, 3, 4, 5, 6, 9, 15, 20, 30, 50, 100};
 
     public StringMap tags = new StringMap();
-    public MapRenderer renderer = new MapRenderer();
+    public EditorRenderer renderer = new EditorRenderer();
 
     private final Context context = new Context();
     private OperationStack stack = new OperationStack();
@@ -149,6 +148,7 @@ public class MapEditor{
             y = Mathf.clamp(y, (drawBlock.size - 1) / 2, height() - drawBlock.size / 2 - 1);
             if(!hasOverlap(x, y)){
                 tile(x, y).setBlock(drawBlock, drawTeam, rotation);
+                addTileOp(TileOp.get((short)x, (short)y, DrawOperation.opTeam, (byte)drawTeam.id));
             }
         }else{
             boolean isFloor = drawBlock.isFloor() && drawBlock != Blocks.air;
@@ -166,10 +166,14 @@ public class MapEditor{
                     }
                 }else if(!(tile.block().isMultiblock() && !drawBlock.isMultiblock())){
                     if(drawBlock.rotate && tile.build != null && tile.build.rotation != rotation){
-                        addTileOp(TileOp.get(tile.x, tile.y, (byte)OpType.rotation.ordinal(), (byte)rotation));
+                        addTileOp(TileOp.get(tile.x, tile.y, DrawOperation.opRotation, (byte)rotation));
                     }
 
                     tile.setBlock(drawBlock, drawTeam, rotation);
+
+                    if(drawBlock.synthetic()){
+                        addTileOp(TileOp.get(tile.x, tile.y, DrawOperation.opTeam, (byte)drawTeam.id));
+                    }
                 }
             };
 
@@ -375,7 +379,7 @@ public class MapEditor{
         if(currentOp == null) currentOp = new DrawOperation();
         currentOp.addOperation(data);
 
-        renderer.updatePoint(TileOp.x(data), TileOp.y(data));
+        renderer.updateStatic(TileOp.x(data), TileOp.y(data));
     }
 
     class Context implements WorldContext{

@@ -78,6 +78,7 @@ public class LogicDisplay extends Block{
         public float stroke = 1f;
         public LongQueue commands = new LongQueue(256);
         public @Nullable Mat transform;
+        public long operations;
 
         @Override
         public void draw(){
@@ -120,7 +121,8 @@ public class LogicDisplay extends Block{
         public double sense(LAccess sensor){
             return switch(sensor){
                 case displayWidth, displayHeight -> displaySize;
-                case bufferUsage -> commands.size;
+                case bufferSize -> commands.size;
+                case operations -> operations;
                 default -> super.sense(sensor);
             };
         }
@@ -131,6 +133,8 @@ public class LogicDisplay extends Block{
             for(int i = 0; i < added; i++){
                 commands.addLast(graphicsBuffer.items[i]);
             }
+
+            operations++;
         }
 
         public void processCommands(){

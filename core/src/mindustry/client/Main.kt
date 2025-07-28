@@ -226,8 +226,8 @@ object Main : ApplicationListener {
             ClientVars.dispatchingBuildPlans = !ClientVars.dispatchingBuildPlans
         }
 
-        if (ClientVars.dispatchingBuildPlans) {
-            if (!Vars.net.client()) Vars.player.unit()?.plans?.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
+        if (ClientVars.dispatchingBuildPlans && Vars.player.unit() != null) {
+            if (!Vars.net.client()) Vars.player.unit().plans.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
             if (!isSendingPlans && !communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(max(5 * 60f, planSendTime / 16.666f + 3 * 60))) sendBuildPlans()
         }
 
