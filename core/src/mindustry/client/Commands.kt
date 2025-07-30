@@ -791,7 +791,7 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
         if (Server.cn()) {
             if (player.admin) {
                 player.sendMessage("If you are not ADMIN rank you will just be in buildmine mode, or derelict team")
-                Call.sendChatMessage("/spawn emanate ${state.rules.defaultTeam.toString()} 1 --silent")
+                Call.sendChatMessage("/spawn emanate 1 ${state.rules.defaultTeam.toString()} --silent")
                 ui.unitPicker.pickUnit(findUnit("emanate"))
                 if (!interactive) Call.adminRequest(player, AdminAction.switchTeam, Team.derelict)
                 else follow(BuildMinePath())
