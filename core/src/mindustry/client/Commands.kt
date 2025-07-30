@@ -749,7 +749,8 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
             if (team == null) team = team ?: arg.toInt()
 
             if (!net.client()) player.team(Team.get(team))
-            else if (player.admin) Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
+            // Awful, but i dont want to filter it to just me
+            else if (player.admin || Server.cn()) Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
 
         } catch (e: NumberFormatException) {
             player.sendMessage(Core.bundle.get("client.command.team.invalidTeam"))
@@ -783,6 +784,25 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
         }
         Core.settings.put("cnpw", args[0] + " " + args[1])
         player.sendMessage(Core.bundle.get("client.command.login.added"))
+    }
+
+    register("afk [interactive]", Core.bundle.get("client.command.afk.description")) { args, player ->
+        val interactive: Boolean = if (args.isEmpty()) false else true
+        if (Server.cn()) {
+            if (player.admin) {
+                player.sendMessage("If you are not ADMIN rank you will just be in buildmine mode, or derelict team")
+                Call.sendChatMessage("/spawn emanate ${state.rules.defaultTeam.toString()} 1 --silent")
+                ui.unitPicker.pickUnit(findUnit("emanate"))
+                if (!interactive) Call.adminRequest(player, AdminAction.switchTeam, Team.derelict)
+                else follow(BuildMinePath())
+                player.sendMessage("You are now afk. ${if (interactive) "and following the buildmine path" else ""}")
+            } else if (interactive) follow(BuildMinePath()) else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
+        } else {
+            if (interactive) {
+                player.sendMessage("You are now afk. (Why use this ?)")
+                follow(BuildMinePath())
+            } else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
+        }
     }
 
     // Symbol replacements
