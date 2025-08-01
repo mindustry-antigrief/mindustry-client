@@ -1,9 +1,8 @@
+import java.text.SimpleDateFormat
 import arc.struct.StringMap
 import arc.util.io.PropertiesUtils
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask
-
-import java.text.SimpleDateFormat
 
 buildscript{
     ext{
@@ -97,10 +96,6 @@ allprojects{
         getBuildVersion = {
             if(!project.hasProperty("buildversion")) return "custom build"
             return project.getProperties()["buildversion"]
-        }
-
-        getCommitHash = {
-            return 'git rev-parse --verify --short HEAD'.execute().text.trim()
         }
 
         getPackage = {

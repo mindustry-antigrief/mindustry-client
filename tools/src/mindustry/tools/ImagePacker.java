@@ -284,13 +284,16 @@ public class ImagePacker{
         if(dispose) image.dispose();
     }
 
+    static void replace(String name, Pixmap image, boolean dispose){
+        replace(name, name, image, dispose);
+    }
+
     static void replace(TextureRegion region, Pixmap image){
         replace(region, image, false);
     }
 
     static void replace(TextureRegion region, Pixmap image, boolean dispose){
-        var name = ((GenRegion)region).name;
-        replace(name, name, image, dispose);
+        replace(((GenRegion)region).name, image, dispose);
     }
 
     static void err(String message, Object... args){

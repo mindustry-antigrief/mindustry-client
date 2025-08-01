@@ -37,6 +37,7 @@ import static mindustry.Vars.*;
 public class DesktopLauncher extends ClientLauncher{
     public final static long discordID = 514551367759822855L;
     public final String[] args;
+
     boolean useDiscord = !OS.hasProp("nodiscord"), loadError = false;
     Throwable steamError;
 
@@ -144,7 +145,6 @@ public class DesktopLauncher extends ClientLauncher{
         add(Main.INSTANCE);
 
         if(useSteam){
-
             Events.on(ClientLoadEvent.class, event -> {
                 if(steamError != null){
                     Core.app.post(() -> Core.app.post(() -> Core.app.post(() -> {
@@ -290,9 +290,9 @@ public class DesktopLauncher extends ClientLauncher{
 
             message(
                 total.contains("Couldn't create window") ? "A graphics initialization error has occured! Try to update your graphics drivers:\n" + finalMessage :
-                            "Your graphics card does not support the right OpenGL features.\n" +
-                                    "Try to update your graphics drivers. If this doesn't work, your computer may not support Mindustry.\n\n" +
-                                    "Full message: " + finalMessage);
+                    "Your graphics card does not support the right OpenGL features.\n" +
+                    "Try to update your graphics drivers. If this doesn't work, your computer may not support Mindustry.\n\n" +
+                    "Full message: " + finalMessage);
             badGPU = true;
         }
 

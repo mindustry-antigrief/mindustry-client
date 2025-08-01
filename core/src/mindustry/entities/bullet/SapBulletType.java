@@ -10,7 +10,6 @@ import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.*;
 
 public class SapBulletType extends BulletType{
     public float length = 100f, lengthRand = 0f;

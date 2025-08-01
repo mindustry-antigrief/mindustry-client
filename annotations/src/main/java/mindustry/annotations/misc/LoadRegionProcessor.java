@@ -3,7 +3,6 @@ package mindustry.annotations.misc;
 import arc.*;
 import arc.graphics.g2d.*;
 import arc.struct.*;
-import arc.util.*;
 import com.squareup.javapoet.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.annotations.*;
@@ -11,7 +10,6 @@ import mindustry.annotations.util.*;
 
 import javax.annotation.processing.*;
 import javax.lang.model.element.*;
-import java.util.*;
 
 @SupportedAnnotationTypes("mindustry.annotations.Annotations.Load")
 public class LoadRegionProcessor extends BaseProcessor{
@@ -25,23 +23,22 @@ public class LoadRegionProcessor extends BaseProcessor{
             .addParameter(tname("mindustry.ctype.MappableContent"), "content")
             .addModifiers(Modifier.STATIC, Modifier.PUBLIC);
 
-        OrderedMap<Stype, Seq<Svar>> fieldMap = new OrderedMap<>();
+        ObjectMap<Stype, Seq<Svar>> fieldMap = new ObjectMap<>();
 
         for(Svar field : fields(Load.class)){
             if(!field.is(Modifier.PUBLIC)){
                 err("@LoadRegion field must be public", field);
             }
 
-            fieldMap.get(field.enclosingType(), () -> new Seq<>(Svar.class)).add(field);
+            fieldMap.get(field.enclosingType(), Seq::new).add(field);
         }
 
-
-        Seq<Stype> entries = new Seq<Stype>(Stype.class).addAll(fieldMap.keys());
-        Arrays.sort(entries.items, 0, entries.size, Structs.comparing(Stype::name));
+        Seq<Stype> entries = Seq.with(fieldMap.keys());
+        entries.sortComparing(e -> e.name());
 
         for(Stype type : entries){
             Seq<Svar> fields = fieldMap.get(type);
-            Arrays.sort(fields.items, 0, fields.size, Structs.comparing(Svar::name));
+            fields.sortComparing(s -> s.name());
             method.beginControlFlow("if(content instanceof $L)", type.fullName());
 
             for(Svar field : fields){

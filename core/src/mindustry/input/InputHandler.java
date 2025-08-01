@@ -1653,6 +1653,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Draw.color(col2, .3f);
             Fill.crect(result.x, result.y, result.x2 - result.x, result.y2 - result.y);
         }
+
         if(withText || Core.settings.getBool("alwaysdrawselectiontext")){
             Font font = Fonts.outline;
             font.setColor(col2);
@@ -1669,8 +1670,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             // FINISHME: When not snapping to cursor, perhaps it would be best to choose the corner closest to the cursor that's at least a block away?
             font.draw(width + "x" + height + " (" + area + ")",
-            snapToCursor ? input.mouseWorldX() + textOffset * (4 / renderer.camerascale) : result.x2,
-            snapToCursor ? input.mouseWorldY() - textOffset * (4 / renderer.camerascale) : result.y
+                snapToCursor ? input.mouseWorldX() + textOffset * (4 / renderer.camerascale) : result.x2,
+                snapToCursor ? input.mouseWorldY() - textOffset * (4 / renderer.camerascale) : result.y
             );
             font.setColor(Color.white);
             font.getData().setScale(1);

@@ -565,11 +565,11 @@ public class Administration{
         }
 
         public boolean bool(){
-            return Core.settings.getBool(key, (boolean)defaultValue);
+            return Core.settings.getBool(key, (Boolean)defaultValue);
         }
 
         public int num(){
-            return Core.settings.getInt(key, (int)defaultValue);
+            return Core.settings.getInt(key, (Integer)defaultValue);
         }
 
         public String string(){

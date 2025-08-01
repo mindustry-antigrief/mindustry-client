@@ -495,7 +495,6 @@ public class SettingsMenuDialog extends BaseDialog{
                 control.setInput(new DesktopInput());
                 input.setUseKeyboard(true);
             }
-
         }
         //the issue with touchscreen support on desktop is that:
         //1) I can't test it

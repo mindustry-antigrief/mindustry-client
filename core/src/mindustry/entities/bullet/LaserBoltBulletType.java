@@ -4,7 +4,6 @@ import arc.graphics.g2d.*;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.type.*;
 
 public class LaserBoltBulletType extends BasicBulletType{
     public float width = 2f, height = 7f;

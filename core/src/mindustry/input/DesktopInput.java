@@ -83,7 +83,6 @@ public class DesktopInput extends InputHandler{
     private float buildPlanMouseOffsetX, buildPlanMouseOffsetY;
     private boolean changedCursor;
 
-
     // Client Vars
     private long lastShiftZ;
     /** Position where the player started drag-selecting. Overlaps with selectX/Y but is only used by client. */

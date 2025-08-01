@@ -233,7 +233,6 @@ public class PlanetDialog extends BaseDialog implements PlanetInterfaceRenderer{
         }
     }
 
-
     /** show with no limitations, just as a map. */
     @Override
     public Dialog show(){

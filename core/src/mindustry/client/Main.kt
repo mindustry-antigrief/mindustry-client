@@ -180,7 +180,10 @@ object Main : ApplicationListener {
 
         val msg = findMessage(transmission.messageId) ?: return false
 
-        if (!msg.message.endsWith(msg.unformatted)) { invalid(msg, null); Log.debug("Does not end with unformatted!") }
+        if (!msg.message.endsWith(msg.unformatted)) { 
+            invalid(msg, null); 
+            Log.debug("Does not end with unformatted!") 
+        }
 
         if (!Core.settings.getBool("highlightcryptomsg")) return true
         val output = signatures.verifySignatureTransmission(msg.unformatted.encodeToByteArray(), transmission)
@@ -227,7 +230,10 @@ object Main : ApplicationListener {
         }
 
         if (ClientVars.dispatchingBuildPlans && Vars.player.unit() != null) {
-            if (!Vars.net.client()) Vars.player.unit().plans.each { if (BuildPlanCommunicationSystem.isNetworking(it)) return@each; addBuildPlan(it) } // Player plans -> block ghosts in single player
+            if (!Vars.net.client()) Vars.player.unit().plans.each {
+                 if (BuildPlanCommunicationSystem.isNetworking(it)) return@each;
+                 addBuildPlan(it)
+            } // Player plans -> block ghosts in single player
             if (!isSendingPlans && !communicationClient.inUse && Groups.player.size() > 1 && buildPlanInterval.get(max(5 * 60f, planSendTime / 16.666f + 3 * 60))) sendBuildPlans()
         }
 

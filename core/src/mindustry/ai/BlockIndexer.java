@@ -38,7 +38,7 @@ public class BlockIndexer{
     /** All ores present on the map - can be wall or floor. */
     private Seq<Item> allPresentOres = new Seq<>();
     /** All ores available on this map. */
-    private final ObjectIntMap<Item> allOres = new ObjectIntMap<>(), allWallOres = new ObjectIntMap<>();
+    private ObjectIntMap<Item> allOres = new ObjectIntMap<>(), allWallOres = new ObjectIntMap<>();
     /** Stores teams that are present here as tiles. */
     private Seq<Team> activeTeams = new Seq<>(Team.class);
     /** Maps teams to a map of flagged tiles by flag. */
