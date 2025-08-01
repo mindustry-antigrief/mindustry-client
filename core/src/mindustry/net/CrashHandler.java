@@ -35,6 +35,7 @@ public class CrashHandler{
 
         return Strings.stripColors(report
         + "Version: " + Version.combined() + (Version.buildDate.equals("unknown") ? "" : " (Built " + Version.buildDate + ")") + (Vars.headless ? " (Server)" : "") + "\n"
+        + "Last Server: " + (lastHost != null ? lastHost.name + (group != null ? " (" + group + ") " : "(nogroup)") + " (" + lastHost.address + ":" + lastHost.port + ")" : lastIp != null && lastIp.startsWith("steam:") ? "steam" : "unknown/none") + "\n"
         + "Date: " + new SimpleDateFormat("MMMM d, yyyy HH:mm:ss a", Locale.getDefault()).format(new Date()) + "\n"
         + "Source: " + settings.getString("updateurl") + "\n"
         + "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"

@@ -312,7 +312,6 @@ public class BlockRenderer{
     }
 
     public void processShadows(){
-        if(ClientVars.hidingBlocks) return;
         if(!shadowEvents.isEmpty()){
             Draw.flush();
 
@@ -336,6 +335,7 @@ public class BlockRenderer{
     }
 
     public void drawShadows(){
+        if(ClientVars.hidingBlocks) return;
         processShadows();
 
         float ww = world.width() * tilesize, wh = world.height() * tilesize;

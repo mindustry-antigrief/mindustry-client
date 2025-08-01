@@ -193,9 +193,6 @@ public class Saves{
         var sector = s.getSector();
         if(sector != null){
             if(lastSectorSave == null && s.getName().equals(Core.settings.getString("last-sector-save", "<none>"))) lastSectorSave = s;
-            if(sector.save != null) Log.warn("Sector @ has two corresponding saves: @ and @", sector, sector.save.file, s.file);
-            else sector.save = s;
-
 
             String name = s.meta.tags.get("sectorPreset");
             Sector remapTarget = null;

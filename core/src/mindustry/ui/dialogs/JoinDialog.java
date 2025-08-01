@@ -750,7 +750,7 @@ public class JoinDialog extends BaseDialog{
             //modify default servers on main thread
             Core.app.post(() -> {
                 if(fetchedServers) return;
-
+                fetchingCommunityServersErrored = false;
                 //cache the server list to a file, so it can be loaded in case of an outage later
                 try{
                     serverCacheFile.writeString(text);
