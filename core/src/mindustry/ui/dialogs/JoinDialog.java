@@ -750,7 +750,7 @@ public class JoinDialog extends BaseDialog{
             //modify default servers on main thread
             Core.app.post(() -> {
                 if(fetchedServers) return;
-
+                fetchingCommunityServersErrored = false;
                 //cache the server list to a file, so it can be loaded in case of an outage later
                 try{
                     serverCacheFile.writeString(text);
@@ -758,8 +758,8 @@ public class JoinDialog extends BaseDialog{
                     Log.err("Failed to write server cache", e);
                 }
                 defaultServers.addAll(servers);
+                if(refreshCommunity) ui.join.refreshCommunity();
                 fetchedServers = true;
-                if(refreshCommunity) ui.join.refreshCommunity(); // terrible.
                 Log.info("Fetched @ community servers.", defaultServers.sum(s -> s.addresses.length));
                 if(onCommunityFetch != null){
                     onCommunityFetch.run();
