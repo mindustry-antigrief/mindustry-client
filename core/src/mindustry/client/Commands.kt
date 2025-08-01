@@ -49,9 +49,16 @@ import java.util.concurrent.*
 import java.util.regex.*
 import kotlin.math.*
 import kotlin.random.*
+import kotlinx.coroutines.*
 
+private val commandScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 fun setupCommands() {
+    Runtime.getRuntime().addShutdownHook(Thread {
+        commandScope.cancel()
+        Log.debug("Cancelled all command scopes")
+    })
+
     register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
             val command = clientCommandHandler.commandList.find { it.text == args[0] }
@@ -786,23 +793,28 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
         player.sendMessage(Core.bundle.get("client.command.login.added"))
     }
 
+    // This is fucking terrible
     register("afk [interactive]", Core.bundle.get("client.command.afk.description")) { args, player ->
-        val interactive: Boolean = if (args.isEmpty()) false else true
-        if (Server.cn()) {
-            if (player.admin) {
-                player.sendMessage("If you are not ADMIN rank you will just be in buildmine mode, or derelict team")
-                Call.sendChatMessage("/spawn emanate 1 ${state.rules.defaultTeam.toString()} --silent")
-                ui.unitPicker.pickUnit(findUnit("emanate"))
-                if (!interactive) Call.adminRequest(player, AdminAction.switchTeam, Team.derelict)
-                else follow(BuildMinePath())
-                player.sendMessage("You are now afk. ${if (interactive) "and following the buildmine path" else ""}")
-            } else if (interactive) follow(BuildMinePath()) else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
-        } else {
-            if (interactive) {
-                player.sendMessage("You are now afk. (Why use this ?)")
-                follow(BuildMinePath())
-            } else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
+        commandScope.launch {
+            val interactive: Boolean = if (args.isEmpty()) false else true
+            if (Server.cn()) {
+                if (player.admin) {
+                    player.sendMessage("If you are not ADMIN rank you will just be in buildmine mode, or derelict team")
+                    Call.sendChatMessage("/spawn emanate 1 ${state.rules.defaultTeam.toString()} --silent")
+                    delay(1000) // Wait for the unit to spawn
+                    ui.unitPicker.pickUnit(findUnit("emanate"))
+                    if (!interactive) Call.adminRequest(player, AdminAction.switchTeam, Team.derelict)
+                    else follow(BuildMinePath())
+                    player.sendMessage("You are now afk${if (interactive) " and following the buildmine path" else "."}")
+                } else if (interactive) follow(BuildMinePath()) else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
+            } else {
+                if (interactive) {
+                    player.sendMessage("You are now afk. (Why use this ?)")
+                    follow(BuildMinePath())
+                } else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
+            }
         }
+
     }
 
     // Symbol replacements
