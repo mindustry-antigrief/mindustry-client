@@ -35,6 +35,8 @@ public class PlayerListFragment{
     private TextField search;
     private final Seq<Player> players = new Seq<>();
 
+    private TextButton hostButton;
+
     public void build(Group parent){
         content.name = "players";
 
@@ -54,6 +56,14 @@ public class PlayerListFragment{
 
             cont.table(Tex.buttonTrans, pane -> {
                 pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + " (" + Groups.player.count(p -> p.fooUser || p.isLocal()) + Iconc.wrench + ") " + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
+                pane.row();
+
+                hostButton = pane.button("", Styles.nonetdef, () -> {
+                    if(ui.join.lastHost != null) {
+                        String copyText = Core.input.shift() ? ui.join.lastHost.address : Strings.stripColors(ui.join.lastHost.name);
+                        Core.app.setClipboardText(copyText);
+                    }
+                }).wrap().growY().width(400).get();
                 pane.row();
 
                 search = pane.field(null, text -> rebuild()).grow().pad(8).name("search").maxTextLength(maxNameLength).get();
@@ -80,6 +90,20 @@ public class PlayerListFragment{
 
     public void rebuild(){
         content.clear();
+
+        if (ui.join.lastHost != null) {
+            String name = ui.join.lastHost.name;
+            String address = ui.join.lastHost.address;
+
+            String display = Core.input.shift() ? address : name;
+
+            if (hostButton != null) {
+                hostButton.setText(display);
+
+            }
+        } else if (player.con == null) {
+            hostButton.setText("");
+        }
 
         float h = 74f;
         boolean found = false;
