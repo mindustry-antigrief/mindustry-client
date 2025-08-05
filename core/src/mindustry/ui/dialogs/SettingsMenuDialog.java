@@ -347,6 +347,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("removecorenukes", false);
         client.checkPref("seer-enabled", false);
 
+
         client.category("chat");
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
@@ -439,6 +440,9 @@ public class SettingsMenuDialog extends BaseDialog{
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "");
         client.textPref("gamelosetext", "");
+        client.checkPref("forcestevetutorial", true);
+        client.checkPref("blockiotutorial", false);
+        client.checkPref("blockiopopups", false);
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("pathnav", true);

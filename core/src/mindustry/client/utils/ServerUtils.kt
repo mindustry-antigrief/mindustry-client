@@ -105,6 +105,19 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 msg.addButton(agree.str, agree::invoke)
             }
         }
+
+        override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
+            msg ?: return false
+            if (CustomMode.flood() && msg.contains("player code: SMEX4T -".stripColors()) && Core.settings.getBool("forcestevetutorial", false) && (ClientVars.rank > 5 || player.admin)) {
+                val name = msg.split(" - ", limit = 2)[1].stripColors()
+                Groups.player.find { it.name.contains(name, ignoreCase = true) }?.let { p ->
+                    Call.sendChatMessage("/forcetutorial ${p.id}")
+                    Call.sendChatMessage("/forcetutorial f")
+                    return false
+                }
+            }
+            return false
+        }
     },
     phoenix("Phoenix Network", null, Cmd("/w"), Cmd("/rtv"), Cmd("/freeze", 9), votekickString = "Type [cyan]/vote y"),
     korea("Korea", ghost = true),
