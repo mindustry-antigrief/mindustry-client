@@ -291,7 +291,7 @@ enum class CustomMode(
                         download()
                     }
                 } else if (!floodMod.enabled()) {
-                    if (!hasLoaded && Time.timeSinceMillis(Core.settings.getLong("lastfloodcompatupdate", Time.millis())) > 1000 * 60 * 30L) { // Update floodCompat every 30m
+                    if (!hasLoaded && Time.timeSinceMillis(Core.settings.getLong("lastfloodcompatupdate")) > 1000 * 60 * 30L) { // Update floodCompat every 30m
                         Core.settings.put("lastfloodcompatupdate", Time.millis())
                         (floodMod.root as? ZipFi)?.delete() // Close the current flood zip just in case its open somehow (it should not be)
                         download(true)

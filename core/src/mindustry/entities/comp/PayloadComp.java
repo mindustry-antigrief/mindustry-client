@@ -15,6 +15,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.power.*;
 
@@ -220,8 +221,24 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
             pad = (width - (itemSize) * items) / items;
         }
 
+        boolean useRows = payloads.size > 1;
         for(Payload p : payloads){
-            table.image(p.icon()).size(itemSize).padRight(pad);
+            table.table(t -> {
+                t.image(p.icon()).size(itemSize);
+                if(p instanceof BuildPayload b){
+                    if(b.build.liquids != null && b.build.liquids.currentAmount() > 0){
+                        if(useRows) t.row();
+                        t.image(b.build.liquids.current().fullIcon).size(itemSize);
+                    }
+                    if(b.build.items != null && b.build.items.any()){
+                        if(useRows) t.row();
+                        t.image(b.build.items.first().fullIcon).size(itemSize);
+                    } else if(b.build instanceof ItemTurret.ItemTurretBuild tu && tu.hasAmmo() && tu.ammo.peek() instanceof ItemTurret.ItemEntry e){
+                        if(useRows) t.row();
+                        t.image(e.item.fullIcon).size(itemSize);
+                    }
+                }
+            }).top().padRight(pad);
         }
     }
 }
