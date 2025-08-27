@@ -77,6 +77,15 @@ public class Control implements ApplicationListener, Loadable{
                 });
             }
             checkAutoUnlocks();
+
+            if((OS.isWindows && !OS.is64Bit && !Core.settings.getBool("nowarn32bit", false))){
+                BaseDialog dialog = new BaseDialog("@warn.32bit.title");
+                dialog.buttons.button("@ok", dialog::hide).size(120f, 64f);
+                dialog.cont.add("@warn.32bit").labelAlign(Align.center, Align.center).wrap().grow().row();
+                dialog.cont.check("@dontshowagain", val -> Core.settings.put("nowarn32bit", val));
+
+                dialog.show();
+            }
         });
 
         Events.on(StateChangeEvent.class, event -> {
@@ -665,8 +674,12 @@ public class Control implements ApplicationListener, Loadable{
                 state.set(State.playing);
             }
 
-            if(!net.client() && Core.input.keyTap(Binding.pause) && !renderer.isCutscene() && !scene.hasDialog() && !scene.hasKeyboard() && !ui.restart.isShown() && (state.is(State.paused) || state.is(State.playing))){
+            if(!net.client() && Core.input.keyTap(Binding.pause) && !(state.isCampaign() && state.afterGameOver) && !renderer.isCutscene() && !scene.hasDialog() && !scene.hasKeyboard() && !ui.restart.isShown() && (state.is(State.paused) || state.is(State.playing))){
                 state.set(state.isPaused() ? State.playing : State.paused);
+            }
+
+            if(state.isCampaign() && state.afterGameOver){
+                state.set(State.paused);
             }
 
             if(Core.input.keyTap(Binding.menu) && !ui.restart.isShown() && !ui.minimapfrag.shown() && !UploadDialog.INSTANCE.isShown()){

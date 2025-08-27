@@ -1081,6 +1081,11 @@ public class HudFragment{
                 return builder;
             }
 
+            //do not show status after game over
+            if(state.afterGameOver && state.isCampaign()){
+                return builder;
+            }
+
             if(!state.rules.waves && state.isCampaign()){
                 builder.append("[lightgray]").append(Core.bundle.get("sector.curcapture"));
             }
@@ -1156,6 +1161,7 @@ public class HudFragment{
         table.table().update(t -> {
             if(player.unit() instanceof Payloadc payload){
                 if(count[0] != payload.payloadUsed()){
+                    t.clear();
                     payload.contentInfo(t, 8 * 2, 275f);
                     count[0] = payload.payloadUsed();
                 }
@@ -1163,7 +1169,11 @@ public class HudFragment{
                 count[0] = -1;
                 t.clear();
             }
-        }).growX().visible(() -> player.unit() instanceof Payloadc p && p.payloadUsed() > 0);
+        }).growX().visible(() -> {
+            boolean result = player.unit() instanceof Payloadc p && p.payloadUsed() > 0;
+            if(!result) count[0] = -1f;
+            return result;
+        });
         table.row();
 
         Bits statuses = new Bits();

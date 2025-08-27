@@ -192,8 +192,12 @@ public class StatusEffects{
         }};
 
         corroded = new StatusEffect("corroded"){{
-            color = Pal.plastanium;
-            damage = 0.1f;
+            color = Color.valueOf("e4ffd6");
+            intervalDamage = 25f;
+            intervalDamageTime = 30f;
+
+            effectChance = 0.1f;
+            effect = Fx.corrosionVapor;
         }};
 
         disarmed = new StatusEffect("disarmed"){{

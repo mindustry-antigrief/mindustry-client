@@ -611,6 +611,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(variants = Variant.one)
     public static void setPosition(float x, float y){
+        if(player.dead()) return;
         player.unit().set(x, y);
         player.set(x, y);
     }
