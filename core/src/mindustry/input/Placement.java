@@ -279,8 +279,10 @@ public class Placement{
     private static float tileHeuristic(Tile tile, Tile other){
         Block block = control.input.block;
 
-        if((!other.block().alwaysReplace && !(block != null && block.canReplace(other.block()))) || other.floor().isDeep()){
+        if(!Build.validPlace(block, player.team(), other.x, other.y, -1)){ //-1 to allow placing right-facing conv on right-facing conv
             return 20;
+            //why is this 20? I forgot how A* works but isn't that a bit low? Pathfinder uses 6000 right?
+            //the planner seems to work fine anyway
         }else{
             if(parents.containsKey(tile.pos())){
                 Tile prev = world.tile(parents.get(tile.pos(), 0));
