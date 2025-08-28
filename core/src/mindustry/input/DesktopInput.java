@@ -850,20 +850,6 @@ public class DesktopInput extends InputHandler{
 
         pollInputPlayer();
 
-        if(!Core.input.keyDown(Binding.diagonalPlacement) && Math.abs((int)Core.input.axisTap(Binding.rotate)) > 0){
-            rotation = Mathf.mod(rotation + (int)Core.input.axisTap(Binding.rotate), 4);
-
-            if(splan != null){
-                splan.rotation = Mathf.mod(splan.rotation + (int)Core.input.axisTap(Binding.rotate), 4);
-            }
-
-            if(isPlacing() && mode == placing){
-                updateLine(selectX, selectY);
-            }else if(!selectPlans.isEmpty() && !ui.chatfrag.shown()){
-                rotatePlans(selectPlans, Mathf.sign(Core.input.axisTap(Binding.rotate)));
-            }
-        }
-
         if(Core.input.keyRelease(Binding.select)){
             player.shooting = false;
         }
