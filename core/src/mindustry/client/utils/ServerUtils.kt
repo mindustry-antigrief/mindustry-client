@@ -39,6 +39,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
         override fun adminui() = player.admin || ClientVars.rank >= 2
         override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
             msg ?: return false
+            if (player.admin && ClientVars.rank < 2) ClientVars.rank = 2
 
             if ("Type [accent]/e y[] to remove the walls in-between [red](" !in msg) return false
 
