@@ -59,7 +59,7 @@ public class ChatFragment extends Table{
 
         visible(() -> {
             if (state.isMenu() && messages.size > 0) {
-                if (shown) hide();
+                if (shown) hide(false);
                 clearMessages();
             }
             return ui.hudfrag.shown;
@@ -531,10 +531,14 @@ public class ChatFragment extends Table{
     }
 
     public void hide(){
+        hide(true);
+    }
+
+    public void hide(boolean clearInput){
         scene.setKeyboardFocus(null);
         shown = false;
         UploadDialog.INSTANCE.clearImages();
-        clearChatInput();
+        if(clearInput) clearChatInput();
     }
 
     public void updateChat(){

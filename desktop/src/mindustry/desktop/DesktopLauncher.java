@@ -88,7 +88,7 @@ public class DesktopLauncher extends ClientLauncher{
                             case "maximized" -> maximized = Boolean.parseBoolean(arg[i + 1]);
                             case "gltrace" -> {
                                 Events.on(ClientCreateEvent.class, e -> {
-                                    var profiler = new GLProfiler(Core.graphics);
+                                    GLProfiler profiler = new GLProfiler(Core.graphics);
                                     profiler.enable();
                                     Core.app.addListener(new ApplicationListener(){
                                         @Override

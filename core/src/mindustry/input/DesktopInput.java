@@ -111,9 +111,9 @@ public class DesktopInput extends InputHandler{
                             str.append("\n").append(bundle.format("enablebuilding", Binding.pauseBuilding.value.key.toString()));
                         }else if(isBuildingIgnoreNetworking() || !Player.persistPlans.isEmpty()){
                             str.append("\n")
-                                    .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", Binding.pauseBuilding.value.key))
-                                    .append("\n").append(bundle.format("cancelbuilding", Binding.clearBuilding.value.key.toString()))
-                                    .append("\n").append(bundle.format("selectschematic", Binding.schematicSelect.value.key.toString()));
+                                .append(bundle.format(isBuilding ? "pausebuilding" : "resumebuilding", Binding.pauseBuilding.value.key))
+                                .append("\n").append(bundle.format("cancelbuilding", Binding.clearBuilding.value.key.toString()))
+                                .append("\n").append(bundle.format("selectschematic", Binding.schematicSelect.value.key.toString()));
                         }
                         if(isBuildingIgnoreNetworking() || dispatchingBuildPlans){
                             str.append("\n").append(bundle.format(dispatchingBuildPlans ? "client.stopsendbuildplans" : "client.sendbuildplans", Binding.sendBuildQueue.value.key.toString()));
@@ -179,7 +179,7 @@ public class DesktopInput extends InputHandler{
     @Override
     public void drawTop(){
         if(cursorType != SystemCursor.arrow && scene.hasMouse()){
-            graphics.cursor(cursorType = SystemCursor.arrow);
+           graphics.cursor(cursorType = SystemCursor.arrow);
         }
 
         Lines.stroke(1f);
@@ -255,57 +255,57 @@ public class DesktopInput extends InputHandler{
         }
 
 //        if(player.isBuilder()){
-        //draw things that may be placed soon
-        if(mode == placing && block != null){
-            for(int i = 0; i < linePlans.size; i++){
-                var plan = linePlans.get(i);
-                if(i == linePlans.size - 1 && plan.block.rotate && plan.block.drawArrow){
-                    drawArrow(block, plan.x, plan.y, plan.rotation);
+            //draw things that may be placed soon
+            if(mode == placing && block != null){
+                for(int i = 0; i < linePlans.size; i++){
+                    var plan = linePlans.get(i);
+                    if(i == linePlans.size - 1 && plan.block.rotate && plan.block.drawArrow){
+                        drawArrow(block, plan.x, plan.y, plan.rotation);
+                    }
+                    drawPlan(linePlans.get(i));
                 }
-                drawPlan(linePlans.get(i));
-            }
-            linePlans.each(this::drawOverPlan);
-        }else if(isPlacing()){
-            int rot = block == null ? rotation : block.planRotation(rotation);
-            if(block.rotate && block.drawArrow){
-                drawArrow(block, cursorX, cursorY, rot);
-            }
-            Draw.color();
-            boolean valid = validPlace(cursorX, cursorY, block, rot);
-            drawPlan(cursorX, cursorY, block, rot);
-            block.drawPlace(cursorX, cursorY, rot, valid);
+                linePlans.each(this::drawOverPlan);
+            }else if(isPlacing()){
+                int rot = block == null ? rotation : block.planRotation(rotation);
+                if(block.rotate && block.drawArrow){
+                    drawArrow(block, cursorX, cursorY, rot);
+                }
+                Draw.color();
+                boolean valid = validPlace(cursorX, cursorY, block, rot);
+                drawPlan(cursorX, cursorY, block, rot);
+                block.drawPlace(cursorX, cursorY, rot, valid);
 
-            if(block.saveConfig){
-                Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
-                bplan.set(cursorX, cursorY, rot, block);
-                bplan.config = block.lastConfig;
-                block.drawPlanConfig(bplan, allPlans());
-                bplan.config = null;
-                Draw.reset();
-            }
+                if(block.saveConfig){
+                    Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
+                    bplan.set(cursorX, cursorY, rot, block);
+                    bplan.config = block.lastConfig;
+                    block.drawPlanConfig(bplan, allPlans());
+                    bplan.config = null;
+                    Draw.reset();
+                }
 
-            drawOverlapCheck(block, cursorX, cursorY, valid);
-        }else if(mode == payloadPlace){ // FINISHME: This is actually mortifying, what the hell
-            if(player.unit() instanceof Payloadc pay){
-                Payload payload = pay.hasPayload() ? pay.payloads().peek() : null;
-                if(payload != null){
-                    if(payload instanceof BuildPayload build){
-                        Block block = build.block();
-                        boolean wasVisible = block.isVisible();
-                        if (!wasVisible) state.rules.revealedBlocks.add(block);
-                        drawPlan(cursorX, cursorY, block, 0);
-                        if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, block, 0)){
-                            if (Navigation.state == NavigationState.RECORDING) Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
-                            Navigation.follow(new WaypointPath<>(Seq.with(new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY))));
-                            NavigationState previousState = Navigation.state;
-                            Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
-                            mode = pay.payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
+                drawOverlapCheck(block, cursorX, cursorY, valid);
+            }else if(mode == payloadPlace){ // FINISHME: This is actually mortifying, what the hell
+                if(player.unit() instanceof Payloadc pay){
+                    Payload payload = pay.hasPayload() ? pay.payloads().peek() : null;
+                    if(payload != null){
+                        if(payload instanceof BuildPayload build){
+                            Block block = build.block();
+                            boolean wasVisible = block.isVisible();
+                            if (!wasVisible) state.rules.revealedBlocks.add(block);
+                            drawPlan(cursorX, cursorY, block, 0);
+                            if(input.keyTap(Binding.select) && validPlace(cursorX, cursorY, block, 0)){
+                                if (Navigation.state == NavigationState.RECORDING) Navigation.addWaypointRecording(new PayloadDropoffWaypoint(cursorX, cursorY));
+                                Navigation.follow(new WaypointPath<>(Seq.with(new PositionWaypoint(player.x, player.y), new PayloadDropoffWaypoint(cursorX, cursorY))));
+                                NavigationState previousState = Navigation.state;
+                                Navigation.currentlyFollowing.addListener(() -> Navigation.state = previousState);
+                                mode = pay.payloads().size > 1 ? payloadPlace : none; // Disable payloadplace mode if this is the only payload.
+                            }
+                            if (!wasVisible) state.rules.revealedBlocks.remove(block);
                         }
-                        if (!wasVisible) state.rules.revealedBlocks.remove(block);
                     }
                 }
             }
-        }
         Draw.reset();
     }
 
@@ -514,7 +514,7 @@ public class DesktopInput extends InputHandler{
             }else if((!player.dead() || spectating != null) && !panning){
                 //TODO do not pan
                 Team corePanTeam = state.won ? state.rules.waveTeam : player.team();
-                Position coreTarget = state.gameOver && !state.rules.pvp && corePanTeam.data().lastCore != null && Core.settings.getBool("pantocore") ? corePanTeam.data().lastCore : null;
+                Position coreTarget = state.gameOver && !state.rules.pvp && corePanTeam.data().lastCore != null ? corePanTeam.data().lastCore : null;
                 Position panTarget = coreTarget != null && followGameEndPan ? coreTarget : spectating != null ? spectating : player;
 
                 Core.camera.position.lerpDelta(panTarget, Core.settings.getBool("smoothcamera") ? 0.08f : 1f);
@@ -736,8 +736,8 @@ public class DesktopInput extends InputHandler{
                     } else if ((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) {
                         Navigation.follow(new AssistPath(on.getPlayer(),
                                 input.shift() && input.alt() ? AssistPath.Type.FreeMove :
-                                        input.keyDown(Binding.control) && input.alt() ? AssistPath.Type.BuildPath :
-                                                input.keyDown(Binding.control) ? AssistPath.Type.Cursor : AssistPath.Type.Regular,
+                                input.keyDown(Binding.control) && input.alt() ? AssistPath.Type.BuildPath :
+                                input.keyDown(Binding.control) ? AssistPath.Type.Cursor : AssistPath.Type.Regular,
                                 Core.settings.getBool("circleassist")));
                         shouldShoot = false;
                     }
@@ -755,15 +755,15 @@ public class DesktopInput extends InputHandler{
                 }
             }
             if(!hidingUnits && input.shift() && input.keyRelease(Binding.select) && !isPlacing()
-                    && !Float.isNaN(dragX) && Core.input.mouseWorld().dst2(dragX, dragY) < tilesize * tilesize){
+                && !Float.isNaN(dragX) && Core.input.mouseWorld().dst2(dragX, dragY) < tilesize * tilesize){
                 Vec2 mouseWorld = Core.input.mouseWorld();
                 Unit on = selectedUnit(true);
                 if(on != null && on.controller() instanceof LogicAI ai && ai.controller != null) {
                     Spectate.INSTANCE.spectate(ai.controller);
                     shouldShoot = false;
                 } else if((on = Units.closestOverlap(mouseWorld.x, mouseWorld.y, tilesize * 8f,
-                        u -> (!u.isFlying() || !hidingAirUnits) && mouseWorld.within(u, u.hitSize))) != null &&
-                        on.controller() instanceof LogicAI ai && ai.controller != null){
+                    u -> (!u.isFlying() || !hidingAirUnits) && mouseWorld.within(u, u.hitSize))) != null &&
+                    on.controller() instanceof LogicAI ai && ai.controller != null){
                     // This condition is meant to catch logic-controlled units of any team
                     Spectate.INSTANCE.spectate(ai.controller);
                     shouldShoot = false;
@@ -780,11 +780,11 @@ public class DesktopInput extends InputHandler{
                 var u = player.unit();
                 var closest = player.bestCore();
                 if(CoreBlock.preferredCoreType == null ||
-                        (!u.spawnedByCore &&
-                                ((u.dockedType != null && u.dockedType.coreUnitDock) ||
-                                        (closest != null && ((CoreBlock)closest.block).unitType != null &&
-                                                ((CoreBlock)closest.block).unitType.coreUnitDock))
-                        )
+                    (!u.spawnedByCore &&
+                    ((u.dockedType != null && u.dockedType.coreUnitDock) ||
+                    (closest != null && ((CoreBlock)closest.block).unitType != null &&
+                        ((CoreBlock)closest.block).unitType.coreUnitDock))
+                    )
                 ){
                     // Use original spawning mechanism for docking units
                     Call.unitClear(player);
@@ -799,7 +799,10 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyTap(Binding.minimap)) ui.minimapfrag.toggle();
             if(Core.input.keyTap(Binding.planetMap) && state.isCampaign()) ui.planet.toggle();
             if(Core.input.keyTap(Binding.research) && state.isCampaign()) ui.research.toggle();
-            if(Core.input.keyTap(Binding.schematicMenu)) ui.schematics.toggle();
+            if(Core.input.keyTap(Binding.schematicMenu)){
+                if(Core.input.shift()) ui.toggleSchematicBrowser();
+                else ui.toggleSchematicMenu();
+            }
 
             if(Core.input.keyTap(Binding.toggleBlockStatus)){
                 Core.settings.put("blockstatus", !Core.settings.getBool("blockstatus"));
@@ -824,7 +827,7 @@ public class DesktopInput extends InputHandler{
 
         //zoom camera
         if((!Core.scene.hasScroll() || Core.input.keyDown(Binding.diagonalPlacement)) && !ui.chatfrag.shown() && !ui.consolefrag.shown() && Math.abs(Core.input.axisTap(Binding.zoom)) > 0
-                && !Core.input.keyDown(Binding.rotatePlaced) && (Core.input.keyDown(Binding.diagonalPlacement) ||
+            && !Core.input.keyDown(Binding.rotatePlaced) && (Core.input.keyDown(Binding.diagonalPlacement) ||
                 !Binding.zoom.value.equals(Binding.rotate.value) || ((!player.isBuilder() || !isPlacing() || !block.rotate) && selectPlans.isEmpty()))){
             renderer.scaleCamera(Core.input.axisTap(Binding.zoom));
         }
@@ -845,10 +848,9 @@ public class DesktopInput extends InputHandler{
             if(!locked){
                 pollInputNoPlayer();
             }
-            return;
+        }else{
+            pollInputPlayer();
         }
-
-        pollInputPlayer();
 
         if(Core.input.keyRelease(Binding.select)){
             player.shooting = false;
@@ -965,16 +967,9 @@ public class DesktopInput extends InputHandler{
             schemY = rawCursorY;
         }
 
-        if(Core.input.keyTap(Binding.schematicMenu) && !Core.scene.hasKeyboard()){
-            if(Core.input.shift()) ui.toggleSchematicBrowser();
-            else ui.toggleSchematicMenu();
-        }
-
         if(/*Core.input.keyTap(Binding.clearBuilding) || */isPlacing()){
-            // if(!Core.input.shift()) {
             lastSchematic = null;
             selectPlans.clear();
-            // }
         }
 
         if(!Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
@@ -1061,8 +1056,8 @@ public class DesktopInput extends InputHandler{
                 mode = none;
             }else if(selectPlans.any()){
                 flushPlans(
-                        temp.selectFrom(selectPlans, s -> s.block.isVisible() || s.block instanceof CoreBlock),
-                        isFreezeQueueing, Core.input.keyDown(Binding.forcePlaceModifier), isFreezeQueueing);
+                    temp.selectFrom(selectPlans, s -> s.block.isVisible() || s.block instanceof CoreBlock),
+                    isFreezeQueueing, Core.input.keyDown(Binding.forcePlaceModifier), isFreezeQueueing);
                 temp.clear();
                 movedPlan = true;
             }else if(isPlacing()){
@@ -1086,7 +1081,7 @@ public class DesktopInput extends InputHandler{
             }else if(!checkConfigTap() && selected != null && !tryRepairDerelict(selected)){
                 //only begin shooting if there's no cursor event
                 if(!tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem
-                        && !(tryStopMine(selected) || (!settings.getBool("doubletapmine") || selected == prevSelected && Time.timeSinceMillis(selectMillis) < 500) && tryBeginMine(selected)) && !Core.scene.hasKeyboard()){
+                    && !(tryStopMine(selected) || (!settings.getBool("doubletapmine") || selected == prevSelected && Time.timeSinceMillis(selectMillis) < 500) && tryBeginMine(selected)) && !Core.scene.hasKeyboard()){
                     player.shooting = shouldShoot;
                 }
             }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
@@ -1146,7 +1141,7 @@ public class DesktopInput extends InputHandler{
 //                if(input.keyDown(Binding.boost)){
 //                    flushPlansReverse(linePlans);
 //                }else{
-                flushPlans(linePlans, isFreezeQueueing, input.alt(), isFreezeQueueing);
+                    flushPlans(linePlans, isFreezeQueueing, input.alt(), isFreezeQueueing);
 //                }
 
                 linePlans.clear();
@@ -1196,7 +1191,7 @@ public class DesktopInput extends InputHandler{
             player.shooting = false;
         }
 
-        if(isPlacing() && player.isBuilder()){
+        if(isPlacing() /*&& player.isBuilder()*/){
             cursorType = SystemCursor.hand;
             selectScale = Mathf.lerpDelta(selectScale, 1f, 0.2f);
         }else{
@@ -1221,7 +1216,9 @@ public class DesktopInput extends InputHandler{
 
         cursorType = SystemCursor.arrow;
 
-        if(cursor != null){
+        if(ui.chatfrag.hasLit){ // Sciffed fpp's addition to ensure clickable chat takes priority
+            cursorType = SystemCursor.hand;
+        }else if(cursor != null){
             if(cursor.build != null && cursor.build.interactable(player.team())){
                 cursorType = cursor.build.getCursor();
             }
@@ -1230,7 +1227,7 @@ public class DesktopInput extends InputHandler{
                 cursorType = ui.repairCursor;
             }
 
-            if((isPlacing() && player.isBuilder()) || !selectPlans.isEmpty()){
+            if((isPlacing() /*&& player.isBuilder()*/) || !selectPlans.isEmpty()){
                 cursorType = SystemCursor.hand;
             }
 
@@ -1265,7 +1262,7 @@ public class DesktopInput extends InputHandler{
                 cursorType = ui.unloadCursor;
             }
 
-            if(cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotatePlaced) && cursor.block().rotate && cursor.block().quickRotate){
+            if(!ui.chatfrag.shown() && cursor.build != null && cursor.interactable(player.team()) && !isPlacing() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && Core.input.keyDown(Binding.rotatePlaced) && cursor.block().rotate && cursor.block().quickRotate){
                 Call.rotateBlock(player, cursor.build, Core.input.axisTap(Binding.rotate) > 0);
             }
         }
@@ -1405,8 +1402,8 @@ public class DesktopInput extends InputHandler{
             }
 
             if(Core.input.keyDown(Binding.pickupCargo)
-                    && Time.timeSinceMillis(lastPayloadKeyHoldMillis) > 20
-                    && Time.timeSinceMillis(lastPayloadKeyTapMillis) > 200){
+            && Time.timeSinceMillis(lastPayloadKeyHoldMillis) > 20
+            && Time.timeSinceMillis(lastPayloadKeyTapMillis) > 200){
                 tryPickupPayload();
                 lastPayloadKeyHoldMillis = Time.millis();
             }
@@ -1417,8 +1414,8 @@ public class DesktopInput extends InputHandler{
             }
 
             if(Core.input.keyDown(Binding.dropCargo)
-                    && Time.timeSinceMillis(lastPayloadKeyHoldMillis) > 20
-                    && Time.timeSinceMillis(lastPayloadKeyTapMillis) > 200){
+            && Time.timeSinceMillis(lastPayloadKeyHoldMillis) > 20
+            && Time.timeSinceMillis(lastPayloadKeyTapMillis) > 200){
                 tryDropPayload();
                 lastPayloadKeyHoldMillis = Time.millis();
             }
