@@ -619,8 +619,8 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void handleFetchError(String link, Throwable e){
         Core.app.post(() -> {
-            Log.err("Schematic repository " + link + " could not be reached. " + e);
-            ui.showErrorMessage(Core.bundle.format("client.schematic.browser.fail.fetch", link));
+            Log.err("Schematic repository " + link + " could not be reached", e);
+            ui.showException(Core.bundle.format("client.schematic.browser.fail.fetch", link), e);
         });
     }
 
