@@ -514,6 +514,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(variants = Variant.one)
     public static void removeQueueBlock(int x, int y, boolean breaking){
+        if (player.unit() == null) return;
         player.unit().removeBuild(x, y, breaking);
     }
 
