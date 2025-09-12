@@ -109,7 +109,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 
         override fun handleMessage(msg: String?, unformatted: String?, sender: Player?): Boolean {
             msg ?: return false
-            if (CustomMode.flood() && msg.stripColors().contains("player code: SMEX4T -") && Core.settings.getBool("forcestevetutorial", false) && (ClientVars.rank > 5 || player.admin)) {
+            if (CustomMode.flood() && (msg.stripColors().contains("player code: SMEX4T -") || msg.stripColors().contains("player code: KDWUUE")) && Core.settings.getBool("forcestevetutorial", false) && (ClientVars.rank > 5 || player.admin)) {
                 val name = msg.split(" - ", limit = 2)[1].stripColors()
                 Groups.player.find { it.name.contains(name, ignoreCase = true) }?.let { p ->
                     Call.sendChatMessage("/forcetutorial ${p.id}")
