@@ -550,15 +550,14 @@ public class DesktopInput extends InputHandler{
                 commandBuildings.clear();
                 if(input.keyDown(Binding.selectAcrossScreen)){
                     camera.bounds(Tmp.r1);
-                    selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height).removeAll(u -> !u.type.controlSelectGlobal));
-                }else {
+                    selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height).retainAll(u -> input.ctrl() || u.type.controlSelectGlobal));
+                }else{
                     for(var unit : player.team().data().units){
-                        if(unit.isCommandable() && unit.type.controlSelectGlobal){
+                        if(unit.isCommandable() && (unit.type.controlSelectGlobal || input.ctrl())){
                             selectedUnits.add(unit);
                         }
                     }
                 }
-
             }
 
             if(input.keyTap(Binding.selectAllUnitTransport)){
@@ -567,7 +566,7 @@ public class DesktopInput extends InputHandler{
                 if(input.keyDown(Binding.selectAcrossScreen)){
                     camera.bounds(Tmp.r1);
                     selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height, u -> u instanceof Payloadc));
-                }else {
+                }else{
                     for(var unit : player.team().data().units){
                         if(unit.isCommandable() && unit instanceof Payloadc){
                             selectedUnits.add(unit);

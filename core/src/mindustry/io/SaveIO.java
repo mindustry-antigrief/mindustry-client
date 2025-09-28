@@ -23,7 +23,7 @@ public class SaveIO{
     /** Save format header. */
     public static final byte[] header = {'M', 'S', 'A', 'V'};
     public static final IntMap<SaveVersion> versions = new IntMap<>();
-    public static final Seq<SaveVersion> versionArray = Seq.with(new Save1(), new Save2(), new Save3(), new Save4(), new Save5(), new Save6(), new Save7(), new Save8(), new Save9());
+    public static final Seq<SaveVersion> versionArray = Seq.with(new Save1(), new Save2(), new Save3(), new Save4(), new Save5(), new Save6(), new Save7(), new Save8(), new Save9(), new Save10());
 
     static{
         for(SaveVersion version : versionArray){
@@ -187,7 +187,7 @@ public class SaveIO{
             SaveVersion ver = SaveIO.getSaveWriter(version);
 
             if(ver == null) throw new IOException("Unknown save version: " + version + ". Are you trying to load a save from a newer version?");
-            ver.region("meta", stream, counter, ver::readStringMap);
+            ver.readRegion("meta", stream, counter, ver::readStringMap);
 
             int black = 255;
             int shade = Color.rgba8888(0f, 0f, 0f, 0.5f);
@@ -204,8 +204,8 @@ public class SaveIO{
                 }
             };
 
-            ver.region("content", stream, counter, ver::readContentHeader);
-            ver.region("preview_map", stream, counter, in -> ver.readMap(in, new WorldContext(){
+            ver.readRegion("content", stream, counter, ver::readContentHeader);
+            ver.readRegion("preview_map", stream, counter, in -> ver.readMap(in, new WorldContext(){
                 @Override public void resize(int width, int height){
                     walls[0] = new Pixmap(width, height);
                     floors[0] = new Pixmap(width, height);

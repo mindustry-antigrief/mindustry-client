@@ -9,11 +9,11 @@ import java.io.*
 class SyncedBuildQueue(comms: Packets.CommunicationClient, id: Long, mode: Syncer.Mode) : SyncedQueue<BuildPlan>(Syncer(serializer, deserializer, comms, id, mode)) {
     companion object {
         private val serializer = { plan: BuildPlan, out: DataOutputStream ->
-            TypeIO.writePlan(Writes.get(out), plan)
+            TypeIO.writePlan(Writes(out), plan)
         }
 
         private val deserializer = { inp: DataInputStream ->
-            TypeIO.readPlan(Reads.get(inp))
+            TypeIO.readPlan(Reads(inp))
         }
     }
 }

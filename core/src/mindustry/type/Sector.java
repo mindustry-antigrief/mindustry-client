@@ -87,6 +87,15 @@ public class Sector{
         return false;
     }
 
+    public boolean isNear(Sector other){
+        for(var tile : tile.tiles){
+            if(planet.getSector(tile) == other){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Displays threat as a formatted string. */
     public String displayThreat(){
         float step = 0.25f;

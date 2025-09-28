@@ -621,12 +621,13 @@ public class Schematics implements Loadable{
 
             int total = stream.readInt();
 
+            Reads read = new Reads(stream);
+
             Seq<Stile> tiles = new Seq<>(total);
-            var reads = new Reads(stream);
             for(int i = 0; i < total; i++){
                 Block block = blocks.get(stream.readByte());
                 int position = stream.readInt();
-                Object config = ver == 0 ? mapConfig(block, stream.readInt(), position) : TypeIO.readObject(reads, false, mapper);
+                Object config = ver == 0 ? mapConfig(block, stream.readInt(), position) : TypeIO.readObject(read, false, mapper);
                 byte rotation = stream.readByte();
                 if(block != Blocks.air){
                     tiles.add(new Stile(block, Point2.x(position), Point2.y(position), config, rotation));
@@ -656,6 +657,7 @@ public class Schematics implements Loadable{
         output.write(version);
 
         try(DataOutputStream stream = new DataOutputStream(new DeflaterOutputStream(output))){
+            Writes write = new Writes(stream);
 
             stream.writeShort(schematic.width);
             stream.writeShort(schematic.height);
@@ -694,7 +696,7 @@ public class Schematics implements Loadable{
             for(Stile tile : schematic.tiles){
                 stream.writeByte(blocks.orderedItems().indexOf(tile.block));
                 stream.writeInt(Point2.pack(tile.x, tile.y));
-                TypeIO.writeObject(Writes.get(stream), tile.config);
+                TypeIO.writeObject(write, tile.config);
                 stream.writeByte(tile.rotation);
             }
         }

@@ -38,7 +38,8 @@ public class CrashHandler{
         + "Last Server: " + (lastHost != null ? lastHost.name + (group != null ? " (" + group + ") " : "(nogroup)") + " (" + lastHost.address + ":" + lastHost.port + ")" : lastIp != null && lastIp.startsWith("steam:") ? "steam" : "unknown/none") + "\n"
         + "Date: " + new SimpleDateFormat("MMMM d, yyyy HH:mm:ss a", Locale.getDefault()).format(new Date()) + "\n"
         + "Source: " + settings.getString("updateurl") + "\n"
-        + "OS: " + OS.osName + (OS.osArchBits != null ? " x" + (OS.osArchBits) : "") + " (" + OS.osArch + ")\n"
+        + "OS: " + OS.osName + (OS.osArchBits != null ? " x" + (OS.osArchBits) : "") + " (" + OS.osArch + ")\n" +
+        (graphics == null || graphics.getGLVersion() == null ? "" : "GL Version: " + graphics.getGLVersion() + "\n")
         + ((OS.isAndroid || OS.isIos) && app != null ? "Android API level: " + Core.app.getVersion() + "\n" : "")
         + "Java Version: " + OS.javaVersion + "\n"
         + "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n"
