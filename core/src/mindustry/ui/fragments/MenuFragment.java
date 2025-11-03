@@ -88,6 +88,10 @@ public class MenuFragment{
                 if(Core.scene.marginRight > 0){
                     paneLeft.draw(x + w - Core.scene.marginRight, y, Core.scene.marginRight, h);
                 }
+
+                if(Core.scene.marginBottom > 0){
+                    Tex.paneTop.draw(Core.scene.marginLeft, 0, Core.graphics.getWidth() - Core.scene.marginRight - Core.scene.marginLeft, Core.scene.marginBottom);
+                }
             });
 
             parent.fill(c -> c.bottom().left().button("", new TextButtonStyle(){{

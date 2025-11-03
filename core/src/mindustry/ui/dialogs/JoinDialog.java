@@ -78,7 +78,7 @@ public class JoinDialog extends BaseDialog{
             beList ^= true;
             defaultServers.clear();
             fetchServers(beList ? serverJsonBeURLs : serverJsonURLs, 0, true);
-        }).update(b -> b.setText("Use " + (beList ? "v7" : "BE") + " server list")).wrapLabel(false).height(64);
+        }).update(b -> b.setText("Use " + (beList ? "v8" : "BE") + " server list")).wrapLabel(false).height(64);
 
         addCloseButton(mobile ? 190f : 210f);
 

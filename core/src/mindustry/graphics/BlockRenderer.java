@@ -266,6 +266,7 @@ public class BlockRenderer{
                 if(other != null){
                     darkEvents.add(other.pos());
                     floor.recacheTile(other);
+                    renderer.minimap.updatePixel(other);
                 }
             }
         }

@@ -24,6 +24,7 @@ public class MapInfoDialog extends BaseDialog{
     private MapObjectivesDialog objectives = new MapObjectivesDialog();
     private MapLocalesDialog locales = new MapLocalesDialog();
     private MapProcessorsDialog processors = new MapProcessorsDialog();
+    private MapPatchesDialog patches = new MapPatchesDialog();
 
     public MapInfoDialog(){
         super("@editor.mapinfo");
@@ -37,7 +38,7 @@ public class MapInfoDialog extends BaseDialog{
         cont.clear();
 
         ObjectMap<String, String> tags = editor.tags;
-        
+
         cont.pane(t -> {
             t.add("@editor.mapname").padRight(8).left();
             t.defaults().padTop(15);
@@ -147,6 +148,16 @@ public class MapInfoDialog extends BaseDialog{
                     hide();
                     processors.show();
                 }).marginLeft(10f);
+
+                r.row();
+
+                r.button("@editor.patches", Icon.file, style, () -> {
+                    hide();
+                    patches.show();
+                }).marginLeft(10f);
+
+                //empty space
+                r.add().marginLeft(10f);
             }).colspan(2).center();
 
             name.change();

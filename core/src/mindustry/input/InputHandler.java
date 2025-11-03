@@ -490,7 +490,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     @Remote(targets = Loc.both, forward = true, called = Loc.server, ratelimited = true)
     public static void transferInventory(Player player, Building build){
-        if(player == null || build == null || !player.within(build, itemTransferRange) || build.items == null || player.dead() || (state.rules.onlyDepositCore && !(build instanceof CoreBuild))) return;
+        if(player == null || build == null || !player.within(build, itemTransferRange) || build.items == null || player.dead() || !build.allowDeposit()) return;
 
         if(net.server() && (player.unit().stack.amount <= 0 || !Units.canInteract(player, build) ||
         //to avoid rejecting deposit packets that happen to overlap due to packet speed differences, the actual cap is double the cooldown with 2 deposits.
@@ -1778,7 +1778,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
             }
 
-            boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation);
+            boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation, null, true);
             if(freeze || (force && world.tile(plan.x, plan.y) != null) || valid){
                 BuildPlan copy = plan.copy();
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null) { // Store the configs for logic blocks locally, they cause issues when sent to the server
@@ -2445,7 +2445,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(invBuild != null && invBuild.acceptStack(stack.item, stack.amount, player.unit()) > 0 && invBuild.interactable(player.team()) &&
         invBuild.block.hasItems && player.unit().stack().amount > 0 && invBuild.interactable(player.team())){
 
-            if(!(state.rules.onlyDepositCore && !(build instanceof CoreBuild)) && itemDepositCooldown <= 0f){
+            if(build.allowDeposit() && itemDepositCooldown <= 0f){
                 if(Navigation.state == NavigationState.RECORDING) Navigation.addWaypointRecording(new ItemDropoffWaypoint(build)); // FINISHME: This is going to be problematic
                 Call.transferInventory(player, invBuild);
                 itemDepositCooldown = state.rules.itemDepositCooldown;
@@ -2498,13 +2498,15 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     //     return validPlace(x, y, type, rotation, ignore, false);
     // }
 
-    public boolean validPlace(int x, int y, Block type, int rotation, @Nullable BuildPlan ignore, boolean ignoreUnits){
+    public boolean validPlace(int x, int y, Block type, int rotation, @Nullable BuildPlan ignore){
         // FINISHME: this build plan ignore units stuff needs to be sorted out properly, this just ignores the flag
-        return validPlace(x, y, type, rotation, ignore);
+        return validPlace(x, y, type, rotation, ignore, false);
     }
 
-    public boolean validPlace(int x, int y, Block type, int rotation, @Nullable BuildPlan ignore){
-        if (!Build.validPlace(type, player.team(), x, y, rotation, true)) return false;
+    public boolean validPlace(int x, int y, Block type, int rotation, @Nullable BuildPlan ignore, boolean ignoreUnits){
+        if(ignoreUnits
+            ? !Build.validPlaceIgnoreUnits(type, player.team(), x, y, rotation, true, true)
+            : !Build.validPlace(type, player.team(), x, y, rotation, true)) return false;
 
         if(player.unit().plans.size > 0){
             Tmp.r1.setCentered(x * tilesize + type.offset, y * tilesize + type.offset, type.size * tilesize);
@@ -2622,7 +2624,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Point2 next = i == points.size - 1 ? null : points.get(i + 1);
             line.x = point.x;
             line.y = point.y;
-            if(!overrideLineRotation || diagonal){
+            if((!overrideLineRotation || diagonal) && !(block != null && block.ignoreLineRotation)){
                 int result = baseRotation;
                 if(next != null){
                     result = Tile.relativeTo(point.x, point.y, next.x, next.y);

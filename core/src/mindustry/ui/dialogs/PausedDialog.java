@@ -1,9 +1,10 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
+import arc.scene.ui.*;
+import arc.scene.ui.layout.*;
 import mindustry.client.ui.*;
 import mindustry.game.*;
-import arc.scene.ui.layout.*;
 import mindustry.*;
 import mindustry.editor.*;
 import mindustry.game.*;
@@ -111,7 +112,17 @@ public class PausedDialog extends BaseDialog{
 
                 cont.row();
 
-                cont.buttonRow("@load", Icon.download, load::show).disabled(b -> net.active());
+                cont.buttonRow("@load", Icon.download, () -> {
+                    if(net.active()){
+                        ui.database.show();
+                    }else{
+                        load.show();
+                    }
+                }).update(t -> {
+                    Image image = (Image)t.getChildren().first();
+                    image.setDrawable(net.active() ? Icon.book : Icon.download);
+                    t.setText(net.active() ? "@database" : "@load");
+                });
             }else if(state.isCampaign()){
                 cont.buttonRow("@research", Icon.tree, ui.research::show);
 

@@ -168,9 +168,15 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                 }
 
                 if(!(tile.build instanceof ConstructBuild cb)){
-                    if(!current.initialized && !current.breaking && Build.validPlace(current.block, team, current.x, current.y, current.rotation)){
+                    if(!current.initialized && !current.breaking && Build.validPlaceIgnoreUnits(current.block, team, current.x, current.y, current.rotation, true, false)){
                         if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y) ||
-                            !Build.validPlaceUnit(current.block, current.x, current.y)) return;
+                            !Build.validPlaceUnit(current.block, current.x, current.y)
+                        ){
+                            //this plan cannot be placed right now, try it again later
+                            current.stuck = true;
+                            if(!instant) plans.addLast(plans.removeFirst());
+                            return;
+                        }
                         boolean hasAll = infinite || current.isRotation(team) ||
                         //derelict repair
                         (tile.team() == Team.derelict && tile.block() == current.block && tile.build != null && tile.block().allowDerelictRepair && state.rules.derelictRepair) ||

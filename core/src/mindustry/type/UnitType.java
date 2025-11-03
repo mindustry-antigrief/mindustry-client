@@ -842,6 +842,28 @@ public class UnitType extends UnlockableContent implements Senseable{
         }
     }
 
+    void initPathType(){
+        if(flowfieldPathType == -1){
+            flowfieldPathType =
+            naval ? Pathfinder.costNaval :
+            allowLegStep ? Pathfinder.costLegs :
+            flying ? Pathfinder.costNone :
+            hovering ? Pathfinder.costHover :
+            Pathfinder.costGround;
+        }
+
+        if(pathCost == null){
+            pathCost =
+            naval ? ControlPathfinder.costNaval :
+            allowLegStep ? ControlPathfinder.costLegs :
+            hovering ? ControlPathfinder.costHover :
+            ControlPathfinder.costGround;
+        }
+
+        pathCostId = ControlPathfinder.costTypes.indexOf(pathCost);
+        if(pathCostId == -1) pathCostId = 0;
+    }
+
     @CallSuper
     @Override
     public void init(){
@@ -865,25 +887,7 @@ public class UnitType extends UnlockableContent implements Senseable{
             }
         }
 
-        if(flowfieldPathType == -1){
-            flowfieldPathType =
-                naval ? Pathfinder.costNaval :
-                allowLegStep ? Pathfinder.costLegs :
-                flying ? Pathfinder.costNone :
-                hovering ? Pathfinder.costHover :
-                Pathfinder.costGround;
-        }
-
-        if(pathCost == null){
-            pathCost =
-                naval ? ControlPathfinder.costNaval :
-                allowLegStep ? ControlPathfinder.costLegs :
-                hovering ? ControlPathfinder.costHover :
-                ControlPathfinder.costGround;
-        }
-
-        pathCostId = ControlPathfinder.costTypes.indexOf(pathCost);
-        if(pathCostId == -1) pathCostId = 0;
+        initPathType();
 
         if(flying){
             envEnabled |= Env.space;
@@ -1241,6 +1245,18 @@ public class UnitType extends UnlockableContent implements Senseable{
         }
     }
 
+    @Override
+    public void afterPatch(){
+        super.afterPatch();
+        totalRequirements = cachedRequirements = firstRequirements = null;
+
+        //this will technically reset any assigned values, but in vanilla, they're not reassigned anyway
+        flowfieldPathType = -1;
+        pathCost = null;
+        pathCostId = -1;
+        initPathType();
+    }
+
     /** @return the time required to build this unit, as a value that takes into account reconstructors */
     public float getBuildTime(){
         getTotalRequirements();
@@ -1529,7 +1545,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     }
 
     public void drawMining(Unit unit){
-        if(drawMineBeam){
+        if(drawMineBeam && !Mathf.zero(Renderer.laserOpacity)){
             float focusLen = mineBeamOffset + Mathf.absin(Time.time, 1.1f, 0.5f);
             float px = unit.x + Angles.trnsx(unit.rotation, focusLen);
             float py = unit.y + Angles.trnsy(unit.rotation, focusLen);
