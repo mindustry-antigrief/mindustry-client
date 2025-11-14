@@ -481,7 +481,13 @@ fun parseBool(arg: String) = arg.lowercase().startsWith("y") || arg.lowercase().
 /** Returns true if right, false if left. */
 fun rotationDirection(old: Int, new: Int) = old < new && (old != 0 || new != 3) || old == 3 && new == 0
 
-fun restartGame() = openJar("-jar", Fi.get(ClientVars::class.java.protectionDomain.codeSource.location.toURI().path).absolutePath())
+fun restartGame() = openJar(
+    // JVM args
+    *try { java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.toTypedArray() } catch (e: Exception) { arrayOf() },
+    "-jar", Fi.get(ClientVars::class.java.protectionDomain.codeSource.location.toURI().path).absolutePath(),
+    // Game args
+    *try { Reflect.get(Core.app.listeners[0], "args") } catch (e: Exception) { arrayOf() } // Gets the DesktopLauncher instance which has the launch args
+)
 
 fun openJar(vararg extraArgs: String) {
     try {

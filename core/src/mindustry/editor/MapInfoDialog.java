@@ -88,7 +88,7 @@ public class MapInfoDialog extends BaseDialog{
             c2.touchable = Touchable.disabled;
             s2.changed(() -> {
                 l2.setText(Integer.toString((int)s2.getValue()));
-                Core.settings.put("mapautosavetime", (int)(s.getValue() * Time.toMinutes));
+                Core.settings.put("mapautosavetime", (int)(s2.getValue() * Time.toMinutes));
             });
             s2.change();
             t.stack(s2, c2).width(400);
