@@ -86,7 +86,11 @@ class Migrations {
         }
     }
 
-//    private fun migration10() { Uncomment this when new stuff is added
-//        settings.remove("displaydef")
-//    }
+    private fun migration10() {
+        // Previous bug put mapautosavetime between 0 and 10, thus spamming autosaves
+        // Set to 3600 (default minimum) if they have been affected
+        if (settings.getInt("mapautosavetime", Integer.MAX_VALUE) <= 10)
+            settings.put("mapautosavetime", 3600)
+        settings.remove("displaydef") // Unrelated to above, but also remove
+    }
 }
