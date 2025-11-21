@@ -521,7 +521,7 @@ public class SettingsMenuDialog extends BaseDialog{
         });
 
         game.checkPref("savecreate", true);
-        game.checkPref("blockreplace", true);
+//        game.checkPref("blockreplace", true); We have this as a client setting in foo's
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("hints", true);
         game.checkPref("logichints", true);
@@ -570,7 +570,18 @@ public class SettingsMenuDialog extends BaseDialog{
         graphics.sliderPref("bloomintensity", 6, 0, 16, i -> (int)(i/4f * 100f) + "%");
         graphics.sliderPref("bloomblur", 2, 1, 16, i -> i + "x");
 
-        graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
+        graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> {
+            if(ios){
+                Core.graphics.setPreferredFPS(s > 240 ? 0 : s);
+            }
+            return (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s));
+        });
+
+        if(ios){
+            int value = Core.settings.getInt("fpscap", 240);
+            Core.graphics.setPreferredFPS(value > 240 ? 0 : value);
+        }
+
         graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
         graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
             if(ui.settings != null){
@@ -664,7 +675,8 @@ public class SettingsMenuDialog extends BaseDialog{
         graphics.checkPref("animatedwater", true);
 
         if(Shaders.shield != null){
-            graphics.checkPref("animatedshields", !mobile);
+            //animated shields are off by default on android (generally lower spec devices)
+            graphics.checkPref("animatedshields", !android);
         }
 
         graphics.checkPref("bloom", true, val -> renderer.toggleBloom(val));
@@ -692,18 +704,13 @@ public class SettingsMenuDialog extends BaseDialog{
                 atlas.each(t -> t.setFilter(filter));
             }
         };
-        //iOS (and possibly Android) devices do not support linear filtering well, so disable it
-        if(!ios){
-            graphics.checkPref("linear", !mobile, b -> {
-                setFilters.get(true, false);
-            });
-            graphics.checkPref("lineartext", Core.settings.getBool("linear"), b -> {
-                setFilters.get(false, true);
-            });
-        }else{
-            settings.put("linear", false);
-            settings.put("lineartext", false);
-        }
+
+        graphics.checkPref("linear", !mobile, b -> {
+            setFilters.get(true, false);
+        });
+        graphics.checkPref("lineartext", Core.settings.getBool("linear"), b -> {
+            setFilters.get(false, true);
+        });
 
         setFilters.get(true, true);
 

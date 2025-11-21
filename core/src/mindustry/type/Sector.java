@@ -87,6 +87,15 @@ public class Sector{
         return false;
     }
 
+    public boolean isNear(Sector other){
+        for(var tile : tile.tiles){
+            if(planet.getSector(tile) == other){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Displays threat as a formatted string. */
     public String displayThreat(){
         float step = 0.25f;
@@ -174,7 +183,7 @@ public class Sector{
 
     @Nullable
     public TextureRegion icon(){
-        return info.contentIcon != null ? info.contentIcon.uiIcon : info.icon == null ? (preset != null && preset.uiIcon.found() && preset.unlocked() ? preset.uiIcon : null) : Fonts.getLargeIcon(info.icon);
+        return info.contentIcon != null ? info.contentIcon.uiIcon : info.icon == null ? (preset != null && preset.requireUnlock && preset.uiIcon.found() && preset.unlocked() ? preset.uiIcon : null) : Fonts.getLargeIcon(info.icon);
     }
 
     @Nullable

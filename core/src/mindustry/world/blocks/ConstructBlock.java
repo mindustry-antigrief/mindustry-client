@@ -105,6 +105,9 @@ public class ConstructBlock extends Block{
             tile.setOverlay(overlay);
         }else if(block instanceof Floor floor){
             tile.setFloor(floor);
+            if(!(tile.overlay() instanceof OverlayFloor) && !floor.supportsOverlay){
+                tile.setOverlay(Blocks.air);
+            }
         }else{
             tile.setBlock(block, team, rotation);
         }
@@ -314,7 +317,7 @@ public class ConstructBlock extends Block{
                     Shaders.blockbuild.time = Time.time;
                     Shaders.blockbuild.progress = progress;
 
-                    Draw.rect(region, x, y, current.rotate && (noOverrides || current.regionRotated2 == i || current.regionRotated1 == i) ? rotdeg() : 0);
+                    Draw.rect(region, x, y, current.rotate && (noOverrides || current.regionRotated2 == i || current.regionRotated1 == i) ? rotdeg() + current.visualRotationOffset : 0);
                     Draw.flush();
                     i ++;
                 }
@@ -324,6 +327,8 @@ public class ConstructBlock extends Block{
         }
 
         public void construct(Unit builder, @Nullable Building core, float amount, Object config){
+            if(accumulator == null || totalAccumulator == null) return;
+
             wasConstructing = true;
             activeDeconstruct = false;
 
@@ -383,6 +388,8 @@ public class ConstructBlock extends Block{
         }
 
         public void deconstruct(Unit builder, @Nullable CoreBuild core, float amount){
+            if(accumulator == null || totalAccumulator == null) return;
+
             //reset accumulated resources when switching modes
             if(wasConstructing){
                 Arrays.fill(accumulator, 0);

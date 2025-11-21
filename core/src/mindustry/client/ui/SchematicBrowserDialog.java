@@ -619,8 +619,8 @@ public class SchematicBrowserDialog extends BaseDialog {
 
     void handleFetchError(String link, Throwable e){
         Core.app.post(() -> {
-            Log.err("Schematic repository " + link + " could not be reached. " + e);
-            ui.showErrorMessage(Core.bundle.format("client.schematic.browser.fail.fetch", link));
+            Log.err("Schematic repository " + link + " could not be reached", e);
+            ui.showException(Core.bundle.format("client.schematic.browser.fail.fetch", link), e);
         });
     }
 
@@ -639,11 +639,15 @@ public class SchematicBrowserDialog extends BaseDialog {
     void handleRepo(String link, Http.HttpResponse response){
         String fileName = link.replace("/","") + ".zip";
         Fi filePath = schematicRepoDirectory.child(fileName);
-        filePath.writeBytes(response.getResult());
-        Core.app.post(() ->{
+        byte[] result = response.getResult();
+        boolean fetched = result.length > 0 || !filePath.exists();
+        if (fetched) filePath.writeBytes(result); // Do not overwrite with empty stuff
+
+        Core.app.post(() -> {
             unfetchedRepositories.remove(link);
             unloadedRepositories.add(link);
-            ui.showInfoFade(Core.bundle.format("client.schematic.browser.fetched", link), 2f);
+            if (fetched) ui.showInfoFade(Core.bundle.format("client.schematic.browser.fetched", link), 2f);
+            else handleFetchError(link, new Throwable("Fetched content is empty."));
 
             if (unfetchedRepositories.size == 0) {
                 loadRepositories();
@@ -768,6 +772,10 @@ public class SchematicBrowserDialog extends BaseDialog {
                     ui.schematicBrowser.unfetchedRepositories.add(l);
                     refetch = true;
                 })).padRight(20f).tooltip("@client.schematic.browser.edit");
+                table.button(Icon.refreshSmall, repositorySettingsStyle, 16f, () -> {
+                    ui.schematicBrowser.unfetchedRepositories.add(link);
+                    ui.schematicBrowser.fetch(Seq.with(link));
+                }).padRight(20f).tooltip("@client.schematic.browser.fetch");
                 table.button(ui.schematicBrowser.hiddenRepositories.contains(link) ? Icon.eyeOffSmall : Icon.eyeSmall, repositorySettingsStyle, 16f, () -> {
                     if (!ui.schematicBrowser.hiddenRepositories.contains(link)) { // hide, unload to save memory
                         ui.schematicBrowser.loadedRepositories.remove(link);

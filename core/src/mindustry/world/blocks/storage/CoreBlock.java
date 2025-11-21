@@ -73,9 +73,11 @@ public class CoreBlock extends StorageBlock{
         solid = true;
         update = true;
         hasItems = true;
+        alwaysAllowDeposit = true;
         priority = TargetPriority.core;
         flags = EnumSet.of(BlockFlag.core);
         unitCapModifier = 10;
+        sync = false; //core items are synced elsewhere
         drawDisabled = false;
         configurable = true;
         canOverdrive = false;
@@ -120,7 +122,6 @@ public class CoreBlock extends StorageBlock{
     public void setStats(){
         super.setStats();
 
-        stats.remove(Stat.buildTime);
         stats.add(Stat.unitType, table -> {
             table.row();
             table.table(Styles.grayPanel, b -> {
@@ -664,7 +665,7 @@ public class CoreBlock extends StorageBlock{
 
         @Override
         public boolean acceptItem(Building source, Item item){
-            return items.get(item) < getMaximumAccepted(item);
+            return state.rules.coreIncinerates || items.get(item) < getMaximumAccepted(item);
         }
 
         @Override

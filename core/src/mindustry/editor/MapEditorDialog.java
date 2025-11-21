@@ -305,9 +305,8 @@ public class MapEditorDialog extends Dialog implements Disposable{
     }
 
     public void autoSave(){
-        if(autoSaveTimer.get(Core.settings.getInt("mapautosavetime")) && Core.settings.getInt("mapautosave") > 0 || autoSaveTimer.get(60) && Core.input.keyDown(KeyCode.y)) {
+        if(Core.settings.getInt("mapautosave") > 0 && autoSaveTimer.get(Core.settings.getInt("mapautosavetime")))
             save(autoSaves++ % Core.settings.getInt("mapautosave"));
-        }
     }
 
     public void resumeEditing(){
@@ -400,6 +399,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
         state.rules.allowEditRules = false;
         state.rules.objectiveFlags.clear();
         state.rules.objectives.each(MapObjective::reset);
+        state.stats = new GameStats();
         String name = editor.tags.get("name", "").trim();
         editor.tags.put("rules", JsonIO.write(state.rules));
         editor.tags.remove("width");
@@ -445,7 +445,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
             }
         }
 
-        menu.hide();
+        if (autoSave < 0) menu.hide();
         saved = true;
         state.rules.editor = isEditor;
         return returned;
@@ -675,10 +675,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
 
                 tools.row();
 
-                tools.table(Tex.underline, t -> t.add("@editor.teams"))
-                .colspan(3).height(40).width(size * 3f + 3f).padBottom(3);
-
-                tools.row();
+                tools.image(Tex.whiteui, Pal.gray).colspan(3).height(4f).width(size * 3f + 3f).row();
 
                 ButtonGroup<ImageButton> teamgroup = new ButtonGroup<>();
 
@@ -720,19 +717,20 @@ public class MapEditorDialog extends Dialog implements Disposable{
 
                 mid.row();
 
+                mid.check("@editor.showblocks", editor.showBuildings, b -> {
+                    editor.showBuildings = b;
+                    editor.renderer.recacheShadows();
+                }).pad(2f).growX().with(Table::left).row();
+                mid.check("@editor.showterrain", editor.showTerrain, b -> {
+                    editor.showTerrain = b;
+                    editor.renderer.recacheTerrain();
+                }).pad(2f).growX().with(Table::left).row();
+                mid.check("@editor.showfloor", editor.showFloor, b -> editor.showFloor = b).pad(2f).growX().with(Table::left).row();
+
                 if(!mobile){
-                    mid.table(t -> {
-                        t.button("@editor.center", Icon.move, Styles.flatt, view::center).growX().margin(9f);
-                    }).growX().top();
+                    mid.button("@editor.center", Icon.move, Styles.flatt, view::center).growX().margin(9f);
                 }
-
-                mid.row();
-
-                mid.table(t -> {
-                    t.button("@editor.cliffs", Icon.terrain, Styles.flatt, editor::addCliffs).growX().margin(9f);
-                }).growX().top();
             }).margin(0).left().growY();
-
 
             cont.table(t -> t.add(view).grow()).grow();
 
@@ -789,7 +787,8 @@ public class MapEditorDialog extends Dialog implements Disposable{
             }
 
             if(Core.input.keyTap(KeyCode.s)){
-                save();
+                // Ctrl + Shift + S for autosave
+                save(Core.input.shift() ? autoSaves++ % Math.max(Core.settings.getInt("mapautosave"), 1) : -1);
             }
 
             if(Core.input.keyTap(KeyCode.g)){
@@ -818,6 +817,9 @@ public class MapEditorDialog extends Dialog implements Disposable{
             }
         });
 
+        Table[] configTable = {null};
+        Block[] lastBlock = {null};
+
         cont.table(search -> {
             search.image(Icon.zoom).padRight(8);
             search.field("", this::rebuildBlockSelection).growX()
@@ -826,6 +828,19 @@ public class MapEditorDialog extends Dialog implements Disposable{
         cont.row();
         cont.table(Tex.underline, extra -> extra.labelWrap(() -> editor.drawBlock.localizedName).width(200f).center()).growX();
         cont.row();
+        cont.collapser(t -> {
+            configTable[0] = t;
+        }, () -> editor.drawBlock != null && editor.drawBlock.editorConfigurable).with(c -> c.setEnforceMinSize(true)).update(col -> {
+
+            if(lastBlock[0] != editor.drawBlock){
+                configTable[0].clear();
+                if(editor.drawBlock != null){
+                    editor.drawBlock.buildEditorConfig(configTable[0]);
+                    col.invalidateHierarchy();
+                }
+                lastBlock[0] = editor.drawBlock;
+            }
+        }).growX().row();
         cont.add(pane).expandY().growX().top().left();
 
         rebuildBlockSelection("");

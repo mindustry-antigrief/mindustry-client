@@ -1,6 +1,7 @@
 package mindustry.ui.fragments;
 
 import arc.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
@@ -82,6 +83,8 @@ public class PlayerListFragment{
         content.clear();
 
         float h = 74f;
+        float bs = h / 2;
+        float width = 750f + (Server.current.freeze.canRun() ? 20f : 0) + (Server.current.mute.canRun() ? 20f : 0);
         boolean found = false;
 
         players.clear();
@@ -130,8 +133,8 @@ public class PlayerListFragment{
                     Strings.stripColors(user.name))
             ).wrap().width(400).growY().pad(10);
 
-            if(user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f);
-            if(user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(7.5f).tooltip("@client.clientuser");
+            if(user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(7.5f); // FINISHME change to size?
+            if(user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(5f).tooltip("@client.clientuser");
 
             var style = new ImageButtonStyle(){{
                 down = Styles.none;
@@ -150,23 +153,23 @@ public class PlayerListFragment{
                 imageOverColor = Color.lightGray;
             }};
 
-            if(net.server() || (Server.current.adminui() && (!user.admin || user.isLocal()))){
-                button.add().growY();
+            button.add().growY();
+            button.table(t -> {
+                float tableWidth = bs;
 
-                float bs = h / 2f;
-
-                button.table(t -> {
-                    t.defaults().size(bs);
+                t.defaults().size(bs);
+                if(net.server() || (Server.current.adminui() && (!user.admin || user.isLocal()))){
                     if(!user.isLocal()){
+                        tableWidth += bs * 5;
                         t.button(Icon.hammer, ustyle,
-                        () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()), () -> {
-                            Server.current.handleBan(user);
-                        })).tooltip("@player.ban");
-                        t.button(Icon.cancel, ustyle,
-                        () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()), () -> Call.adminRequest(user, AdminAction.kick, null)))
-                        .tooltip("@player.kick");
+                            () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()),
+                                () -> Server.current.handleBan(user)))
+                        .tooltip("@player.ban");
 
-                        t.row();
+                        t.button(Icon.exit, ustyle,
+                            () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()),
+                                () -> Call.adminRequest(user, AdminAction.kick, null)))
+                        .tooltip("@player.kick");
 
                         t.button(Icon.admin, style, () -> {
                             if(net.client()) return;
@@ -174,12 +177,12 @@ public class PlayerListFragment{
                             String id = user.uuid();
 
                             if(user.admin){
-                                ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin",  user.name()), () -> {
+                                ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin", user.name()), () -> {
                                     netServer.admins.unAdminPlayer(id);
                                     user.admin = false;
                                 });
                             }else{
-                                ui.showConfirm("@confirm", Core.bundle.format("confirmadmin",  user.name()), () -> {
+                                ui.showConfirm("@confirm", Core.bundle.format("confirmadmin", user.name()), () -> {
                                     netServer.admins.adminPlayer(id, user.usid());
                                     user.admin = true;
                                 });
@@ -190,7 +193,7 @@ public class PlayerListFragment{
                             .checked(user.admin)
                             .tooltip("@player.admin");
 
-                        t.button(Icon.zoom, ustyle, () -> Call.adminRequest(user, AdminAction.trace, null)).tooltip("@player.trace");
+                        t.button(Icon.fileTextFill, ustyle, () -> Call.adminRequest(user, AdminAction.trace, null)).tooltip("@player.trace");
                     }
 
                     t.button(Icon.redo, ustyle, () -> {
@@ -219,65 +222,95 @@ public class PlayerListFragment{
                         teamSelect.show();
                     }).tooltip("@player.team");
 
-                }).padRight(12).size(bs + 10f, bs);
-            }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
-                button.add().growY();
+                    t.row();
+                }
 
-                button.button(Icon.hammer, ustyle,
-                () -> {
-                    ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "", reason -> {
-                        Call.sendChatMessage("/votekick #" + user.id() + " " + reason);
-                        if(Server.io.b() && (user.trace != null || user.serverID != null))
-                            ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () ->
-                                Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID))
-                            );
-                    });
-                }).size(h/2);
-            }
-            if (user != player) {
-                button.button(Icon.lock, ustyle, // Mute player
+                if(!Server.current.adminui() && !user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
+                    tableWidth += bs;
+
+                    button.button(Icon.hammer, ustyle,
+                        () -> {
+                            ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "", reason -> {
+                                Call.sendChatMessage("/votekick #" + user.id() + " " + reason);
+                                if(Server.io.b() && (user.trace != null || user.serverID != null))
+                                    ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () ->
+                                        Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID))
+                                    );
+                            });
+                        }).size(h/2).tooltip("@player.kick");
+                }
+                if(user != player){
+                    t.button(Icon.lock, ustyle, // Mute player
                         () -> ClientUtils.toggleMutePlayer(user)).size(h / 2).tooltip("@client.mute");
-                button.button(Icon.copy, ustyle, // Assist/copy
+                    t.button(Icon.copy, ustyle, // Assist/copy
                         () -> Navigation.follow(new AssistPath(user,
-                                Core.input.shift() ? AssistPath.Type.FreeMove :
-                                Core.input.ctrl() ? AssistPath.Type.Cursor :
-                                Core.input.alt() ? AssistPath.Type.BuildPath :
-                                                    AssistPath.Type.Regular, Core.settings.getBool("circleassist"))
+                            Core.input.shift() ? AssistPath.Type.FreeMove :
+                            Core.input.ctrl() ? AssistPath.Type.Cursor :
+                            Core.input.alt() ? AssistPath.Type.BuildPath :
+                                            AssistPath.Type.Regular, Core.settings.getBool("circleassist"))
                         )).size(h / 2).tooltip("@client.assist");
-                button.button(Icon.cancel, ustyle, // Unassist/block
+                    t.button(Icon.cancel, ustyle, // Unassist/block
                         () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
-                button.button(Icon.move, ustyle, // Goto
-                    () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
-                button.button(Icon.zoom, ustyle, // Spectate/stalk
-                    () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).tooltip("@client.spectate");
-            }
+                    t.button(Icon.move, ustyle, // Goto
+                        () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
+                    t.button(Icon.zoom, ustyle, // Spectate/stalk
+                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).size(h / 2).tooltip("@client.spectate");
+
+                }
+                t.setWidth(tableWidth);
+            }).height(bs);
 
             if (Server.current.freeze.canRun()) { // Apprentice+ on io, Colonel+ on phoenix
-                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle, () -> {
+                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () -> {
+                    Moderation.freezeState = true;
+                    Moderation.freezePlayer = user;
+                    Call.serverPacketReliable("playerdata_by_id", String.valueOf(user.id)); // Retrieve freeze state from server
+
                     BaseDialog dialog = new BaseDialog("@confirm");
-                    dialog.cont.label(() -> Core.bundle.format("client.confirmfreeze", user.name(), Moderation.freezeState)).width(mobile ? 400f : 500f).wrap().pad(4f).get().setAlignment(Align.center, Align.center);
+                    dialog.cont.label(() -> Core.bundle.format("client.confirmfreeze", user.name())).width(mobile ? 400f : 500f).wrap().pad(4f).get().setAlignment(Align.center, Align.center);
                     dialog.buttons.defaults().size(200f, 54f).pad(2f);
                     dialog.setFillParent(false);
                     dialog.buttons.button("@cancel", Icon.cancel, dialog::hide);
-                    dialog.buttons.button("@ok", Icon.ok, () -> {
+                    Runnable submitRequest = () -> {
                         dialog.hide();
-                        Server.current.freeze.invoke(user);
-                    });
-                    dialog.keyDown(KeyCode.enter, () -> {
-                        dialog.hide();
-                        Server.current.freeze.invoke(user);
-                    });
+                        if(Moderation.freezeState) Server.current.thaw.invoke(user);
+                        else Server.current.freeze.invoke(user);
+                    };
+                    dialog.buttons.button("@ok", Icon.ok, submitRequest);
+                    dialog.keyDown(KeyCode.enter, submitRequest);
                     dialog.keyDown(KeyCode.escape, dialog::hide);
                     dialog.keyDown(KeyCode.back, dialog::hide);
-                    Moderation.freezeState = "unknown";
-                    Moderation.freezePlayer = user;
-                    Call.serverPacketReliable("playerdata_by_id", String.valueOf(user.id)); // Retrieve freeze state from server
                     dialog.hidden(() -> Moderation.freezePlayer = null);
                     dialog.show();
                 }).tooltip("@client.freeze");
             }
 
-            content.add(button).padBottom(-6).width(750).maxHeight(h + 14);
+            if (Server.current.mute.canRun()) { // Apprentice+ on io
+                button.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () -> {
+                    Moderation.muteState = true;
+                    Moderation.mutePlayer = user;
+                    Call.serverPacketReliable("playerdata_by_id", String.valueOf(user.id)); // Retrieve mute state from server
+
+                    BaseDialog dialog = new BaseDialog("@confirm");
+                    dialog.cont.label(() -> Core.bundle.format("client.confirmmute", user.name())).width(mobile ? 400f : 500f).wrap().pad(4f).get().setAlignment(Align.center, Align.center);
+                    dialog.buttons.defaults().size(200f, 54f).pad(2f);
+                    dialog.setFillParent(false);
+                    dialog.buttons.button("@cancel", Icon.cancel, dialog::hide);
+                    Runnable submitRequest = () -> {
+                        dialog.hide();
+                        if(Moderation.muteState) Server.current.unmute.invoke(user);
+                        else Server.current.mute.invoke(user);
+                    };
+                    dialog.buttons.button("@ok", Icon.ok, submitRequest);
+                    dialog.keyDown(KeyCode.enter, submitRequest);
+                    dialog.keyDown(KeyCode.escape, dialog::hide);
+                    dialog.keyDown(KeyCode.back, dialog::hide);
+                    dialog.hidden(() -> Moderation.mutePlayer = null);
+                    dialog.show();
+                }).tooltip("@client.modmute");
+            }
+
+            content.add(button).padBottom(-6).width(width).maxHeight(h + 14);
             content.row();
             content.image().height(4f).color(shouldShowTeams() ? user.team().color : Pal.gray).growX();
             content.row();

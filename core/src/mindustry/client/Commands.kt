@@ -539,7 +539,7 @@ fun setupCommands() {
                     return@register
                 }
                 try {
-                    ProcessorFinder.search(args[1].toRegex())
+                    ProcessorFinder.search((if (args[1] == "*") ".*" else args[1]).toRegex())
                 } catch(e:PatternSyntaxException){
                     player.sendMessage(Core.bundle.format("client.command.procfind.query.invalid", args[1]))
                 }

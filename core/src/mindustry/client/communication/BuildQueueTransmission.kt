@@ -17,7 +17,7 @@ class BuildQueueTransmission : Transmission {
 
     constructor(input: ByteArray, id: Long, @Suppress("UNUSED_PARAMETER") senderID: Int) {
         this.id = id
-        val reads = Reads.get(DataInputStream(input.inputStream()))
+        val reads = Reads(DataInputStream(input.inputStream()))
         plans = TypeIO.readPlans(reads) ?: throw IllegalArgumentException("Invalid request array!")
         reads.close()
     }

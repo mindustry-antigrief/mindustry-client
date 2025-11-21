@@ -445,7 +445,10 @@ public class LCanvas extends Table{
 
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
+                        //don't start dragging when pressing the menu buttons
+                        if(event.targetActor instanceof Image) return false;
                         canvas.setLayoutEnabled(false);
+
                         if(button == KeyCode.mouseMiddle){
                             copy();
                             return false;

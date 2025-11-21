@@ -105,6 +105,8 @@ public class FileTree implements FileHandleResolver{
     }
 
     public void loadAudio(DownloadableAudio audio, String path, int length){
+        if(audio == null) return; // Some mods will overwrite sounds/musics with nulls, likely bugs
+
         var fi = get(path);
         var clazz = audio.getClass().getSimpleName(); // Used for error messages and settings
         if(audio instanceof Sound sound && fi.parent().name().equals("ui")){

@@ -258,6 +258,10 @@ public class LogicDialog extends BaseDialog{
         return executor != null && executor.vars.length > 0 && !state.isMenu();
     }
 
+    public void showAddDialog(){
+        showAddDialog(-1);
+    }
+
     public void showAddDialog(int at){
         BaseDialog dialog = new BaseDialog("@add");
         dialog.cont.table(table -> {
@@ -331,7 +335,7 @@ public class LogicDialog extends BaseDialog{
                         style.font = Fonts.outline;
 
                         cat.button(example.name(), style, () -> {
-                            canvas.addAt(at, prov.get());
+                            canvas.addAt(at == -1 ? canvas.statements.getChildren().size : at, prov.get());
                             dialog.hide();
                             canvas.layout();
                             canvas.recalculate();

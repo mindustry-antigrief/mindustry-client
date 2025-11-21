@@ -47,7 +47,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v8'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
-        if(!project.hasProperty("buildversion")) buildversion = '150.1'
+        if(!project.hasProperty("buildversion")) buildversion = '153'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -222,7 +222,7 @@ allprojects{
     }
 }
 
-//compile with java 8 compatibility for everything except the annotation project
+//compile with java 8 compatibility for everything except the annotations and tests
 configure(subprojects - project(":annotations")){
     tasks.withType(JavaCompile).configureEach {
         options.compilerArgs.addAll(['--release', '8'])
@@ -445,6 +445,12 @@ project(":tests"){
         testImplementation "org.bouncycastle:bctls-jdk15on:1.69"
     }
 
+    tasks.withType(JavaCompile){
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        options.compilerArgs.addAll(['--release', '17'])
+    }
+
     test{
         //fork every test so mods don't interact with each other
         forkEvery = 1
@@ -457,8 +463,8 @@ project(":tests"){
     }
 
     kotlin.compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
-        freeCompilerArgs.add("-Xjdk-release=1.8")
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xjdk-release=17")
     }
 }
 
