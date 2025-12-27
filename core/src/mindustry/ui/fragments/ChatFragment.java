@@ -85,9 +85,13 @@ public class ChatFragment extends Table{
                 if (input.keyTap(Binding.chatAutocomplete) && completion.any() /*&& mode == ChatMode.normal*/) {
                     completionPos = Mathf.clamp(completionPos, 0, completion.size - 1);
                     String oldText = chatfield.getText();
-                    chatfield.setText(completion.get(completionPos).getCompletion(chatfield.getText()) + " ");
-                    updateCursor();
-                    if(!chatfield.getText().equals(oldText)){
+                    String newText = completion.get(completionPos).getCompletion(chatfield.getText());
+                    if(!(newText.equals(oldText) || oldText.equals(newText + " "))){
+                        //sometimes the autocomplete returns that it has a value
+                        //but it doesn't actually do anything
+                        //this breaks tab to switch modes
+                        chatfield.setText(newText + " ");
+                        updateCursor();
                         tabConsumed = true;
                     }
                 }

@@ -125,11 +125,10 @@ dependencies{
     natives arcModule("natives:natives-android")
     natives arcModule("natives:natives-freetype-android")
 
-    def version;
-    def highestVersion;
+    def version, highestVersion
     new File((String)findSdkDir(), "/platforms").eachFileMatch ~/android-\d+/, {
-        version = it.name.find(/\d+/).toInteger();
-        highestVersion = version > highestVersion ? version : highestVersion;
+        version = it.name.find(/\d+/).toInteger()
+        highestVersion = version > highestVersion ? version : highestVersion
     }
 
     def sdkFile = new File((String)findSdkDir(), "/platforms/android-${highestVersion}/android.jar")

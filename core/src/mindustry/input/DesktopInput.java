@@ -92,6 +92,13 @@ public class DesktopInput extends InputHandler{
     public boolean moved = false;
 
     @Override
+    public void reset(){
+        super.reset();
+        shouldShoot = false;
+        deleting = false;
+    }
+
+    @Override
     public void buildUI(Group group){
         //various hints
         group.fill(t -> {
@@ -909,10 +916,14 @@ public class DesktopInput extends InputHandler{
         if(Core.input.keyTap(Binding.select) && !Core.scene.hasMouse()){
             tappedOne = false;
 
+            Tile selected = tileAt(Core.input.mouseX(), Core.input.mouseY());
+
             if(commandMode){
                 commandRect = true;
                 commandRectX = input.mouseWorldX();
                 commandRectY = input.mouseWorldY();
+            }else if(selected != null){
+                tileTapped(selected.build);
             }
         }
     }

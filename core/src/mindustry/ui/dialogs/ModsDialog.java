@@ -544,7 +544,7 @@ public class ModsDialog extends BaseDialog{
             }
 
             for(ModListing mod : listings){
-                if(((mod.hasJava || mod.hasScripts) && Vars.ios) ||
+                if(((mod.hasJava || mod.hasScripts && !mod.iosCompatible) && Vars.ios) ||
                     (!Strings.matches(searchtxt, mod.name) && !Strings.matches(searchtxt, mod.repo))
                 ) continue;
 

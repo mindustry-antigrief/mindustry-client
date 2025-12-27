@@ -68,7 +68,7 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
         }
         payloads.clear();
     }
-  
+
     public void destroy(){
         if(Vars.state.rules.unitPayloadsExplode) payloads.each(Payload::destroyed);
     }
@@ -78,7 +78,7 @@ abstract class PayloadComp implements Posc, Rotc, Hitboxc, Unitc{
     }
 
     boolean canPickup(Unit unit){
-        return type.pickupUnits && payloadUsed() + unit.hitSize * unit.hitSize <= type.payloadCapacity + 0.001f && unit.team == team() && unit.isAI();
+        return type.pickupUnits && payloadUsed() + unit.hitSize * unit.hitSize <= type.payloadCapacity + 0.001f && unit.team == team() && unit.isAI() && unit.type.allowedInPayloads;
     }
 
     boolean canPickup(Building build){

@@ -63,9 +63,11 @@ public class FileTree implements FileHandleResolver{
 
         return loadedSounds.get(soundName, () -> {
             String name = "sounds/" + soundName;
-            String path = Vars.tree.get(name + ".ogg").exists() ? name + ".ogg" : name + ".mp3";
+            String path = getAudioPath(name);
 
             var sound = new Sound();
+
+            if(path == null) return sound;
             var desc = Core.assets.load(path, Sound.class, new SoundParameter(sound));
             desc.errored = Throwable::printStackTrace;
 
@@ -82,9 +84,11 @@ public class FileTree implements FileHandleResolver{
 
         return loadedMusic.get(musicName, () -> {
             String name = "music/" + musicName;
-            String path = Vars.tree.get(name + ".ogg").exists() ? name + ".ogg" : name + ".mp3";
+            String path = getAudioPath(name);
 
             var music = new Music();
+
+            if(path == null) return music;
             var desc = Core.assets.load(path, Music.class, new MusicParameter(music));
             desc.errored = Throwable::printStackTrace;
 
@@ -168,5 +172,14 @@ public class FileTree implements FileHandleResolver{
         });
         Log.debug("Downloading @ @", clazz, fi.name());
         req.submit(writeDownloadedAudio);
+    }
+
+    private static @Nullable String getAudioPath(String name){
+        Fi ogg = Vars.tree.get(name + ".ogg"), mp3 = Vars.tree.get(name + ".mp3");
+        if(ogg.exists()) return name + ".ogg";
+        if(mp3.exists()) return name + ".mp3";
+
+        Log.warn("Audio file not found: @ (.mp3 or .ogg)", name);
+        return null;
     }
 }

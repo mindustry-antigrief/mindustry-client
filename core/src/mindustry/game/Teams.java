@@ -58,7 +58,7 @@ public class Teams{
 
     public boolean anyEnemyCoresWithinBuildRadius(Team team, float x, float y){
         for(TeamData data : active){
-            if(team != data.team){
+            if(team != data.team && data.team.rules().protectCores){
                 for(CoreBuild tile : data.cores){
                     if(tile.within(x, y, state.rules.buildRadius(tile.team) + tilesize)){
                         return true;
@@ -72,7 +72,7 @@ public class Teams{
     public boolean anyEnemyCoresWithin(Team team, float x, float y, float radius){
         for(int t = 0; t < active.size; t++){
             TeamData data = active.get(t);
-            if(team != data.team){
+            if(team != data.team && data.team.rules().protectCores){
                 Seq<CoreBuild> cores = data.cores;
                 for(int c = 0; c < cores.size; c++){
                     if(cores.get(c).within(x, y, radius)){

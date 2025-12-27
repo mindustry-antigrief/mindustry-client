@@ -12,6 +12,7 @@ import mindustry.game.*
 import mindustry.gen.*
 import mindustry.net.*
 import mindustry.ui.*
+import java.time.*
 import java.util.concurrent.*
 
 class Moderation {
@@ -19,7 +20,9 @@ class Moderation {
 
     companion object {
         @JvmField var freezePlayer: Player? = null
-        @JvmField var freezeState: String = "unknown"
+        @JvmField var freezeState: Boolean = false
+        @JvmField var mutePlayer: Player? = null
+        @JvmField var muteState: Boolean = false
         init {
             Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins
                 if (Server.io() || Server.phoenix()) {
@@ -28,12 +31,24 @@ class Moderation {
 
                     fun String.i() = json.getInt(this, Int.MAX_VALUE)
                     fun String.s() = json.getString(this, "unknown")
+                    fun String.b() = json.getBoolean(this)
 
                     val id = "id".i()
                     val player = Groups.player.getByID(id) ?: return@addPacketHandler
                     player.serverID = "playercode".s()
 
-                    if (player == freezePlayer) freezeState = "frozen".s()
+                    if (player === freezePlayer) {
+                        freezeState = "frozen".b()
+                        if (freezeState) Server.current.thaw.invoke(player)
+                        else Server.current.freeze.invoke(player)
+                        freezePlayer = null
+                    }
+                    if (player === mutePlayer) {
+                        muteState = "muted".b()
+                        if (muteState) Server.current.unmute.invoke(player)
+                        else Server.current.mute.invoke(player)
+                        mutePlayer = null
+                    }
 
                     val rank = "rank".i() // 0 for unranked, 1 for active, 2 for veteran etc
                     if (player == Vars.player) ClientVars.rank = rank // Set rank var accordingly

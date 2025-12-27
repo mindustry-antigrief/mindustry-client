@@ -133,7 +133,7 @@ public class Control implements ApplicationListener, Loadable{
                 state.map.setHighScore(state.wave);
             }
 
-            Sounds.wave.play();
+            Sounds.waveSpawn.play();
         });
 
         Events.on(GameOverEvent.class, event -> {
@@ -218,9 +218,11 @@ public class Control implements ApplicationListener, Loadable{
                 if(settings.getInt("musicvol") > 0){
                     //TODO what to do if another core with different music is already playing?
                     Music music = core.landMusic();
-                    music.stop();
-                    music.play();
-                    music.setVolume(settings.getInt("musicvol") / 100f);
+                   if(music != null){
+                       music.stop();
+                       music.play();
+                       music.setVolume(settings.getInt("musicvol") / 100f);
+                   }
                 }
 
                 renderer.showLanding(core);

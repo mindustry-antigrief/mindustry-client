@@ -739,7 +739,7 @@ public class HudFragment{
         if(state.isMenu()) return;
 
         scheduleToast(() -> {
-            Sounds.message.play();
+            Sounds.uiNotify.play();
 
             Table table = new Table(Tex.button);
             table.update(() -> {
@@ -769,7 +769,7 @@ public class HudFragment{
         //also don't play in the tutorial to prevent confusion
         if(state.isMenu()) return;
 
-        Sounds.message.play();
+        Sounds.uiNotify.play();
 
         //if there's currently no unlock notification...
         if(lastUnlockTable == null){

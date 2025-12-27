@@ -43,6 +43,7 @@ public class DesktopLauncher extends ClientLauncher{
 
     public static void main(String[] arg){
 //        Events.debugType = ClientLoadEvent.class;
+        System.setProperty("java.awt.headless", "false");
         System.out.println("Launching Mindustry! Arguments: " + Arrays.toString(arg));
         try{
             int[] aaSamples = new int[1];
@@ -52,9 +53,6 @@ public class DesktopLauncher extends ClientLauncher{
 
             Vars.loadLogger();
             Version.init();
-
-            //note that this only does something on Windows
-            GpuDetect.init();
 
             Events.on(EventType.ClientLoadEvent.class, e -> Core.graphics.setTitle(getWindowTitle()));
 
@@ -70,7 +68,7 @@ public class DesktopLauncher extends ClientLauncher{
                 samples = aaSamples[0];
 
                 //on Windows, Intel drivers might be buggy with OpenGL 3.x, so only use 2.x. See https://github.com/Anuken/Mindustry/issues/11041
-                if(GpuDetect.hasIntel && !GpuDetect.hasAMD && !GpuDetect.hasNvidia){
+                if(IntelGpuCheck.wasIntel()){
                     allowGl30 = false;
                     coreProfile = false;
                     glVersions = new int[][]{{2, 1}, {2, 0}};
@@ -97,7 +95,6 @@ public class DesktopLauncher extends ClientLauncher{
                                         allowGl30 = true; //when a version is explicitly specified always allow GL 3
                                         break;
                                     }
-
                                 }
                                 Log.err("Invalid GL version format string: '@'. GL version must be of the form <major>.<minor>", str);
                             }
@@ -106,6 +103,7 @@ public class DesktopLauncher extends ClientLauncher{
                             case "antialias" -> samples = 16;
                             case "debug" -> Log.level = LogLevel.debug;
                             case "maximized" -> maximized = Boolean.parseBoolean(arg[i + 1]);
+                            case "testMobile" -> testMobile = true;
                             case "gltrace" -> {
                                 Events.on(ClientCreateEvent.class, e -> {
                                     GLProfiler profiler = new GLProfiler(Core.graphics);
@@ -141,17 +139,19 @@ public class DesktopLauncher extends ClientLauncher{
     @Override
     public void startDiscord() {
         if(useDiscord){
-            try{
-                DiscordRPC.connect(discordID);
-                updateRPC();
-                Log.info("Initialized Discord rich presence.");
-            }catch(NoDiscordClientException none){
-                useDiscord = false;
-                Log.debug("Not initializing Discord RPC - no discord instance open.");
-            }catch(Throwable t){
-                useDiscord = false;
-                Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
-            }
+            Threads.daemon(() -> {
+                try{
+                    DiscordRPC.connect(discordID);
+                    updateRPC();
+                    Log.info("Initialized Discord rich presence.");
+                }catch(NoDiscordClientException none){
+                    useDiscord = false;
+                    Log.debug("Not initializing Discord RPC - no discord instance open.");
+                }catch(Throwable t){
+                    useDiscord = false;
+                    Log.warn("Failed to initialize Discord RPC - you are likely using a JVM <16.");
+                }
+            });
         }
     }
 

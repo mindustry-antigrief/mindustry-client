@@ -235,7 +235,6 @@ public class NetClient implements ApplicationListener{
     @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void soundAt(Sound sound, float x, float y, float volume, float pitch){
         if(sound == null || headless) return;
-        if(sound == Sounds.corexplode && Server.io.b()) return;
 
         sound.at(x, y, Mathf.clamp(pitch, 0f, 20f), Mathf.clamp(volume, 0, 4f));
     }
@@ -318,7 +317,7 @@ public class NetClient implements ApplicationListener{
             findCoords(output);
             findLinks(output, playersender == null ? 0 : playersender.coloredName().length() + 16 + output.prefix.length());
 
-            Sounds.chatMessage.play();
+            Sounds.uiChat.play();
         }
 
         if(playersender != null && unformatted != null){
@@ -370,7 +369,7 @@ public class NetClient implements ApplicationListener{
 
         Server.current.handleVoteButtons(output);
 
-        Sounds.chatMessage.play();
+        Sounds.uiChat.play();
     }
 
     public static class FoundCoords {

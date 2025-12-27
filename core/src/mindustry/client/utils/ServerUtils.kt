@@ -28,6 +28,9 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     @JvmField val whisper: Cmd = Cmd("/w", -1), // FINISHME: This system still sucks despite my best efforts at making it good
     private val rtv: Cmd = Cmd("/rtv", -1),
     @JvmField val freeze: Cmd = Cmd("/freeze", -1),
+    @JvmField val thaw: Cmd = Cmd("/thaw", -1),
+    @JvmField val mute: Cmd = Cmd("/mute", -1),
+    @JvmField val unmute: Cmd = Cmd("/unmute", -1),
     @JvmField val ghost: Boolean = false,
     private val votekickString: String = "Type[orange] /vote <y/n>[] to agree.",
     @JvmField var blockAnnoyances: Boolean = true
@@ -71,12 +74,9 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             return false
         }
     },
-    io("io", MapVote(), Cmd("/w"), Cmd("/rtv"), object : Cmd("/freeze", 4) {
-        override fun run(vararg args: String) { // Freeze command requires admin in game but the packet does not
-            if (!player.admin) Call.serverPacketReliable("freeze_by_id", args[0]) // Yes this will cause a crash when args.size == 0, it shouldn't happen
-            else super.run(*args)
-        }
-    }, votekickString = "Type[orange] /vote <y/n>[] to vote.") {
+    io("io", MapVote(), Cmd("/w"), Cmd("/rtv"),
+        Cmd("/freeze", 4), Cmd("/thaw", 4), Cmd("/mute", 4), Cmd("/unmute", 4),
+        votekickString = "Type[orange] /vote <y/n>[] to vote.") {
         override fun handleBan(p: Player) {
             ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing.") { reason ->
                 val id = p.trace?.uuid ?: p.serverID
@@ -89,21 +89,23 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             }
         }
 
-        override fun adminui() = player.admin || ClientVars.rank >= 5
+        override fun adminui() = player.admin || ClientVars.rank >= 4
         override fun handleVoteButtons(msg: ChatMessage) {
             super.handleVoteButtons(msg)
             if (msg.sender !== null) return
             val message = msg.message
             val playerCodeMatch =
-                ("""(?:player code: \[[#\w]+\]|last placed by:[\s\S]+\[[#\w]+\]ID:\[[#\w]+\] )([A-Z0-9]+)\s""")
+                ("""(?:has (?:dis)?connected \[#?\w+\]- |last placed by:[\s\S]+\[#?\w+\]ID:\[#?\w+\] )([A-Z0-9]+)""")
                 .toRegex().find(message)
             if (playerCodeMatch !== null) {
                 val (code) = playerCodeMatch.destructured
                 msg.addButton(code) { Core.app.setClipboardText(code) }
             }
-            if (defense() && "Type [green]/agree[] to vote!" in message) { // td upgrade voting
+            if (defense() && Core.bundle.get("client.io.shop-vote") in message) { // td upgrade voting
                 val agree = Cmd("/agree", 0)
                 msg.addButton(agree.str, agree::invoke)
+                val disagree = Cmd("/disagree", 0)
+                msg.addButton(disagree.str, disagree::invoke)
             }
         }
 

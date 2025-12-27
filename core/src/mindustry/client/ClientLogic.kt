@@ -137,22 +137,43 @@ class ClientLogic {
             if (e.player == null) return@on
 
             if (settings.getBool("clientjoinleave")) {
-                val target = "${Strings.stripColors(e.player.name)} has connected."
-                val searchTime = Time.millis() - 10000;
-                val msgs = ui.chatfrag.messages
-                var found: ChatFragment.ChatMessage? = null
-                for (i in 0..<msgs.size) {
-                    if(Strings.stripColors(msgs[i].message) == target) {
-                        found = msgs[i]
-                        break
+                if (!Server.io()) {
+                    val target = "${Strings.stripColors(e.player.name)} has connected."
+                    val searchTime = Time.millis() - 10000;
+                    val msgs = ui.chatfrag.messages
+                    var found: ChatFragment.ChatMessage? = null
+                    for (i in 0..<msgs.size) {
+                        if (Strings.stripColors(msgs[i].message) == target) {
+                            found = msgs[i]
+                            break
+                        }
+                        if (msgs[i].receivedAt < searchTime) break
                     }
-                    if(msgs[i].receivedAt < searchTime) break
-                }
-                if (found == null) {
-                    found = ui.chatfrag.addMsg(bundle.format("client.connected", e.player.name))
-                }
-                if (found.buttons != null && found.buttons.isEmpty) {
-                    found.addButton(e.player.name) { Spectate.spectate(e.player) }
+                    if (found == null) {
+                        found = ui.chatfrag.addMsg(bundle.format("client.connected", e.player.name))
+                    }
+                    if (found.buttons != null && found.buttons.isEmpty) {
+                        found.addButton(e.player.name) { Spectate.spectate(e.player) }
+                    }
+                } else {
+                    // io has custom player join format
+                    val target = e.player.coloredName()
+                    val searchTime = Time.millis() - 10000;
+                    val msgs = ui.chatfrag.messages
+                    for (i in 0..<msgs.size) {
+                        val msg = msgs[i].message
+                        if (
+                            msg.startsWith(target) && // Start with player's colored name
+                            Strings.stripColors(msg.substring(target.length)).let { // after that, should follow a template (minus color tags)
+                            it.length - 6 == " has connected - ".length && it.startsWith(" has connected - ") // and then a 6-letter id
+                        }) {
+                            if (msgs[i].buttons != null) {
+                                msgs[i].addButton(target) { Spectate.spectate(e.player) }
+                            }
+                            break
+                        }
+                        if (msgs[i].receivedAt < searchTime) break
+                    }
                 }
             }
         }

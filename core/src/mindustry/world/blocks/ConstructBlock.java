@@ -181,6 +181,10 @@ public class ConstructBlock extends Block{
         }
     }
 
+    public static void playRepairSound(Team team, Tile tile){
+        if(!headless && shouldPlay() && fogControl.isVisibleTile(team, tile.x, tile.y)) Sounds.blockRepair.at(tile, calcPitch(true));
+    }
+
     public static void constructed(Tile tile, Block block, Unit builder, byte rotation, Team team, Object config){
         Call.constructFinish(tile, block, builder, rotation, team, config);
         if(tile.build != null){
@@ -606,7 +610,7 @@ public class ConstructBlock extends Block{
 
             // Play warning sound (only played when no reactor has been built for 10s)
             if (warnBlock.soundDistance == 101 || distance <= (warnBlock.soundDistance)) {
-                if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.corexplode.play(.3f * (float)Core.settings.getInt("sfxvol") / 100.0F);
+                if (Time.timeSinceMillis(lastWarn) > 10 * 1000) Sounds.explosionCore.play(.3f * (float)Core.settings.getInt("sfxvol") / 100.0F);
                 lastWarn = Time.millis();
             }
 
