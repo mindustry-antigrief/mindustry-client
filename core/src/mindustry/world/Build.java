@@ -285,6 +285,10 @@ public class Build{
             float mindst = Float.MAX_VALUE;
             CoreBuild closest = null;
             for(TeamData data : state.teams.active){
+                if(!data.team.rules().protectCores){
+                    continue;
+                }
+
                 for(CoreBuild tile : data.cores){
                     float dst = tile.dst2(x * tilesize + type.offset, y * tilesize + type.offset);
                     if(dst < mindst){
@@ -294,7 +298,7 @@ public class Build{
                 }
             }
             return closest == null || closest.team == team;
-        }else return !state.teams.anyEnemyCoresWithin(team, x * tilesize + type.offset, y * tilesize + type.offset, state.rules.enemyCoreBuildRadius + tilesize);
+        }else return !state.teams.anyEnemyCoresWithinBuildRadius(team, x * tilesize + type.offset, y * tilesize + type.offset);
     }
 
     /** Whether a build plan intersects a unit here */
