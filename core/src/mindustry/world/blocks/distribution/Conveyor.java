@@ -118,6 +118,7 @@ public class Conveyor extends Block implements Autotiler{
             cont.get(Geometry.d4(req.rotation - 2)) &&
             req.tile() != null &&
             req.tile().block() instanceof Conveyor &&
+            (player == null || player.team() == req.tile().build.team) &&
             Mathf.mod(req.tile().build.rotation - req.rotation, 2) == 1 ? junctionReplacement : this;
     }
 

@@ -409,6 +409,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
         editor.tags.remove("width");
         editor.tags.remove("height");
 
+        Unit playerUnit = player.unit();
         player.clearUnit();
 
         //remove player unit
@@ -452,6 +453,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
         if (autoSave < 0) menu.hide();
         saved = true;
         state.rules.editor = isEditor;
+        if(net.client()) Call.unitClear(player);
         return returned;
     }
 

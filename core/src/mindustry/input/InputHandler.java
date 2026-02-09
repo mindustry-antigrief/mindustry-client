@@ -1,6 +1,7 @@
 package mindustry.input;
 
 import arc.*;
+import arc.audio.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -375,11 +376,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                     if(ai.commandQueue.size <= 0){
                         ai.group = null;
                     }
-
-                //remove when other player command
-//                if(!headless && player != Vars.player && !ClientUtils.isDeveloper()){ // whats the worst that could happen
-//                    control.input.selectedUnits.remove(unit);
-//                }
 
                     toAdd.add(unit);
                 }
@@ -1021,6 +1017,9 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(locked()){
             block = null;
         }
+
+        player.selectedBlock = block;
+        player.selectedRotation = rotation;
 
         wasShooting = player.shooting;
 
@@ -1740,22 +1739,18 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(withText || Core.settings.getBool("alwaysdrawselectiontext")){
             Font font = Fonts.outline;
             font.setColor(col2);
-            var ints = font.usesIntegerPositions();
+            boolean ints = font.usesIntegerPositions();
             font.setUseIntegerPositions(false);
-            var z = Draw.z();
+            float z = Draw.z();
             Draw.z(Layer.endPixeled);
             font.getData().setScale(1 / renderer.camerascale);
-            var snapToCursor = Core.settings.getBool("selectionsizeoncursor");
-            var textOffset = Core.settings.getInt("selectionsizeoncursoroffset", 5);
             int width = (int)((result.x2 - result.x) / 8);
             int height = (int)((result.y2 - result.y) / 8);
             int area = width * height;
 
-            // FINISHME: When not snapping to cursor, perhaps it would be best to choose the corner closest to the cursor that's at least a block away?
             font.draw(width + "x" + height + " (" + area + ")",
-            snapToCursor ? input.mouseWorldX() + textOffset * (4 / renderer.camerascale) : result.x2,
-            snapToCursor ? input.mouseWorldY() - textOffset * (4 / renderer.camerascale) : result.y
-            );
+            input.mouseWorldX() + 5 * (4 / renderer.camerascale),
+            input.mouseWorldY() - 5 * (4 / renderer.camerascale));
             font.setColor(Color.white);
             font.getData().setScale(1);
             font.setUseIntegerPositions(ints);
@@ -2167,7 +2162,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if((!config.isShown() && build.shouldShowConfigure(player)) //if the config fragment is hidden, show
             //alternatively, the current selected block can 'agree' to switch config tiles
             || (config.isShown() && config.getSelected().onConfigureBuildTapped(build) && build.shouldShowConfigure(player))){
-                Sounds.click.at(build);
+                AudioBus oldBus = build.block.configureSound.bus;
+                build.block.configureSound.bus = control.sound.uiBus;
+                build.block.configureSound.at(build);
+                build.block.configureSound.bus = oldBus;
                 config.showConfig(build);
             }
             //otherwise...
@@ -2271,7 +2269,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         && !player.dead()
         && player.unit().validMine(tile)
         && player.unit().acceptsItem(player.unit().getMineResult(tile))
-        && !((!Core.settings.getBool("doubletapmine") && tile.floor().playerUnmineable) && tile.overlay().itemDrop == null);
+        && !((!Core.settings.getBool("doubletapmine") && tile.floor().playerUnmineable) && tile.overlay().itemDrop == null)
+        && !((!Core.settings.getBool("doubletapmine") && tile.overlay().playerUnmineable) && tile.overlay().itemDrop != null);
     }
 
     /** Returns the tile at the specified MOUSE coordinates. */
@@ -2510,7 +2509,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(invBuild != null && invBuild.acceptStack(stack.item, stack.amount, player.unit()) > 0 && invBuild.interactable(player.team()) &&
         invBuild.block.hasItems && player.unit().stack().amount > 0 && invBuild.interactable(player.team())){
 
-            if(build.allowDeposit() && itemDepositCooldown <= 0f){
+            if(build.allowDeposit() && canDepositItem(build)){
                 if(Navigation.state == NavigationState.RECORDING) Navigation.addWaypointRecording(new ItemDropoffWaypoint(build)); // FINISHME: This is going to be problematic
                 Call.transferInventory(player, invBuild);
                 itemDepositCooldown = state.rules.itemDepositCooldown;
@@ -2518,6 +2517,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }else{
             Call.dropItem(player.angleTo(x, y));
         }
+    }
+
+    public boolean canDepositItem(Building build){
+        //takes advantage of itemDepositCooldown being able to be negative, allows the cooldown to be different for each building
+        if(build.block.depositCooldown >= 0){
+            return itemDepositCooldown - state.rules.itemDepositCooldown <= -build.block.depositCooldown;
+        }
+        return itemDepositCooldown <= 0;
     }
 
     public void rebuildArea(int x1, int y1, int x2, int y2){
@@ -2689,7 +2696,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             Point2 next = i == points.size - 1 ? null : points.get(i + 1);
             line.x = point.x;
             line.y = point.y;
-            if((!overrideLineRotation || diagonal) && !(block != null && block.ignoreLineRotation)){
+            if((!overrideLineRotation || diagonal) && !(block != null && block.ignoreLineRotation && !mobile)){
                 int result = baseRotation;
                 if(next != null){
                     result = Tile.relativeTo(point.x, point.y, next.x, next.y);

@@ -58,7 +58,11 @@ public class ItemBridge extends Block{
         noUpdateDisabled = true;
         allowDiagonal = false;
         copyConfig = false;
+        //disabled as to not be annoying
+        allowConfigInventory = false;
+        ignoreResizeConfig = true;
         priority = TargetPriority.transport;
+        delayLandingConfig = true;
 
         //point2 config is relative
         config(Point2.class, (ItemBridgeBuild tile, Point2 i) -> tile.link = Point2.pack(i.x + tile.tileX(), i.y + tile.tileY()));

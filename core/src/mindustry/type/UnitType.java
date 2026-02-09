@@ -79,7 +79,9 @@ public class UnitType extends UnlockableContent implements Senseable{
     rippleScale = 1f,
     /** boosting rise speed as fraction */
     riseSpeed = 0.08f,
-    /** how fast this unit falls when not boosting */
+    /** boosting descent speed as fraction */
+    descentSpeed = 0.08f,
+    /** how fast this unit falls upon death */
     fallSpeed = 0.018f,
     /** how many ticks it takes this missile to accelerate to full speed */
     missileAccelTime = 0f,
@@ -467,6 +469,8 @@ public class UnitType extends UnlockableContent implements Senseable{
     public int treadFrames = 18;
     /** how much of a top part of a tread sprite is "cut off" relative to the pattern; this is corrected for */
     public int treadPullOffset = 0;
+    /** if true, 'fragile' blocks will instantly be crushed in a 1x1 area around the tank */
+    public boolean crushFragile = false;
 
     //SEGMENTED / CRAWL UNITS (this is WIP content!)
 
@@ -538,6 +542,21 @@ public class UnitType extends UnlockableContent implements Senseable{
         constructor = EntityMapping.map(this.name);
         selectionSize = 30f;
         typeAlpha = Core.settings == null ? 1  : Core.settings.getInt("unittypeopacity-" + this.name, 100) / 100F; // use this.name as it is different from the parameter after the super call
+    }
+
+    @Override
+    public void postInit(){
+        if(databaseTag == null || databaseTag.isEmpty()){
+            if(flying){
+                databaseTag = "unit-air";
+            }else if(naval){
+                databaseTag = "unit-naval";
+            }else{
+                databaseTag = "unit-ground";
+            }
+        }
+
+        super.postInit();
     }
 
     public UnitController createController(Unit unit){
@@ -1297,6 +1316,10 @@ public class UnitType extends UnlockableContent implements Senseable{
         initPathType();
     }
 
+    public void beforeParse(){
+        totalRequirements = cachedRequirements = firstRequirements = null;
+    }
+
     /** @return the time required to build this unit, as a value that takes into account reconstructors */
     public float getBuildTime(){
         getTotalRequirements();
@@ -1513,6 +1536,9 @@ public class UnitType extends UnlockableContent implements Senseable{
         Draw.z(z);
 
         if(unit instanceof Crawlc c){
+            if(isPayload){
+                c.segmentRot(c.rotation());
+            }
             drawCrawl(c);
         }
 

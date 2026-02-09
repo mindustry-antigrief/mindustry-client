@@ -121,7 +121,7 @@ allprojects{
             def output = 'en\n'
             def bundles = new File(project(':core').projectDir, 'assets/bundles/')
             bundles.list().sort().each{ name ->
-                if(name == "bundle.properties") return
+                if(name == "bundle.properties" || name == "global.properties") return
                 if(name == ".DS_Store"){ // Thanks apple
                     new File(bundles, name).delete()
                     return
@@ -246,7 +246,6 @@ project(":desktop"){
         implementation project(":core")
         implementation arcModule("extensions:profiling")
         implementation arcModule("extensions:discord")
-        implementation arcModule("natives:natives-filedialogs")
         implementation arcModule("natives:natives-desktop")
         implementation arcModule("natives:natives-freetype-desktop")
 
@@ -256,7 +255,7 @@ project(":desktop"){
 //        implementation "com.github.mindustry-antigrief.steamworks4j:steamworks4j:master-SNAPSHOT" // Steamworks4j fork
 //        implementation "com.github.mindustry-antigrief:steamworks4j:1.10.0-SNAPSHOT" // Local steamworks4j
 
-        implementation arcModule("backends:backend-sdl")
+        implementation arcModule("backends:backend-sdl3")
         annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 }
@@ -362,7 +361,7 @@ project(":core"){
     dependencies{
         compileJava.dependsOn(preGen)
 
-        api "org.lz4:lz4-java:1.8.0"
+        api "at.yawk.lz4:lz4-java:1.10.2"
         api arcModule("arc-core")
         if(localArc && project.hasProperty("debug")) implementation arcModule("extensions:profiling")
         api arcModule("extensions:flabel")
@@ -370,7 +369,6 @@ project(":core"){
         api arcModule("extensions:g3d")
         api arcModule("extensions:fx")
         api arcModule("extensions:arcnet")
-        implementation arcModule("extensions:filedialogs")
         api "com.github.Anuken:rhino:$rhinoVersion"
         if(localArc && debugged()) api arcModule("extensions:recorder")
         if(localArc) api arcModule(":extensions:packer")

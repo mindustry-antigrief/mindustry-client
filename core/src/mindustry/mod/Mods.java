@@ -389,15 +389,25 @@ public class Mods implements Loadable{
             Threads.awaitAll(tasks); //await packing
             Log.debug("Processed restored sprites in: @ms", Time.elapsed());
 
+            var whitePixmap = Pixmaps.blankPixmap();
+            var whiteTex = new Texture(whitePixmap[0]);
+            var whiteRegion = new AtlasRegion(whiteTex[0], 0, 0, 1, 1);
+
             Core.atlas.dispose();
 
             //dead shadow-atlas for getting regions, but not pixmaps
             var shadow = Core.atlas;
             //dummy texture atlas that returns the 'shadow' regions; used for mod loading
             Core.atlas = new TextureAtlas(){
+
                 {
                     //needed for the correct operation of the found() method in the TextureRegion
                     error = shadow.find("error");
+                }
+
+                @Override
+                public AtlasRegion white(){
+                    return whiteRegion;
                 }
 
                 @Override
@@ -457,6 +467,9 @@ public class Mods implements Loadable{
             }
             Threads.awaitAll(await);
             Log.debug("Time to generate icons: @ms", Time.elapsed());
+
+            whitePixmap.dispose();
+            whiteTex.dispose();
 
             //replace old atlas data
             Core.atlas = packer.flush(Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest, new TextureAtlas(){

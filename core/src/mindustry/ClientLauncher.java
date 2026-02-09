@@ -10,6 +10,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.io.*;
 import kotlin.*;
 import mindustry.ai.*;
 import mindustry.audio.*;
@@ -18,11 +19,17 @@ import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
+import mindustry.game.Saves.*;
+import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.io.*;
 import mindustry.maps.*;
 import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.ui.*;
+
+import java.io.*;
+import java.util.zip.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -336,5 +343,36 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         if(finished){
             super.pause();
         }
+    }
+
+    @Override
+    public void fileDropped(Fi file){
+        if(OS.isIos) return;
+
+        if(file.extension().equalsIgnoreCase(saveExtension)){ //open save
+            try{
+                if(SaveIO.isSaveValid(file)){
+                    SaveMeta meta = SaveIO.getMeta(new DataInputStream(new InflaterInputStream(file.read(Streams.defaultBufferSize))));
+                    if(meta.tags.containsKey("name")){
+                        //is map
+                        if(!ui.editor.isShown()){
+                            ui.editor.show();
+                        }
+
+                        ui.editor.beginEditMap(file);
+                    }else if(meta.rules.sector == null){ //don't allow importing campaign saves, they are broken
+                        SaveSlot slot = control.saves.importSave(file);
+                        ui.load.runLoadSave(slot);
+                    }else{
+                        ui.showErrorMessage("@save.nocampaign");
+                    }
+                }else{
+                    ui.showErrorMessage("@save.import.invalid");
+                }
+            }catch(Throwable e){
+                ui.showException("@save.import.fail", e);
+            }
+        }
+
     }
 }

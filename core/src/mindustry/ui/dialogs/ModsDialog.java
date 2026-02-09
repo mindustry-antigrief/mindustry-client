@@ -41,6 +41,7 @@ public class ModsDialog extends BaseDialog{
     private ObjectMap<String, TextureRegion> textureCache = new ObjectMap<>();
 
     private float modImportProgress;
+    private boolean cancelledImport;
     private String searchtxt = "";
     private @Nullable Seq<ModListing> modList;
     private boolean orderDate = true;
@@ -701,20 +702,25 @@ public class ModsDialog extends BaseDialog{
             Floatc cons = len <= 0 ? f -> {} : p -> modImportProgress = p;
 
             try(var stream = file.write(false)){
-                Streams.copyProgress(result.getResultAsStream(), stream, len, 4096, cons);
+                Streams.copyProgress(result.getResultAsStream(), stream, len, 4096, p -> {
+                    if(cancelledImport) throw new RuntimeException("cancelled");
+                    cons.get(p);
+                });
             }
 
-             Fi zip = file.isDirectory() ? file : new ZipFi(file);
-             if(OS.isMac) zip.child(".DS_Store").delete(); //macOS loves adding garbage files that break everything
-             if(zip.list().length == 1 && zip.list()[0].isDirectory()) zip = zip.list()[0]; // FINISHME: This should be a method in the ZipFi class as its used thrice and the current impl is awful as it calls list thrice for no reason
-             ModMeta meta = mods.findMeta(zip); // The three lines above are needed so that this can work as it won't find the meta file when passing it a zip as a normal file
+            if(cancelledImport) return;
 
-             if(meta == null) Log.warn("Mod @ doesn't have a '[mod/plugin].[h]json' file, skipping.", file);
+            Fi zip = file.isDirectory() ? file : new ZipFi(file);
+            if(OS.isMac) zip.child(".DS_Store").delete(); //macOS loves adding garbage files that break everything
+            if(zip.list().length == 1 && zip.list()[0].isDirectory()) zip = zip.list()[0]; // FINISHME: This should be a method in the ZipFi class as its used thrice and the current impl is awful as it calls list thrice for no reason
+            ModMeta meta = mods.findMeta(zip); // The three lines above are needed so that this can work as it won't find the meta file when passing it a zip as a normal file
 
-             if (meta == null || meta.version == null || !meta.version.equals(prevVersion)) {
-                 var mod = mods.importMod(file);
-                 mod.setRepo(repo);
-             }
+            if(meta == null) Log.warn("Mod @ doesn't have a '[mod/plugin].[h]json' file, skipping.", file);
+
+            if (meta == null || meta.version == null || !meta.version.equals(prevVersion)) {
+                var mod = mods.importMod(file);
+                mod.setRepo(repo);
+            }
 
             file.delete();
             Core.app.post(() -> {
@@ -727,6 +733,7 @@ public class ModsDialog extends BaseDialog{
                 }
             });
         }catch(Throwable e){
+            if(cancelledImport) return;
             modError(e);
         }
 
@@ -759,13 +766,19 @@ public class ModsDialog extends BaseDialog{
 
     public void githubImportMod(String repo, boolean isJava, @Nullable String release, @Nullable String prevVersion){
         modImportProgress = 0f;
+        cancelledImport = false;
         if(prevVersion == null) ui.loadfrag.show("@downloading");
         ui.loadfrag.setProgress(() -> modImportProgress);
+        ui.loadfrag.setButton(() -> {
+            ui.loadfrag.hide();
+            cancelledImport = true;
+        });
 
         if(isJava){
             githubImportJavaMod(repo, release, prevVersion);
         }else{
             Http.get(ghApi + "/repos/" + repo, res -> {
+                if(cancelledImport) return;
                 var json = Jval.read(res.getResultAsString());
                 String mainBranch = json.getString("default_branch");
                 String language = json.getString("language", "<none>");
@@ -794,6 +807,7 @@ public class ModsDialog extends BaseDialog{
     private void githubImportJavaMod(String repo, @Nullable String release, @Nullable String prevVersion){
         //grab latest release
         Http.get(ghApi + "/repos/" + repo + "/releases/" + (release == null ? "latest" : release), res -> {
+            if(cancelledImport) return;
             var json = Jval.read(res.getResultAsString());
             var assets = json.get("assets").asArray();
 
@@ -805,7 +819,10 @@ public class ModsDialog extends BaseDialog{
                 //grab actual file
                 var url = asset.getString("browser_download_url");
 
-                Http.get(url, result -> handleMod(repo, result, prevVersion), this::importFail);
+                Http.get(url, result -> {
+                    if(cancelledImport) return;
+                    handleMod(repo, result, prevVersion);
+                }, this::importFail);
             }else{
                 throw new ArcRuntimeException("No JAR file found in releases. Make sure you have a valid jar file in the mod's latest Github Release.");
             }
@@ -815,11 +832,14 @@ public class ModsDialog extends BaseDialog{
     private void githubImportBranch(String branch, String repo, @Nullable String release, @Nullable String prevVersion){
         if(release != null) {
             Http.get(ghApi + "/repos/" + repo + "/releases/" + release, res -> {
+                if(cancelledImport) return;
                 String zipUrl = Jval.read(res.getResultAsString()).getString("zipball_url");
                 Http.get(zipUrl, loc -> {
+                    if(cancelledImport) return;
                     if(loc.getHeader("Location") != null){
                         Http.get(loc.getHeader("Location"), result -> {
                             handleMod(repo, result, prevVersion);
+                            if(cancelledImport) return;
                         }, this::importFail);
                     }else{
                         handleMod(repo, loc, prevVersion);
@@ -828,8 +848,10 @@ public class ModsDialog extends BaseDialog{
             });
         }else{
             Http.get(ghApi + "/repos/" + repo + "/zipball/" + branch, loc -> {
+                if(cancelledImport) return;
                 if(loc.getHeader("Location") != null){
                     Http.get(loc.getHeader("Location"), result -> {
+                        if(cancelledImport) return;
                         handleMod(repo, result, prevVersion);
                     }, this::importFail);
                 }else{
