@@ -18,6 +18,7 @@ import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.utils.*;
 import mindustry.core.*;
+import mindustry.core.Version;
 import mindustry.desktop.steam.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
@@ -142,7 +143,7 @@ public class DesktopLauncher extends ClientLauncher{
 
     @Override
     public void startDiscord() {
-        if(useDiscord){
+        if(useDiscord && Core.settings.getBool("discordrpc")){
             Threads.daemon(() -> {
                 try{
                     DiscordRPC.connect(discordID);
@@ -340,11 +341,16 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     @Override
-    public void showMultiFileChooser(Cons<Fi> cons, String... extensions){
-        showNativeFileChooser(true, cons, extensions);
+    public void showMultiFileChooser(Cons<Fi> cons, boolean selectMulti, String... extensions){
+        showNativeFileChooser(true, cons, selectMulti, extensions);
     }
 
     void showNativeFileChooser(boolean open, Cons<Fi> cons, String... shownExtensions){
+        showNativeFileChooser(open, cons, false, shownExtensions);
+    }
+
+    //Foos change: allow selectMulti
+    void showNativeFileChooser(boolean open, Cons<Fi> cons, boolean selectMulti, String... shownExtensions){
         String[] ext = shownExtensions == null || shownExtensions.length == 0 ? new String[]{""} : shownExtensions;
 
         SDL_DialogFileFilter.Buffer filters = SDL_DialogFileFilter.calloc(ext.length);
@@ -385,7 +391,7 @@ public class DesktopLauncher extends ClientLauncher{
         };
 
         if(open){
-            SDLDialog.SDL_ShowOpenFileDialog(callback, 0, ((SdlApplication)Core.app).getWindow(), filters, FileChooser.getLastDirectory().absolutePath(), false);
+            SDLDialog.SDL_ShowOpenFileDialog(callback, 0, ((SdlApplication)Core.app).getWindow(), filters, FileChooser.getLastDirectory().absolutePath(), selectMulti);
         }else{
             SDLDialog.SDL_ShowSaveFileDialog(callback, 0, ((SdlApplication)Core.app).getWindow(), filters, FileChooser.getLastDirectory().absolutePath() + "/" + "export." + ext[0]);
         }

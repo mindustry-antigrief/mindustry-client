@@ -390,8 +390,8 @@ public class Mods implements Loadable{
             Log.debug("Processed restored sprites in: @ms", Time.elapsed());
 
             var whitePixmap = Pixmaps.blankPixmap();
-            var whiteTex = new Texture(whitePixmap[0]);
-            var whiteRegion = new AtlasRegion(whiteTex[0], 0, 0, 1, 1);
+            var whiteTex = new Texture(whitePixmap);
+            var whiteRegion = new AtlasRegion(whiteTex, 0, 0, 1, 1);
 
             Core.atlas.dispose();
 

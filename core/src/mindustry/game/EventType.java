@@ -47,6 +47,7 @@ public class EventType{
         unitCommandChange,
         unitCommandPosition,
         unitCommandAttack,
+        unitCommandBoost,
         importMod,
         draw,
         drawOver,

@@ -1,43 +1,36 @@
-buildscript {
-    dependencies {
-        classpath localGroovy()
-    }
-}
-
 sourceSets.main.java.srcDirs = ["src/"]
-sourceSets.main.kotlin.srcDirs = ["src/"]
-
 
 import arc.files.Fi
 import arc.files.ZipFi
 import arc.func.Func2
 import arc.graphics.Color
 import arc.graphics.Pixmap
-import arc.graphics.Pixmaps
 import arc.packer.TexturePacker
 import arc.struct.IntMap
 import arc.struct.ObjectMap
 import arc.struct.OrderedMap
 import arc.struct.Seq
-import arc.util.*
+import arc.util.Http
+import arc.util.Log
+import arc.util.OS
+import arc.util.Threads
 import arc.util.io.PropertiesUtils
-import groovy.transform.CompileStatic
+import arc.util.io.Streams
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.stream.Streams
 
 def genFolder = "../core/assets-raw/sprites_out/generated/"
-def enableAA = !project.hasProperty("disableAntialias")
+def enableAA = true
 
-@CompileStatic
+@groovy.transform.CompileStatic
 static int getRGB(Pixmap image, int ix, int iy) {
     return image.getRaw(Math.max(Math.min(ix, image.width - 1), 0), Math.max(Math.min(iy, image.height - 1), 0))
 }
 
-@CompileStatic
-static void antialias(Fi fi){
-    Pixmap image = new Pixmap(fi)
+@groovy.transform.CompileStatic
+static void antialias(File file){
+    Pixmap image = new Pixmap(new Fi(file))
     Pixmap out = image.copy()
 
     Color color = new Color()
@@ -73,40 +66,47 @@ static void antialias(Fi fi){
             for(int val : p){
                 color.rgba8888(val)
                 color.premultiplyAlpha()
-                suma.r(suma.r + color.r) // Groovy is weird, this is slow with +=
+                suma.r(suma.r + color.r)
                 suma.g(suma.g + color.g)
                 suma.b(suma.b + color.b)
                 suma.a(suma.a + color.a)
             }
 
-            suma.mula(suma.a <= 0.001f ? 0f : (1f / suma.a).toFloat())
+            float fm = suma.a <= 0.001f ? 0f : (float)(1f / suma.a)
+            suma.mul(fm, fm, fm, fm)
 
+            float total = 0
             sum.set(0)
 
             for(int val : p){
                 color.rgba8888(val)
-                sum.a(sum.a + color.a)
-                color.lerp(suma, (1f - color.a))
-                sum.r(sum.r + color.r) // Groovy is weird, this is slow with +=
+                float a = color.a
+                color.lerp(suma, (float) (1f - a))
+                sum.r(sum.r + color.r)
                 sum.g(sum.g + color.g)
                 sum.b(sum.b + color.b)
+                sum.a(sum.a + a)
+                total += 1f
             }
 
-            out.setRaw(x, y, sum.mula((1/9f).floatValue()).rgba8888())
+            fm = (float)(1f / total)
+            sum.mul(fm, fm, fm, fm)
+            out.setRaw(x, y, sum.rgba8888())
+            sum.set(0)
         }
     }
 
     image.dispose()
     out.dispose()
 
-    fi.writePng(out)
+    new Fi(file).writePng(out)
 }
 
 task antialiasImages(){
     doLast{
         for(def img : project.getProperty("images").split(",")){
             println(project.getProperty("startdir") + "/" + img)
-            antialias(new Fi(project.getProperty("startdir") + "/" + img))
+            antialias(new File(project.getProperty("startdir") + "/" + img))
         }
     }
 }
@@ -120,35 +120,13 @@ task tileImages(){
     }
 }
 
-task bleedImages(){
-    doLast{
-        def executor = Executors.newFixedThreadPool(OS.cores)
-        def dir = new Fi(project.getProperty("startdir"))
-        dir.child(".DS_Store").delete()
-        dir.walk { fi ->
-            executor.execute {
-                antialias(fi)
-                def pix = new Pixmap(fi)
-                Pixmaps.bleed(pix, 2)
-                fi.writePng(pix)
-                pix.dispose()
-            }
-        }
-        Threads.await(executor)
-    }
-}
-
-task mapImages(dependsOn: classes, type: JavaExec){
-    mainClass = "mindustry.tools.Paletter"
-    classpath = sourceSets.main.runtimeClasspath
-    standardInput = System.in
-    workingDir = "../"
-}
-
 task pack(dependsOn: [classes, configurations.runtimeClasspath]){
+
     doLast{
         //cleanup old sprites
-        delete "../core/assets-raw/sprites_out/"
+        delete{
+            delete "../core/assets-raw/sprites_out/"
+        }
 
         //copy in new sprites
         copy{
@@ -169,25 +147,26 @@ task pack(dependsOn: [classes, configurations.runtimeClasspath]){
             into "../core/assets-raw/sprites_out/ui/"
         }
 
-        delete "../core/assets-raw/sprites_out/ui/icons"
+        delete{
+            delete "../core/assets-raw/sprites_out/ui/icons"
+        }
 
         if(enableAA){
-            Time.mark()
             ExecutorService executor = Executors.newFixedThreadPool(OS.cores)
+            long ms = System.currentTimeMillis()
 
             //antialias everything except UI elements
-            new Fi("$rootDir/core/assets-raw/sprites_out").walk { file ->
-                String path = file.path()
-                if(!path.endsWith(".png") || path.endsWith(".9.png") || path.endsWith("alphaaaa.png")) return
+            fileTree(dir: new File(rootDir, 'core/assets-raw/sprites_out/').absolutePath, include: "**/*.png").visit{ file ->
+                if(file.isDirectory() || (file.toString().replace("\\", "/").contains("/ui/") && file.toString().startsWith("icon-")) || file.toString().contains(".9.png") || file.toString().contains("aaaa")) return
 
-                executor.execute{
-                    antialias(file)
+                executor.submit{
+                    antialias(file.file)
                 }
             }
 
             Threads.await(executor)
 
-            println("Time taken for AA: ${Time.elapsed()}ms")
+            println "Time taken for AA: ${(System.currentTimeMillis() - ms) / 1000f} seconds"
         }
 
         println("\n\nPacking normal 4096 sprites...\n\n")
@@ -195,15 +174,15 @@ task pack(dependsOn: [classes, configurations.runtimeClasspath]){
         //pack normal sprites
         TexturePacker.process(new File(rootDir, "core/assets-raw/sprites_out/").absolutePath, new File(rootDir, "core/assets/sprites/").absolutePath, "sprites.aatls")
 
+        println("\n\nPacking fallback 2048 sprites...\n\n")
+
+        //replace config file contents
+        fileTree(dir: '../core/assets-raw/sprites_out/', include: "**/*.json").visit{ file ->
+            if(!file.isDirectory()) file.file.text = file.file.text.replace("4096", "2048")
+        }
+
         //pack fallback 2048x2048 sprites - disabled when debugging
         if(!project.hasProperty("args")){
-            println("\n\nPacking fallback 2048 sprites...\n\n")
-
-            //replace config file contents
-            fileTree(dir: '../core/assets-raw/sprites_out/', include: "**/*.json").visit{ file ->
-                if(!file.isDirectory()) file.file.text = file.file.text.replace("4096", "2048")
-            }
-
             TexturePacker.process(new File(rootDir, "core/assets-raw/sprites_out/").absolutePath, new File(rootDir, "core/assets/sprites/fallback/").absolutePath, "sprites.aatls")
         }
     }
@@ -313,7 +292,7 @@ task updateBundles{
         for(int i = 0; i < lines.size(); i++){
             var line = lines.get(i)
             if(i > 0 && lines.get(i - 1).endsWith("\\")) offset++ //multiline value escaped with \\ at end of line
-            else if(line.isEmpty() || line.startsWith("#") && !line.startsWith("#FOO")) commentAndBlankLines.put(i - offset, line)
+            else if(line.isEmpty() || line.startsWith("#")) commentAndBlankLines.put(i - offset, line)
         }
 
         Log.info("Updating bundles...")

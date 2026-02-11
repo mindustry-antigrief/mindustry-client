@@ -24,13 +24,19 @@ object UploadDialog : BaseDialog("@client.uploadtitle") { // FINISHME: Somehow s
         buttons.button("@clear", Icon.trash, ::clearImages)
         buttons.button("@add", Icon.upload) {
             Vars.platform.showMultiFileChooser({
+                //FINISHME: update DesktopLauncher and Platform,
+                //add a method that returns multiple files,
+                //and use that
+                //currently we are passing "allow multiple" all the way to the file selection ui
+                //and then throwing away the other files
+                //set it to false for now
                 try {
                     addImage(Pixmap(it))
                 } catch (e: Exception) {
                     Vars.ui.showInfoToast(Core.bundle["client.failedtoloadimage"], 3f)
                     Log.err("Error loading image", e)
                 }
-            }, true, "png", "jpg", "jpeg")
+            }, false, "png", "jpg", "jpeg")
         }
 
         keyDown {

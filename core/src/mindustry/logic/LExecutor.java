@@ -516,7 +516,7 @@ public class LExecutor{
                         }
                     }
                     case itemDrop -> {
-                        if(!exec.timeoutDone(unit, LogicAI.transferDelay)) return;
+                        if(p1.obj() != Blocks.air && !exec.timeoutDone(unit, LogicAI.transferDelay)) return;
 
                         //clear item when dropping to @air
                         if(p1.obj() == Blocks.air){
@@ -524,7 +524,6 @@ public class LExecutor{
                             if(!net.client()){
                                 unit.clearItem();
                             }
-                            exec.updateTimeout(unit);
                         }else{
                             Building build = p1.building();
                             int dropped = Math.min(unit.stack.amount, p2.numi());
@@ -995,7 +994,7 @@ public class LExecutor{
                     if(p1.obj() instanceof UnlockableContent u){
                         packed = (u.id << 5) | (u.getContentType().ordinal() & 31);
                     }else if(p1.obj() instanceof LogicDisplayBuild d){
-                        packed = (d.index << 5) | LogicDisplay.displayDrawType;
+                        packed = (d.rootDisplay.index << 5) | LogicDisplay.displayDrawType;
                     }
                     num1 = packed & 0x3FF;
                     num4 = packed >> 10;

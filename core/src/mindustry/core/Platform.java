@@ -60,6 +60,9 @@ public interface Platform{
     /** Steam: View a listing on the workshop by an ID.*/
     default void viewListingID(String mapid){}
 
+    /** Steam: Verify the game files.*/
+    default void checkIntegrity(){}
+
     /** Steam: Return external workshop maps to be loaded.*/
     default Seq<Fi> getWorkshopContent(Class<? extends Publishable> type){
         return new Seq<>(0);
@@ -87,6 +90,20 @@ public interface Platform{
 
     /** Update discord RPC. */
     default void updateRPC(){
+    }
+
+    default void stopDiscord(){
+    }
+
+    default void startDiscord(){
+    }
+
+    default void toggleDiscord(boolean toggle){
+        if (toggle) {
+            startDiscord();
+        } else {
+            stopDiscord();
+        }
     }
 
     /** Must be a base64 string 8 bytes in length. */
@@ -149,7 +166,16 @@ public interface Platform{
      * @param extensions File extensions to filter
      */
     default void showMultiFileChooser(Cons<Fi> cons, String... extensions){
-        defaultMultiFileChooser(cons, extensions);
+        showMultiFileChooser(cons, false, extensions);
+    }
+
+    /**
+     * Show a file chooser for multiple file types.
+     * @param cons Selection listener
+     * @param extensions File extensions to filter
+     */
+    default void showMultiFileChooser(Cons<Fi> cons, boolean selectMulti, String... extensions){
+        defaultMultiFileChooser(cons, selectMulti, extensions);
     }
 
     default void showFileChooser(boolean open, String extension, Cons<Fi> cons){
@@ -164,6 +190,10 @@ public interface Platform{
                 cons.get(file);
             }
         }).show();
+    }
+
+    static void defaultMultiFileChooser(Cons<Fi> cons, boolean selectMulti, String... extensions){
+        new FileChooser("@open", file -> Structs.contains(extensions, file.extension().toLowerCase()), true, cons).show();
     }
 
     static void defaultMultiFileChooser(Cons<Fi> cons, String... extensions){
