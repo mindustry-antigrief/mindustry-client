@@ -376,10 +376,7 @@ project(":core"){
 //        implementation "org.jetbrains.kotlin:kotlin-reflect:2.1.20"
         implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
 
-        compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
-        compileOnly files("../bouncycastle/bcpkix-jdk15on.jar")
-        compileOnly files("../bouncycastle/bctls-jdk15on.jar")
-        compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
+        implementation files("../bouncycastle/bcprov-jdk15on.jar", "../bouncycastle/bcpkix-jdk15on.jar", "../bouncycastle/bctls-jdk15on.jar", "../bouncycastle/bcutil-jdk15on.jar")
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
 

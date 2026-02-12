@@ -15,7 +15,7 @@ def platforms = ["Linux64", "Windows64", "Windows32", "MacOS"]
 tasks.register('run', JavaExec){
     dependsOn classes
     mainClass = project.mainClassName
-    classpath = sourceSets.main.runtimeClasspath + files("../bouncycastle/bcprov-jdk15on.jar", "../bouncycastle/bcpkix-jdk15on.jar", "../bouncycastle/bctls-jdk15on.jar", "../bouncycastle/bcutil-jdk15on.jar", "../fooKotlinScriptSupport.jar")
+    // classpath = sourceSets.main.runtimeClasspath + files("../bouncycastle/bcprov-jdk15on.jar", "../bouncycastle/bcpkix-jdk15on.jar", "../bouncycastle/bctls-jdk15on.jar", "../bouncycastle/bcutil-jdk15on.jar", "../fooKotlinScriptSupport.jar")
     standardInput = System.in
     workingDir = project.assetsDir
     ignoreExitValue = true
@@ -52,7 +52,7 @@ tasks.register('dist', Jar){
     from {configurations.runtimeClasspath.collect{
         it.isDirectory() ? it : zipTree(it)
     }}
-    from files("../bouncycastle")
+    // from files("../bouncycastle")
     from files(project.assetsDir)
     exclude("sounds/", "music/") // The client downloads these on first launch these days
     exclude("config/**")
@@ -68,7 +68,7 @@ tasks.register('dist', Jar){
 
     manifest{
         attributes 'Main-Class': project.mainClassName
-        attributes 'Class-Path': "bcprov-jdk15on.jar bcpkix-jdk15on.jar bctls-jdk15on.jar bcutil-jdk15on.jar fooKotlinScriptSupport.jar"
+        // attributes 'Class-Path': "bcprov-jdk15on.jar bcpkix-jdk15on.jar bctls-jdk15on.jar bcutil-jdk15on.jar fooKotlinScriptSupport.jar"
         //note: this doesn't do anything when launched from the bundled JVM
         attributes 'Enable-Native-Access': 'ALL-UNNAMED'
     }
