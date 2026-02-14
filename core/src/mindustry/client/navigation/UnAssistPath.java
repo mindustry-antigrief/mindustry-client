@@ -81,7 +81,8 @@ public class UnAssistPath extends Path {
 
     @Override
     public void follow() {
-        if (target == null || Vars.player == null || player.unit() == null) return;
+        var unit = player.unit();
+        if (target == null || Vars.player == null || unit == null) return;
 
         try {
             if (target.unit() != null && target.unit().canBuild()) {
@@ -108,7 +109,7 @@ public class UnAssistPath extends Path {
             waypoint.set(toUndo.first().x, toUndo.first().y);
         }
         else { // FINISHME: This is horrendous, it should really just enable the default movement instead
-            Unit u = Vars.player.unit();
+            Unit u = unit;
             boolean aimCursor = u.type.omniMovement && Vars.player.shooting && u.type.hasWeapons() && u.type.faceTarget && !(u instanceof Mechc && u.isFlying());
             if (aimCursor) u.lookAt(Angles.mouseAngle(u.x, u.y));
             else u.lookAt(u.prefRotation());
@@ -119,16 +120,18 @@ public class UnAssistPath extends Path {
         if (toUndo.any()) { // Remove all finished plans and remove duplicates
             IntSet contains = new IntSet();
             var it = toUndo.iterator();
+            unit = Vars.player.unit();
+            if(unit == null) return;
             while (it.hasNext()) {
                 var p = it.next();
                 if (p.isDone()) { // Remove finished plans
                     it.remove();
-                    Vars.player.unit().plans.remove(p);
+                    unit.plans.remove(p);
                     pool.free(p);
                 } else if (!contains.add(Point2.pack(p.x, p.y))) { // Keep only one plan for each tile FINISHME: This seems like a bad idea, this is going to cause issues, is it not?
                     it.remove();
                     pool.free(p);
-                } else Vars.player.unit().addBuild(p); // Add a plan to the queue (only the first unfinished plan for any given tile)
+                } else unit.addBuild(p); // Add a plan to the queue (only the first unfinished plan for any given tile)
             }
         }
     }

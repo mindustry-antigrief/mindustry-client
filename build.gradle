@@ -9,7 +9,7 @@ buildscript{
     ext{
         arcHash = property("archash")
 
-        localArc = !project.hasProperty("release") && new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
+        localArc = new File(rootDir.parent, 'Arc').exists() && !project.hasProperty("noLocalArc")
 
         arcModule = { String name ->
             //skip to last submodule
@@ -47,7 +47,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v8'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
-        if(!project.hasProperty("buildversion")) buildversion = '155.1'
+        if(!project.hasProperty("buildversion")) buildversion = '155.3'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -255,7 +255,7 @@ project(":desktop"){
 //        implementation "com.github.mindustry-antigrief.steamworks4j:steamworks4j:master-SNAPSHOT" // Steamworks4j fork
 //        implementation "com.github.mindustry-antigrief:steamworks4j:1.10.0-SNAPSHOT" // Local steamworks4j
 
-        implementation arcModule("backends:backend-sdl3")
+        implementation arcModule("backends:backend-sdl")
         annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 }

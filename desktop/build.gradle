@@ -71,6 +71,7 @@ tasks.register('dist', Jar){
         // attributes 'Class-Path': "bcprov-jdk15on.jar bcpkix-jdk15on.jar bctls-jdk15on.jar bcutil-jdk15on.jar fooKotlinScriptSupport.jar"
         //note: this doesn't do anything when launched from the bundled JVM
         attributes 'Enable-Native-Access': 'ALL-UNNAMED'
+        attributes 'Multi-Release': 'true'
     }
 }
 

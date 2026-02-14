@@ -67,12 +67,14 @@ public class PositionWaypoint extends Waypoint implements Position {
     @Override
     public void onFinish(){
         if (stopOnFinish) {
-            float prev = player.unit().rotation();
+            var unit = player.unit();
+            if(unit == null) return;
+            float prev = unit.rotation();
             if (dst(player) < 2f) {
-                player.unit().set(this);
+                unit.set(this);
             }
-            player.unit().vel.setZero();
-            player.unit().lookAt(prev);
+            unit.vel.setZero();
+            unit.lookAt(prev);
             player.snapInterpolation();
             stopOnFinish = false;
         }
@@ -80,25 +82,26 @@ public class PositionWaypoint extends Waypoint implements Position {
     }
 
     protected void moveTo(Position target, float circleLength, float smooth){
-        if(target == null || (target.getX() == -1f && target.getY() == -1f) || player.unit() == null) return;
+        var unit = player.unit();
+        if(target == null || (target.getX() == -1f && target.getY() == -1f) || unit == null) return;
 
-        vec.set(target).sub(player.unit());
+        vec.set(target).sub(unit);
 
         if (Core.settings.getBool("assumeunstrict")) {
-            float length = player.unit().dst(target) - circleLength;
+            float length = unit.dst(target) - circleLength;
             vec.setLength(length);
             if (length < 0) vec.setZero();
             player.trns(vec);
-            player.unit().trns(vec);
+            unit.trns(vec);
             player.snapInterpolation();
         } else {
-            float length = circleLength <= 0.001f ? 1f : Mathf.clamp((player.unit().dst(target) - circleLength) / smooth, -1f, 1f);
-            vec.setLength(player.unit().speed() * length);
+            float length = circleLength <= 0.001f ? 1f : Mathf.clamp((unit.dst(target) - circleLength) / smooth, -1f, 1f);
+            vec.setLength(unit.speed() * length);
             if (length < -0.5f) vec.rotate(180f);
             else if (length < 0) vec.setZero();
-            player.unit().moveAt(vec);
+            unit.moveAt(vec);
         }
-        if (!player.unit().isShooting || !player.unit().type.faceTarget) player.unit().lookAt(vec.angle()); // Look towards waypoint when possible
+        if (!unit.isShooting || !unit.type.faceTarget) unit.lookAt(vec.angle()); // Look towards waypoint when possible
     }
     @Override
     public PositionWaypoint run() {

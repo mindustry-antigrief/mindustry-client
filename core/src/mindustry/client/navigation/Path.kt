@@ -41,7 +41,8 @@ abstract class Path {
                 targetPos.set(destX, destY)
                 if (job.isDone) {
                     job = clientThread.submit {
-                        v1.set(Vars.player) // starting position
+                        val unit = Vars.player.unit()
+                        if(unit != null) v1.set(unit) // starting position
                         // what is this following code supposed to achieve?
 //                        if (targetPos.within(destX, destY, 1F) && Navigation.currentlyFollowing != null && waypoints.waypoints.any()) { // Same destination
 //                            val point = waypoints.waypoints.first()
@@ -52,7 +53,7 @@ abstract class Path {
                         val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.getEnts())
                         Pools.freeAll(filter, true)
                         filter.clear()
-                        if (!Vars.player.dead()) v1.set(Vars.player.unit())
+                        if(unit != null) v1.set(unit) //not sure why this is being called again? -BalaM314, Feb 13 2026
                         if (path.isNotEmpty() && (targetPos.within(destX, destY, 1F) || (Navigation.currentlyFollowing != null && Navigation.currentlyFollowing !is WaypointPath<*>))) { // Same destination
                             val relaxed = Navigation.navigator is AStarNavigatorOptimised
                             filter.addAll(path, 0, path.size) // Avoid addAll(*path) as that requires a spread operator which does an arrayCopy
@@ -69,7 +70,7 @@ abstract class Path {
                                     }
                                 }
                                 if (filter.size > 1 || (filter.any() && filter.first().dst(Vars.player) < Vars.tilesize / 2f)) Pools.free(filter.remove(0))
-                                if (filter.size > 1 && Vars.player.unit().isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
+                                if (filter.size > 1 && unit.isFlying) Pools.free(filter.remove(0)) // Ground units can't properly turn corners if we remove 2 waypoints.
                             } else if (filter.size > 1) {
                                 var prev: Position = filter.first()
                                 var removeTo = -1
