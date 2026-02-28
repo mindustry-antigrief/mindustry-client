@@ -22,6 +22,8 @@ public class Version{
     public static int build = 0;
     /** Revision number. Used for hotfixes. Does not affect server compatibility. */
     public static int revision = 0;
+    /** Whether the Steam version of the game is requested. This is different from Vars.steam (Steam initialization can fail) */
+    public static boolean isSteam = false;
     /** Whether version loading is enabled. */
     public static boolean enabled = true;
     /** Foo's update url used for... updating */
@@ -52,6 +54,7 @@ public class Version{
         buildDate = map.get("buildDate", "unknown");
         var path = Version.class.getProtectionDomain().getCodeSource().getLocation().getPath().replace('\\', '/');
         if(path.contains("/steamapps/common/Mindustry/")) modifier += " steam";
+        isSteam = modifier.contains("steam");
         if(map.get("build").contains(".")){
             String[] split = map.get("build").split("\\.");
             try{

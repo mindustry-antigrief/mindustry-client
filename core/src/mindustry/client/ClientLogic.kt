@@ -118,6 +118,7 @@ class ClientLogic {
                 }
             }
 
+            if (settings.getBool("discordrpc")) platform.startDiscord()
             if (settings.getBool("mobileui") && !OS.hasProp("nomobileui")) mobile = !mobile
             if (settings.getBool("viruswarnings")) LExecutor.virusWarnings = true
             UnitType.drawAllItems = settings.getBool("drawallitems")

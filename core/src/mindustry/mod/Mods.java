@@ -92,7 +92,9 @@ public class Mods implements Loadable{
             Fi file = mod.root.child(directory);
             if(file.exists()){
                 for(Fi child : file.list()){
-                    cons.get(mod, child);
+                    if(!child.isDirectory()){
+                        cons.get(mod, child);
+                    }
                 }
             }
         });

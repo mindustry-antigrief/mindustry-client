@@ -22,7 +22,6 @@ buildscript{
         mavenLocal()
         mavenCentral()
         google()
-        maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven{ url 'https://jitpack.io' }
     }
 
@@ -47,7 +46,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v8'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
-        if(!project.hasProperty("buildversion")) buildversion = '155.3'
+        if(!project.hasProperty("buildversion")) buildversion = '155.4'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -193,8 +192,7 @@ allprojects{
     repositories{
         mavenLocal()
         mavenCentral()
-        maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven{ url "https://central.sonatype.com/repository/maven-snapshots" }
         maven{ url 'https://jitpack.io' }
     }
 
@@ -246,6 +244,8 @@ project(":desktop"){
         implementation project(":core")
         implementation arcModule("extensions:profiling")
         implementation arcModule("extensions:discord")
+        implementation arcModule("natives:natives-filedialogs")
+        implementation arcModule("extensions:filedialogs")
         implementation arcModule("natives:natives-desktop")
         implementation arcModule("natives:natives-freetype-desktop")
 

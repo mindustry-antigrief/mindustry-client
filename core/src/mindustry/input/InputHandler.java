@@ -2195,7 +2195,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 (Vars.player != null && Vars.player.unit() instanceof BlockUnitUnit blockunit && Structs.contains(noInteractTurrets, blockunit.tile().block.name))
                 && Core.settings.getBool("betterenemyblocktapping", false)
             )
-        ) && build.block.synthetic() && (!consumed || invBuild.block.allowConfigInventory)){
+        ) && build.block.synthetic() /*&& (!consumed || invBuild.block.allowConfigInventory)*/){ //Foos: always allow showing the inventory and config
             if(invBuild.block.hasItems && invBuild.items.total() > 0){
                 inv.showFor(invBuild);
                 consumed = true;

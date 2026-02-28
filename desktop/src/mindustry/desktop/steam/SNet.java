@@ -73,8 +73,10 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                         int len = snet.readP2PPacket(from, readBuffer, 0);
                         if(len >= readBuffer.remaining()) Log.warn("@ byte steam packet exceeds max size of @", len, readBuffer.remaining());
                         readBuffer.limit(len);
+                        readCopyBuffer.limit(readBuffer.capacity());
                         readCopyBuffer.position(0);
                         readCopyBuffer.put(readBuffer);
+                        readCopyBuffer.limit(len);
                         readCopyBuffer.position(0);
                         int fromID = from.getAccountID();
                         Object output = serializer.read(readCopyBuffer);
