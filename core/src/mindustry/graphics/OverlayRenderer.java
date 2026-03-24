@@ -78,17 +78,20 @@ public class OverlayRenderer{
     }
 
     public void drawBottom(){
-        if(ClientVars.hidingPlans || player.dead()) return;
+        if(ClientVars.hidingPlans /*|| player.dead()*/) return;
+
+        InputHandler input = control.input;
 
         if(renderer.showOtherBuildPlans){
             input.drawOtherBuildPlans();
         }
 
         drawFrozenPlans();
-        if(player.isBuilder()){
+//        if(player.isBuilder()){
             input.drawBuildPlans();
-        }
-        Draw.reset();
+//        }
+
+        input.drawBottom();
     }
 
     public void drawFrozenPlans(){

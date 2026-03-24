@@ -14,6 +14,9 @@ import mindustry.world.*;
 import java.util.concurrent.atomic.*;
 
 public class TileInfoFragment extends Table {
+    public static int[] lastPos = new int[]{-1};
+
+    private static final int displayLogs = 7; // Number of logs to display
 
     public TileInfoFragment() { // FINISHME: Rewrite this in a non horrible way in kotlin, this is horrendous
         setBackground(Tex.wavepane);
@@ -23,7 +26,6 @@ public class TileInfoFragment extends Table {
         Label label = new Label("");
         add(label).height(126);
         visible(() -> Core.settings.getBool("tilehud"));
-        AtomicInteger lastPos = new AtomicInteger();
         var builder = new StringBuilder();
         update(() -> {
             Tile hovered = Vars.control.input.cursorTile();
@@ -35,19 +37,21 @@ public class TileInfoFragment extends Table {
                 img.setDrawable(hovered.floor().uiIcon);
                 label.setText("");
                 return;
-            } else if (hovered.pos() == lastPos.get()) {
+            } else if (lastPos[0] == hovered.pos()) {
                 return;
             }
-            lastPos.set(hovered.pos());
+            lastPos[0] = hovered.pos();
 
             TextureRegion icon = hovered.block().uiIcon;
             img.setDrawable(icon.found() ? icon : hovered.floor().uiIcon);
             var record = TileRecords.INSTANCE.get(hovered);
             if (record == null) return;
-            var logs = record.lastLogs(7);
+            var pending = NetworkTileLogs.INSTANCE.logsPending(hovered);
+            var logs = record.lastLogs(displayLogs);
 
             builder.setLength(0);
             for (var item : logs) builder.append(item.toShortString()).append(" (").append(UI.formatMinutesFromMillis(Time.timeSinceMillis(item.getTime().toEpochMilli()))).append(")\n");
+            if (pending && logs.size() < displayLogs) builder.append("[accent]Server Logs Pending[]\n"); // Append if the logs aren't already full since these are always older than client logs FINISHME: Bundle
             label.setText(builder.length() == 0 ? "" : builder.substring(0, builder.length() - 1)); // This is awful
         });
     }

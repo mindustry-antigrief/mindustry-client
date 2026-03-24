@@ -5,12 +5,13 @@ import arc.math.geom.*
 import arc.scene.*
 import arc.scene.ui.layout.*
 import arc.util.*
-import mindustry.*
+import arc.util.io.*
 import mindustry.client.antigrief.TileRecords.joinTime
 import mindustry.client.utils.*
 import mindustry.content.*
 import mindustry.core.*
-import mindustry.gen.Unit
+import mindustry.io.*
+import mindustry.type.*
 import mindustry.ui.*
 import mindustry.world.*
 import java.time.*
@@ -30,18 +31,24 @@ data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int)
     override fun iterator(): Iterator<Point2> = IntRectIterator(this)
 }
 
-private var lastID: Long = 0
-abstract class TileLog(val position: IntRectangle, override val cause: Interactor) : InteractionLog {
-    val id: Long = lastID++
+abstract class TileLog(override val cause: Interactor) : InteractionLog {
+    /** Allows getting details about this log from the server */
+    var id: Int = -1
 
-    override val time: Instant = Instant.now()
+    override var time: Instant = Instant.now()
+
+    abstract fun apply(previous: TileState)
+
+    abstract override fun toString(): String
+
+    open fun add(sequence: TileLogSequence) {
+        sequence.logs.add(this)
+    }
+
+    abstract fun toShortString(): String
 
     companion object {
-        fun Tile.linkedArea(): IntRectangle {
-            return linkedArea(this, block()?.size ?: return IntRectangle(x.toInt(), y.toInt(), 1, 1))
-        }
-
-        fun linkedArea(tile: Tile, size: Int): IntRectangle {
+        fun linkedArea(tile: Tile, size: Int): IntRectangle { // FINISHME: Remove this and replace it with something less stupid
             if (size == 1) return IntRectangle(tile.x.toInt(), tile.y.toInt(), 1, 1)
 
             val offsetx: Int = -(size - 1) / 2
@@ -53,25 +60,13 @@ abstract class TileLog(val position: IntRectangle, override val cause: Interacto
             return IntRectangle(worldx, worldy + size - 1, size, size)
         }
     }
-
-    constructor(tile: Tile, cause: Interactor) : this(tile.linkedArea(), cause)
-
-    abstract fun apply(previous: TileState)
-
-    abstract override fun toString(): String
-
-    open fun add(sequence: TileLogSequence) {
-        sequence.logs.add(this)
-    }
-
-    abstract fun toShortString(): String
 }
 
 class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterable<TileLog> {
     val logs = mutableListOf<TileLog>()
     val range get() = startingIndex..startingIndex + logs.size
 
-    fun addLog(log: TileLog){
+    fun addLog(log: TileLog) {
         logs.add(log)
     }
 
@@ -94,7 +89,7 @@ class TileLogSequence(val snapshot: TileState, val startingIndex: Int) : Iterabl
 }
 
 class TileRecord(val x: Int, val y: Int) {
-    var sequences: MutableList<TileLogSequence>? = null
+    var sequences: MutableList<TileLogSequence>? = null // FINISHME: This whole "sequences" concept needs removal
     val size get() = sequences?.lastOrNull()?.range?.last ?: 0
     private val totalRange get() = 0..size
 
@@ -133,14 +128,6 @@ class TileRecord(val x: Int, val y: Int) {
     /** Returns the last TileLogSequence before a certain time - that is, time will be within returned sequence **/
     fun lastSequence(time: Instant): TileLogSequence? {
         return sequences?.asReversed()?.first { it.snapshot.time <= time }
-    }
-
-    fun oldestLog(sequence: TileLogSequence): TileLog? {
-        return if (sequence.logs.isNotEmpty()) sequence.logs[0] else null
-    }
-
-    fun oldestSequence(): TileLogSequence? {
-        return sequences?.getOrNull(0)  // should never be null but you never know
     }
 
     fun toElement(): Element {
@@ -185,47 +172,44 @@ private fun String.shorten() = take(MAX_NAME_LENGTH).let {
     if (length > MAX_NAME_LENGTH) "$it..." else it
 }
 
-abstract class AbstractTileLog(tile: Tile, cause: Interactor, val block: Block) : TileLog(tile, cause) {
+abstract class AbstractTileLog(cause: Interactor, val block: Block) : TileLog(cause) {
     protected fun eventPlayer(): String = cause.shortName.stripColors().shorten()
     protected fun eventTarget(): String = if (Core.settings.getBool("useiconslogs")) Fonts.getUnicodeStr(block.name) else block.localizedName
 }
 
-open class ConfigureTileLog(tile: Tile, cause: Interactor, block: Block, val rotation: Int, var configuration: Any?) : AbstractTileLog(tile, cause, block) {
+open class ConfigureTileLog(cause: Interactor, block: Block, val rotation: Int, var configuration: Any?) : AbstractTileLog(cause, block) {
     override fun apply(previous: TileState) {
         previous.rotation = rotation
         previous.configuration = configuration
     }
 
     override fun toString() = "${eventPlayer()} ${Core.bundle.get("client.configured")} ${eventTarget()}"
-    override fun add(sequence: TileLogSequence) {
-        Core.app.post {
-            configuration = Vars.world.tile(position.x, position.y)?.build?.config()
-            super.add(sequence)
-        }
-    }
 
     private fun eventName(): String = Core.bundle.get("client.configured").let { if(Core.settings.getBool("colorizelogs")) "[accent]$it[]" else it }
 
     override fun toShortString() = "${eventPlayer()} ${eventName()} ${eventTarget()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = ConfigureTileLog(interactor, TypeIO.readBlock(reads), reads.b().toInt(), TypeIO.readObject(reads))
+    }
 }
 
-class NodeLinkAddedTileLog(tile: Tile, cause: Interactor, block: Block, rotation: Int, configuration: Any?) : ConfigureTileLog(tile, cause, block, rotation, configuration) {
+class NodeLinkAddedTileLog(cause: Interactor, block: Block, rotation: Int, configuration: Any?) : ConfigureTileLog(cause, block, rotation, configuration) {
     override fun toString() = "${eventTarget()} ${Core.bundle.get("client.configurednodelink")}"
     private fun eventName(): String = Core.bundle.get("client.configurednodelink").let { if(Core.settings.getBool("colorizelogs")) "[accent]$it[]" else it }
     override fun toShortString() = "${eventTarget()} ${eventName()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = NodeLinkAddedTileLog(interactor, TypeIO.readBlock(reads), reads.b().toInt(), TypeIO.readObject(reads))
+    }
 }
 
-open class TilePlacedLog(tile: Tile, cause: Interactor, block: Block, var rotation: Int = tile.build?.rotation ?: 0, var configuration: Any?, val isRootTile: Boolean) : AbstractTileLog(tile, cause, block) {
+open class TilePlacedLog(cause: Interactor, block: Block, var rotation: Int, var configuration: Any?, val isRootTile: Boolean): AbstractTileLog(cause, block) {
     override fun apply(previous: TileState) {
         previous.block = block
         previous.rotation = rotation
         previous.configuration = configuration
         previous.isRootTile = isRootTile
-    }
-
-    fun updateLog(rotation: Int?, configuration: Any?) {
-        if (rotation != null) this.rotation = rotation
-        if (configuration != null) this.configuration = configuration
     }
 
     override fun toString(): String {
@@ -235,9 +219,13 @@ open class TilePlacedLog(tile: Tile, cause: Interactor, block: Block, var rotati
     private fun eventName(): String = Core.bundle.get("client.built").let { if(Core.settings.getBool("colorizelogs")) "[green]$it[]" else it }
 
     override fun toShortString() = "${eventPlayer()} ${eventName()} ${eventTarget()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = TilePlacedLog(interactor, TypeIO.readBlock(reads), reads.b().toInt(), TypeIO.readObject(reads), reads.bool())
+    }
 }
 
-class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation: Int, configuration: Any?, origin: Boolean) : TilePlacedLog(tile, cause, block, rotation, configuration, origin) {
+class BlockPayloadDropLog(cause: Interactor, block: Block, rotation: Int, configuration: Any?, origin: Boolean) : TilePlacedLog(cause, block, rotation, configuration, origin) {
     override fun toString(): String {
         return "${cause.name.stripColors()} ${Core.bundle.get("client.putdown")} ${block.localizedName}"
     }
@@ -245,9 +233,13 @@ class BlockPayloadDropLog(tile: Tile, cause: Interactor, block: Block, rotation:
     private fun eventName(): String = Core.bundle.get("client.putdown").let { if(Core.settings.getBool("colorizelogs")) "[accent]$it[]" else it }
 
     override fun toShortString() = "${eventPlayer()} ${eventName()} ${eventTarget()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = BlockPayloadDropLog(interactor, TypeIO.readBlock(reads), reads.b().toInt(), TypeIO.readObject(reads), reads.bool())
+    }
 }
 
-open class TileBreakLog(tile: Tile, cause: Interactor, block: Block) : AbstractTileLog(tile, cause, block) {
+open class TileBreakLog(cause: Interactor, block: Block) : AbstractTileLog(cause, block) {
     override fun apply(previous: TileState) {
         previous.block = Blocks.air
         previous.rotation = -1
@@ -262,9 +254,13 @@ open class TileBreakLog(tile: Tile, cause: Interactor, block: Block) : AbstractT
     private fun eventName(): String = Core.bundle.get("client.broke").let { if(Core.settings.getBool("colorizelogs")) "[red]$it[]" else it }
 
     override fun toShortString() = "${eventPlayer()} ${eventName()} ${eventTarget()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = TileBreakLog(interactor, TypeIO.readBlock(reads))
+    }
 }
 
-class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileBreakLog(tile, cause, block) {
+class BlockPayloadPickupLog(cause: Interactor, block: Block) : TileBreakLog(cause, block) {
     override fun toString(): String {
         return "${cause.name.stripColors()} ${Core.bundle.get("client.pickedup")} ${block.localizedName}"
     }
@@ -272,8 +268,12 @@ class BlockPayloadPickupLog(tile: Tile, cause: Interactor, block: Block) : TileB
     private fun eventName(): String = Core.bundle.get("client.pickedup").let { if(Core.settings.getBool("colorizelogs")) "[accent]$it[]" else it }
 
     override fun toShortString() = "${eventPlayer()} ${eventName()} ${eventTarget()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = BlockPayloadPickupLog(interactor, TypeIO.readBlock(reads))
+    }
 }
-class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteractor(), block) {
+class TileDestroyedLog(block: Block) : TileBreakLog(NoInteractor, block) {
     override fun toString(): String {
         return "${block.localizedName} ${Core.bundle.get("client.destroyed")}"
     }
@@ -281,29 +281,34 @@ class TileDestroyedLog(tile: Tile, block: Block) : TileBreakLog(tile, NoInteract
     private fun eventName(): String = Core.bundle.get("client.destroyed").let { if(Core.settings.getBool("colorizelogs")) "[red]$it[]" else it }
 
     override fun toShortString() = "${eventTarget()} ${eventName()}"
+
+    companion object {
+        fun read(reads: Reads) = TileDestroyedLog(TypeIO.readBlock(reads))
+    }
 }
 
-class UnitDestroyedLog(val tile: Tile, cause: Interactor, unit: Unit, val isPlayer: Boolean) : TileLog(tile, cause) {
-    val unitType = unit.type
+class UnitDestroyedLog(cause: Interactor, val unitType: UnitType, val isPlayer: Boolean) : TileLog(cause) {
     override fun apply(previous: TileState) {
         //pass
     }
 
     override fun toString(): String {
-        return if(isPlayer) "${cause.name.stripColors()} ${Core.bundle.get("client.playerunitdeath")} ${unitType?.localizedName ?: "null unit"}" else "${cause.name.stripColors()} ${Core.bundle.get("client.unitdeath")}"
+        return if(isPlayer) "${cause.name.stripColors()} ${Core.bundle.get("client.playerunitdeath")} ${unitType.localizedName}" else "${cause.name.stripColors()} ${Core.bundle.get("client.unitdeath")}"
     }
 
     private fun eventController(): String = "${cause.shortName.stripColors().take(16)}${if (cause.shortName.stripColors().length > 16) "..." else ""}"
     private fun eventNamePlayer(): String = Core.bundle.get("client.playerunitdeath").let { if(Core.settings.getBool("colorizelogs")) "[red]$it[]" else it }
     private fun eventNameLogic(): String = Core.bundle.get("client.unitdeath").let { if(Core.settings.getBool("colorizelogs")) "[red]$it[]" else it }
-    private fun eventUnit(): String = if(Core.settings.getBool("useiconslogs") && unitType.name.isNotEmpty()) Fonts.getUnicodeStr(unitType.name) else unitType?.localizedName ?: "null unit"
+    private fun eventUnit(): String = if(Core.settings.getBool("useiconslogs") && unitType.name.isNotEmpty()) Fonts.getUnicodeStr(unitType.name) else unitType.localizedName
 
-    override fun toShortString(): String {
-        return if(isPlayer) "${eventController()} ${eventNamePlayer()} ${eventUnit()}" else "${eventController()} ${eventNameLogic()}"
+    override fun toShortString() = if(isPlayer) "${eventController()} ${eventNamePlayer()} ${eventUnit()}" else "${eventController()} ${eventNameLogic()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = UnitDestroyedLog(interactor, TypeIO.readUnitType(reads), reads.bool())
     }
 }
 
-class RotateTileLog(tile: Tile, cause: Interactor, block: Block, val rotation: Int, val direction: Boolean) : AbstractTileLog(tile, cause, block) {
+class RotateTileLog(cause: Interactor, block: Block, val rotation: Int, val direction: Boolean) : AbstractTileLog(cause, block) {
     override fun apply(previous: TileState) {
         previous.rotation = rotation
     }
@@ -315,4 +320,8 @@ class RotateTileLog(tile: Tile, cause: Interactor, block: Block, val rotation: I
     private fun eventName(): String = Core.bundle.get("client.rotated").let { if(Core.settings.getBool("colorizelogs")) "[accent]$it[]" else it }
 
     override fun toShortString() = "${eventPlayer()} ${eventName()} ${eventTarget()}"
+
+    companion object {
+        fun read(reads: Reads, interactor: Interactor) = RotateTileLog(interactor, TypeIO.readBlock(reads), reads.b().toInt(), reads.bool())
+    }
 }

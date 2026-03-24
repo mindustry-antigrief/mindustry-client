@@ -41,7 +41,9 @@ public class SolidPump extends Pump{
         drawPotentialLinks(x, y);
 
         if(attribute != null){
-            drawPlaceText(Core.bundle.format("bar.efficiency", Math.round(Math.max((sumAttribute(attribute, x, y)) / size / size + percentSolid(x, y) * baseEfficiency, 0f) * 100)), x, y, valid);
+            var eff = Math.max((sumAttribute(attribute, x, y)) / size / size + percentSolid(x, y) * baseEfficiency, 0f);
+            var pumpSpeed = " (" + eff * pumpAmount * 60f + Core.bundle.get("unit.persecond") + ")";
+            drawPlaceText(Core.bundle.format("bar.efficiency", Math.round(eff * 100)) + pumpSpeed, x, y, valid);
         }
     }
 

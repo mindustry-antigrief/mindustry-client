@@ -1,12 +1,10 @@
 package mindustry.entities.comp;
 
 import arc.*;
-import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.Queue;
-import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
@@ -23,7 +21,6 @@ import mindustry.world.blocks.ConstructBlock.*;
 
 import java.util.*;
 
-import static arc.Core.*;
 import static mindustry.Vars.*;
 import static mindustry.world.Build.*;
 
@@ -246,11 +243,10 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
 
     void drawPlanTop(BuildPlan plan, float alpha){
         if(!plan.breaking){
-            if(lastFrame != graphics.getFrameId()) getVisiblePlans();
             Draw.reset();
-            Draw.mixcol(Color.white, buildPlanAlpha);
+            Draw.mixcol(Color.white, 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f));
             Draw.alpha(alpha);
-            plan.block.drawPlanConfigTop(plan, visiblePlans);
+            plan.block.drawPlanConfigTop(plan, plans);
         }
     }
 

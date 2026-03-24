@@ -1,5 +1,6 @@
 package mindustry.world.blocks.logic;
 
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -253,7 +254,7 @@ public class CanvasBlock extends Block{
             Tmp.tr1.set(texture);
             float pad = blending == 0 && drawborder ? padding : 0f;
             Draw.rect(Tmp.tr1, x, y, size * tilesize - pad, size * tilesize - pad);
-    
+
             if (!drawborder) return;
             for(int i = 0; i < 4; i ++){
                 if((blending & (1 << i)) == 0){

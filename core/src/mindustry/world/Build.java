@@ -56,7 +56,7 @@ public class Build{
             tile.build.dead = true;
         }
 
-        Events.fire(new BlockBuildBeginEventBefore(tile, team, unit, true, null));
+        Events.fire(new BlockBuildBeginEventBefore(tile, team, unit, true, null, -1));
 
         tile.setBlock(sub, team, rotation);
         var build = (ConstructBuild)tile.build;
@@ -83,8 +83,6 @@ public class Build{
         //just in case
         if(tile == null) return;
 
-        Events.fire(new BlockBuildBeginEventBefore(tile, team, unit, false, result));
-
         //auto-rotate the block to the correct orientation and bail out
         if(tile.team() == team && tile.block == result && tile.build != null && tile.block.quickRotate){
             if(unit != null && unit.getControllerName() != null) tile.build.lastAccessed = unit.getControllerName();
@@ -97,6 +95,9 @@ public class Build{
             if(!headless) Sounds.blockRotate.at(tile.build, 1f + Mathf.range(0.1f), 1f);
             return;
         }
+
+        // Doesn't fire on quick rotates
+        Events.fire(new BlockBuildBeginEventBefore(tile, team, unit, false, result, Mathf.mod(rotation, 4)));
 
         //repair derelict tile
         if(tile.team() == Team.derelict && team != Team.derelict && tile.block == result && tile.build != null && tile.block.allowDerelictRepair && state.rules.derelictRepair){
@@ -120,7 +121,7 @@ public class Build{
                 ConstructBlock.playRepairSound(team, tile);
             }
 
-            Events.fire(new BlockBuildEndEvent(tile, unit, team, false, tile.build.config(), Blocks.air)); // FINISHME: v146 addition, whats the proper previous block here?
+            Events.fire(new BlockBuildEndEvent(tile, unit, team, false, tile.build.config()));
             return;
         }
 

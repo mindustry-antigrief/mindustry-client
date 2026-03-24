@@ -49,7 +49,7 @@ object Main : ApplicationListener {
             keyStorage = KeyStorage(Core.settings.dataDirectory.file())
             signatures = Signatures(keyStorage, ntp.clock)
 
-            TileRecords.initialize()
+            TileRecords.init()
         } else {
             keyStorage = KeyStorage(Files.createTempDirectory("keystorage").toFile())
             communicationSystem = SwitchableCommunicationSystem(DummyCommunicationSystem(mutableListOf()))

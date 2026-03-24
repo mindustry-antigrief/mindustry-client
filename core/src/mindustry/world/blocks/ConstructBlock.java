@@ -78,7 +78,7 @@ public class ConstructBlock extends Block{
             block.breakEffect.at(tile.drawx(), tile.drawy(), block.size, block.mapColor);
             if(shouldPlay()) block.breakSound.at(tile, block.breakPitchChange ? calcPitch(false) : 1f);
         }
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, true, tile.build == null ? null : tile.build.config(), tile.block())); // FINISHME: This overrides the vanilla class; likely to cause issues w/ mods | Vanilla: Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
         tile.remove();
     }
 
@@ -154,7 +154,7 @@ public class ConstructBlock extends Block{
 
         block.placeEnded(tile, builder, rotation, config);
 
-        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config, prevBlock)); // FINISHME: Yet another case of a changed vanilla event. Vanilla: Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
+        Events.fire(new BlockBuildEndEvent(tile, builder, team, false, config));
     }
 
     static boolean shouldPlay(){

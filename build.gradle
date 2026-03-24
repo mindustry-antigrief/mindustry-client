@@ -46,7 +46,7 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v8'
         if(!project.hasProperty("versionModifier")) versionModifier = 'beta'
-        if(!project.hasProperty("buildversion")) buildversion = '155.4'
+        if(!project.hasProperty("buildversion")) buildversion = '156'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
@@ -397,7 +397,10 @@ project(":core"){
 //        implementation "org.jetbrains.kotlin:kotlin-reflect:2.1.20"
         implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
 
-        implementation files("../bouncycastle/bcprov-jdk15on.jar", "../bouncycastle/bcpkix-jdk15on.jar", "../bouncycastle/bctls-jdk15on.jar", "../bouncycastle/bcutil-jdk15on.jar")
+        compileOnly files("../bouncycastle/bcprov-jdk15on.jar")
+        compileOnly files("../bouncycastle/bcpkix-jdk15on.jar")
+        compileOnly files("../bouncycastle/bctls-jdk15on.jar")
+        compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
 

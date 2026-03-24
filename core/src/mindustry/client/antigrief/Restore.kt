@@ -13,7 +13,7 @@ import java.time.*
 import kotlin.math.*
 
 fun rollbackTiles(tiles: Iterable<Tile>, timeInstant: Instant){
-    val time =  if (timeInstant > TileRecords.joinTime) timeInstant else TileRecords.joinTime
+    val time =  if (timeInstant > TileRecords.joinTime) timeInstant else TileRecords.joinTime // FINISHME: No longer true with networked tiles
     clientThread.post {
         val plans = Seq<BuildPlan>()
         val toBreak = IntSet()

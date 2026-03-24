@@ -368,17 +368,21 @@ public class PlayerListFragment{
                 }
             }).height(bs);
 
-            if(Server.current.freeze.canRun()){
-                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () ->
-                    Server.current.handleFreeze(user)
-                ).tooltip("@client.freeze");
-            }
 
-            if(Server.current.mute.canRun()){
-                button.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
-                    Server.current.handleMute(user)
-                ).tooltip("@client.modmute");
-            }
+            button.table(t -> { // Foo's server integration buttons FINISHME: Can we make it so the buttons line up correctly in rows even if only one is shown? Can't figure that out
+                if(Server.current.freeze.canRun()){
+                    t.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () ->
+                        Server.current.handleFreeze(user)
+                    ).tooltip("@client.freeze");
+                }
+
+                if(Server.current.mute.canRun()){
+                    t.row();
+                    t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
+                        Server.current.handleMute(user)
+                    ).tooltip("@client.modmute");
+                }
+            }).height(bs);
 
             var cell = content.add(button);
             if(!Core.settings.getBool("playerliststyle")){

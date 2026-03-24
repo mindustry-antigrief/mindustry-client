@@ -556,13 +556,15 @@ public class EventType{
         public final @Nullable Unit unit;
         public final boolean breaking;
         public final @Nullable Block newBlock;
+        public final int rotation;
 
-        public BlockBuildBeginEventBefore(Tile tile, Team team, Unit unit, boolean breaking, Block newBlock){
+        public BlockBuildBeginEventBefore(Tile tile, Team team, Unit unit, boolean breaking, Block newBlock, int rotation){
             this.tile = tile;
             this.team = team;
             this.unit = unit;
             this.breaking = breaking;
             this.newBlock = newBlock;
+            this.rotation = rotation;
         }
     }
 
@@ -572,19 +574,17 @@ public class EventType{
         public final @Nullable Unit unit;
         public final boolean breaking;
         public final @Nullable Object config;
-        public final Block previous; // FINISHME: What's this used for? Remove it probably
 
-        public BlockBuildEndEvent(Tile tile, @Nullable Unit unit, Team team, boolean breaking, @Nullable Object config, Block previous){
+        public BlockBuildEndEvent(Tile tile, @Nullable Unit unit, Team team, boolean breaking, @Nullable Object config){
             this.tile = tile;
             this.team = team;
             this.unit = unit;
             this.breaking = breaking;
             this.config = config;
-            this.previous = previous;
         }
     }
 
-    public static class BlockBuildEventTile {
+    public static class BlockBuildEventTile { // FINISHME: Unused
         public final Tile tile;
         public final Team team;
         public final Unit unit;

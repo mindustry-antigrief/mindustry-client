@@ -793,7 +793,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new ConfigEventBefore(build, player, value));
         if(player != null) build.updateLastAccess(player);
         build.configured(player == null || player.dead() ? null : player.unit(), value);
-        Core.app.post(() -> Events.fire(new ConfigEvent(build, player, value, previous)));
+        Events.fire(new ConfigEvent(build, player, value, previous));
     }
 
     //only useful for servers or local mods, and is not replicated across clients
@@ -1515,10 +1515,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void drawBuildPlans(){
-        if(!player.isBuilder()) return;
+//        if(!player.isBuilder()) return;
 
         Unit u = player.unit();
-        BuildPlan current = u.buildPlan();
+        BuildPlan current = u == null ? null : u.buildPlan();
 
         camera.bounds(Tmp.r1);
         plansOut.clear();
@@ -1540,7 +1540,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Draw.reset();
 
         //TODO: cannot query for links that are offscreen
-        for(BuildPlan plan : u.plans){
+        if (u != null) for(BuildPlan plan : u.plans){
             if(plan.progress > 0.01f || plan.breaking || (current == plan && plan.initialized && (u.within(plan.x * tilesize, plan.y * tilesize, u.type.buildRange) || state.isEditor()))) continue;
 
             if(Tmp.r2.setCentered(plan.drawx(), plan.drawy(), plan.block.planConfigClipSize()).overlaps(Tmp.r3)){

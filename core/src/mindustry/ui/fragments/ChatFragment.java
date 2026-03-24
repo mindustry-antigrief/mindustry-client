@@ -17,6 +17,7 @@ import mindustry.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
+import mindustry.core.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -413,27 +414,17 @@ public class ChatFragment extends Table{
 
     //ping format: "x,y [text]"
     private void checkPing(String message){
-        int comma = message.indexOf(',');
-        if(comma != -1){
-            int space = message.indexOf(' ', comma + 1);
-            //handle a space after the comma
-            boolean extra = false;
-            if(space == comma + 1){
-                extra = true;
-                space = message.indexOf(' ', comma + 2);
-            }
-            if(space != -1){
-                int x = Strings.parseInt(message, 10, -1, 0, comma), y = Strings.parseInt(message, 10, -1, comma + 1 + (extra ? 1 : 0), space);
-                if(world.tiles.in(x, y)){
-                    Call.pingLocation(player, x * tilesize, y * tilesize, message.substring(space).trim());
-                }
-            }
-        }
+
+        var coords = NetClient.findCoords(message);
+        if (coords.size == 0) return;
+        var msg = new StringBuilder(message);
+        for (int i = coords.size - 1; i >= 0; i--) msg.delete(coords.get(i).start, coords.get(i).end);
+        var c = coords.first().pos;
+        Call.pingLocation(player, c.x, c.y, msg.toString());
     }
 
     private void sendMessage(){
         String message = chatfield.getText().trim();
-        // FINISHME: make it so you need to press enter twice to send a message starting with /e
         clearChatInput();
 
         //avoid sending prefix-empty messages

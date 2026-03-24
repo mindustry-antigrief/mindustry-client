@@ -5,8 +5,7 @@ import mindustry.ai.types.*
 import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.gen.Unit
-import mindustry.gen.UnitEntity
-import mindustry.ui.Fonts
+import mindustry.ui.*
 
 interface Interactor {
     val name: String
@@ -57,11 +56,13 @@ object NullUnitInteractor : UnitInteractor(null) {
     override val shortName = "null unit"
 }
 
-class NoInteractor : Interactor {
+object NoInteractor : Interactor {
     override val name = ""
     override val shortName = ""
     override val playerID: Int = -1
 }
+
+class NetworkInteractor(override val name: String, override val shortName: String, override val playerID: Int) : Interactor
 
 fun Player?.toInteractor(): Interactor {
     this ?: return NullUnitInteractor
