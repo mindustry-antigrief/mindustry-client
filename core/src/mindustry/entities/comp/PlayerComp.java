@@ -4,6 +4,7 @@ import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -21,6 +22,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.InputHandler.*;
 import mindustry.net.Administration.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
@@ -39,6 +41,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     static final float deathDelay = 60f;
     static final Queue<BuildPlan> persistPlans = new Queue<>(1);
     static @Nullable Unit persistPlansFrom = null;
+    static final float pingDuration = 20f * 60f;
 
     @Import float x, y;
 
@@ -54,12 +57,15 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     boolean admin;
     String name = "frog";
     Color color = new Color();
+
     transient String locale = "en";
     transient float deathTimer;
     transient @Nullable Unit unitOnDeath;
     transient String lastText = "";
     transient float textFadeTime;
     transient Ratekeeper itemDepositRate = new Ratekeeper();
+    transient float pingX, pingY, pingTime;
+    transient @Nullable String pingText;
 
     transient private @Nullable Unit lastReadUnit;
     transient private int wrongReadUnits;
@@ -69,6 +75,47 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient @Nullable TraceInfo trace;
     transient @Nullable String serverID;
     transient boolean hasLoadedMap;
+
+    transient int lastPreviewPlanGroup = -1, lastPreviewPlanGroupServer = -1;
+    transient long lastPreviewPlanTimestamp;
+    transient boolean receivingNewPlanGroup;
+    transient Seq<BuildPlan> previewPlansCurrent = new Seq<>(BuildPlan.class);
+    transient Seq<BuildPlan> previewPlansAssembling = new Seq<>(BuildPlan.class);
+    transient @Nullable QuadTree<BuildPlan> previewPlanTree;
+    transient @Nullable QueryEachable planEachable;
+    transient boolean previewPlansDirty;
+
+    public Seq<BuildPlan> getPreviewPlans(){
+        long timeToCommit = 100; //ms needed after first plan is received to "commit" the plans.
+        if(Time.timeSinceMillis(lastPreviewPlanTimestamp) >= timeToCommit && receivingNewPlanGroup){
+            receivingNewPlanGroup = false;
+            previewPlansDirty = true;
+            previewPlansCurrent.set(previewPlansAssembling);
+            previewPlansAssembling.clear();
+        }
+
+        return previewPlansCurrent;
+    }
+
+    public void handlePreviewPlans(int groupId, Seq<BuildPlan> plans){
+        if(groupId > lastPreviewPlanGroup){ //new group received, prepare to add plans for this group
+            previewPlansAssembling.clear();
+            lastPreviewPlanGroup = groupId;
+            receivingNewPlanGroup = true;
+            lastPreviewPlanTimestamp = Time.millis();
+        }else if(groupId < lastPreviewPlanGroup){ //packet is outdated, likely sent out of order
+            return;
+        }else if(!receivingNewPlanGroup){ //the window has closed, no more plans will be received
+            return;
+        }
+
+        if(plans == null) return;
+
+        int added = Math.min(plans.size, maxPlayerPreviewPlans - previewPlansAssembling.size);
+        if(added > 0){
+            previewPlansAssembling.addAll(plans, 0, added);
+        }
+    }
 
     public boolean isBuilder(){
         return unit != null && unit.canBuild();
@@ -126,6 +173,15 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         admin = typing = false;
         textFadeTime = 0f;
         x = y = 0f;
+        lastPreviewPlanTimestamp = 0;
+        lastPreviewPlanGroup = -1;
+        lastPreviewPlanGroupServer = -1;
+        previewPlanTree = null;
+        planEachable = null;
+        previewPlansCurrent.clear();
+        previewPlansAssembling.clear();
+        receivingNewPlanGroup = false;
+        previewPlansDirty = false;
         if(!dead()){
             unit.resetController();
             unit = null;
@@ -144,7 +200,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Replace
     public float clipSize(){
-        return unit == null ? 20 : unit.type.hitSize * 2f;
+        return Float.MAX_VALUE;
     }
 
     @Override
@@ -286,11 +342,6 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             unit.team(team);
             unit.controller(this);
 
-            //this player just became remote, snap the interpolation, so it doesn't go wild
-            if(unit.isRemote()){
-                unit.snapInterpolation();
-            }
-
             if(!headless && isLocal() && !persistPlans.isEmpty()){ // Persist plans through unit swaps
                 if(!ClientVars.syncing && Time.timeSinceMillis(ClientVars.lastJoinTime) < 3000) persistPlans.clear(); // I can't find a more reliable way to not persist through map changes
                 control.input.playerPlanTree.clear();
@@ -340,7 +391,48 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
 
     @Override
     public void draw(){
-        if(unit == null || name == null || unit.inFogTo(Vars.player.team())) return;
+        drawPing();
+        drawName();
+    }
+
+    void drawPing(){
+        if(pingTime <= 0f || !renderer.showPings || name == null || team != Vars.player.team()) return;
+
+        float alpha = Math.min(Interp.pow5Out.apply(Mathf.clamp(Mathf.map(pingTime, 1f / 20f, 0f, 1f, 0f))), Interp.pow5Out.apply(Mathf.map(pingTime, 1f, 0.98f, 0f, 1f)));
+
+        Tmp.c1.set(color).a(alpha);
+
+        pingTime -= Time.delta / pingDuration;
+
+        float s = Scl.scl(4) / renderer.getDisplayScale();
+
+        Draw.z(Layer.playerName);
+        float z = Drawf.text();
+        float hover = Mathf.absin(5f, 1f);
+        float scaling = 1f + Mathf.clamp(Interp.pow5In.apply(Mathf.map(pingTime, 1f, 0.96f, 1f, 0f))) * 3f;
+
+        Drawf.square(pingX, pingY, 2f * scaling * s, 45f, Tmp.c1, Tmp.c3.set(Color.darkGray).mul(color).a(Tmp.c1.a), s);
+        Drawf.fillPoly(pingX, pingY + 9f * s + hover * s, 3, 3f * s, -90f, Tmp.c1, Tmp.c3, s);
+
+        if(pingText != null){
+            Drawf.text(name, pingX, pingY + (20f + hover)*s, Tmp.c1, 0.7f * s);
+            Drawf.text(pingText, pingX, pingY + (16f + hover)*s, Tmp.c2.set(1f, 1f, 1f, Tmp.c1.a), s);
+        }else{
+            Drawf.text(name, pingX, pingY + (16f + hover)*s, Tmp.c1, s);
+        }
+
+        Draw.reset();
+        Draw.z(z);
+    }
+
+    void drawName(){
+        //check clipping for name
+        if(unit == null || name == null) return;
+
+        float clip = unit.type.hitSize * 2f;
+        if(!Core.camera.bounds(Tmp.r1).overlaps(x - clip/2f, y - clip/2f, clip, clip)) return;
+
+        if(name == null || unit.inFogTo(Vars.player.team())) return;
 
         Draw.z(Layer.playerName);
         float z = Drawf.text();

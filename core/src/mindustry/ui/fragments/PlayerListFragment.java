@@ -10,16 +10,17 @@ import arc.scene.event.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
+import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.*;
 import mindustry.client.*;
-import mindustry.client.antigrief.*;
 import mindustry.client.navigation.*;
+import mindustry.client.navigation.AssistPath.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -28,13 +29,26 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
+import static mindustry.client.utils.ClientUtils.*;
 
 public class PlayerListFragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
     private boolean visible = false;
-    private final Interval timer = new Interval();
     private TextField search;
     private final Seq<Player> players = new Seq<>();
+    private Func<Player, String> playerName = p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
+    private Func<Player, String> playerClipboard = Player::plainName;
+    private boolean showTeams;
+    private final TextureRegionDrawable adminIcon = new TextureRegionDrawable(Fonts.getLargeIcon("admin")),
+    hammerIcon = new TextureRegionDrawable(Fonts.getLargeIcon("hammer")),
+    kickIcon = new TextureRegionDrawable(Fonts.getLargeIcon("exit")),
+    traceIcon = new TextureRegionDrawable(Fonts.getLargeIcon("zoom")),
+    teamIcon = new TextureRegionDrawable(Fonts.getLargeIcon("redo")),
+    assistIcon = new TextureRegionDrawable(Fonts.getLargeIcon("copy")),
+    muteIcon = new TextureRegionDrawable(Fonts.getLargeIcon("lock")),
+    blockBuildingIcon = new TextureRegionDrawable(Fonts.getLargeIcon("cancel")),
+    moveIcon = new TextureRegionDrawable(Fonts.getLargeIcon("move")),
+    clientIcon = new TextureRegionDrawable(Fonts.getLargeIcon("wrench"));
 
     public void build(Group parent){
         content.name = "players";
@@ -43,18 +57,44 @@ public class PlayerListFragment{
             cont.name = "playerlist";
             cont.visible(() -> visible);
             cont.update(() -> {
+                if(!visible) return;
                 if(!state.isGame()){
                     visible = false;
                     return;
                 }
 
-                if(visible && timer.get(60) && !Core.input.keyDown(KeyCode.mouseLeft) && !(Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof Image || Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true) instanceof ImageButton)){
+                showTeams = state.rules.pvp ||
+                    Core.settings.getBool("alwaysshowteams") ||
+                    (player != null && Groups.player.find(p -> p.team() != player.team()) != null);
+
+                if(shiftKeyTap()){
+                    playerName = p -> String.valueOf(p.id);
+                    playerClipboard = p -> String.valueOf(p.id);
+                    rebuild();
+                }
+                else if(shiftKeyRelease()){
+                    playerName = Core.input.ctrl() ? p -> "Groups.player.getByID(" + p.id + ")" :
+                        p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
+                    playerClipboard = Core.input.ctrl() ? p -> "Groups.player.getByID(" + p.id + ")" :
+                        Player::plainName;
+                    rebuild();
+                }
+                else if(ctrlKeyTap()){
+                    playerName = p -> "Groups.player.getByID(" + p.id + ")";
+                    playerClipboard = p -> "Groups.player.getByID(" + p.id + ")";
+                    rebuild();
+                }
+                else if(ctrlKeyRelease()){
+                    playerName = Core.input.shift() ? p -> String.valueOf(p.id) :
+                        p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
+                    playerClipboard = Core.input.ctrl() ? p -> String.valueOf(p.id) :
+                        Player::plainName;
                     rebuild();
                 }
             });
 
             cont.table(Tex.buttonTrans, pane -> {
-                pane.label(() -> Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""), Groups.player.size() + " (" + Groups.player.count(p -> p.fooUser || p.isLocal()) + Iconc.wrench + ") " + (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : "")));
+                pane.label(this::formatLabel);
                 pane.row();
 
                 search = pane.field(null, text -> rebuild()).grow().pad(8).name("search").maxTextLength(maxNameLength).get();
@@ -76,15 +116,26 @@ public class PlayerListFragment{
             }).touchable(Touchable.enabled).margin(14f).minWidth(500f);
         });
 
-        rebuild();
+        Events.on(UnitChangeEventClient.class, e -> {
+            if(e.oldUnit != null && e.newUnit != null && (e.oldUnit.type.id != e.newUnit.type.id || e.newUnit.type == UnitTypes.block)){
+                if(visible) rebuild();
+            }
+        });
+        Events.on(PlayerJoin.class, e -> {
+            if(visible) rebuild();
+        });
+        Events.on(ServerJoinEvent.class, e -> Timer.schedule(() -> {
+            if(visible) rebuild();
+        }, .3f)); // delay so client has time to get all the players
     }
 
     public void rebuild(){
         content.clear();
+        boolean adminui = net.server() || Server.current.adminui();
 
-        float h = 74f;
+        float h = 80f;
         float bs = h / 2;
-        float width = 750f + (Server.current.freeze.canRun() ? 20f : 0) + (Server.current.mute.canRun() ? 20f : 0);
+        float width = 700f + (Server.current.freeze.canRun() ? 20f : 0) + (Server.current.mute.canRun() ? 20f : 0);
         boolean found = false;
 
         players.clear();
@@ -94,8 +145,38 @@ public class PlayerListFragment{
             Navigation.currentlyFollowing instanceof AssistPath p && p.getAssisting() != null ? p.getAssisting() :
             Navigation.currentlyFollowing instanceof UnAssistPath p ? p.target :
             null;
-        players.sort(Structs.comps(Structs.comparingBool(p -> p != target), Structs.comps(Structs.comparing(Player::team), Structs.comps(Structs.comparingBool(p -> !p.admin), Structs.comparingBool(p -> !(p.fooUser || p.isLocal()))))));
-        if(search.getText().length() > 0) players.retainAll(p -> Strings.stripColors(p.name().toLowerCase()).contains(search.getText().toLowerCase()));
+        players.sort(
+            Structs.comps(Structs.comparingBool(p -> p != target),
+            Structs.comps(Structs.comparing(Player::team),
+            Structs.comps(Structs.comparingBool(p -> !p.admin),
+            Structs.comparingBool(p -> !(p.fooUser || p.isLocal()))
+            ))));
+        if(search.getText().length() > 0) {
+            players.retainAll(p -> Strings.stripColors(p.name().toLowerCase()).contains(search.getText().toLowerCase()));
+        }
+
+        var style = new ImageButtonStyle(){{
+            down = Styles.none;
+            up = Styles.none;
+            imageCheckedColor = Pal.accent;
+            imageDownColor = Pal.accent;
+            imageUpColor = Color.white;
+            imageOverColor = Color.lightGray;
+        }};
+
+        var ustyle = new ImageButtonStyle(){{
+            down = Styles.none;
+            up = Styles.none;
+            imageDownColor = Pal.accent;
+            imageUpColor = Color.white;
+            imageOverColor = Color.lightGray;
+        }};
+
+        var nameStyle = new TextButtonStyle(){{
+            down = Styles.none;
+            up = Styles.none;
+            font =  Fonts.outline;
+        }};
 
         for(var user : players){
             found = true;
@@ -103,100 +184,129 @@ public class PlayerListFragment{
 
             if(connection == null && net.server() && !user.isLocal()) return;
 
-            Table button = new Table();
-            button.left();
-            button.margin(5).marginBottom(10);
 
-            Table table = new Table(){
+            Table button = new Table(){
                 @Override
                 public void draw(){
                     super.draw();
-                    Draw.color(Pal.gray);
-                    Draw.alpha(parentAlpha);
-                    Lines.stroke(Scl.scl(4f));
-                    Lines.rect(x, y, width, height);
+                    Draw.color(showTeams && !Core.settings.getBool("playerliststyle") ? user.team().color : Pal.gray);
+                    Fill.crect(x, y, width, 4);
                     Draw.reset();
                 }
             };
-            table.margin(8);
-            table.add(new Image(user.icon()).setScaling(Scaling.bounded)).grow();
-            table.name = user.name();
+            button.left();
+            button.margin(5).marginBottom(10);
 
-            button.add(table).size(h);
-            button.button( // This is by far the worst line of code I have ever written, its split so its not 500+ chars but still jesus
-                Core.input.shift() ? String.valueOf(user.id) :
-                    Core.input.ctrl() ? "Groups.player.getByID(" + user.id + ")" :
-                    "[#" + user.color().toString().toUpperCase() + "]" + user.name() + (Core.settings.getBool("showuserid") ? " [accent](#" + user.id + ")" : ""),
-                Styles.nonetdef, () ->
-                Core.app.setClipboardText(Core.input.shift() ? String.valueOf(user.id) :
-                    Core.input.ctrl() ? "Groups.player.getByID(" + user.id + ")" :
-                    Strings.stripColors(user.name))
-            ).wrap().width(400).growY().pad(10);
+            ClickListener listener = new ClickListener();
+            Table iconTable = new Table(){
+                @Override
+                public void draw(){
+                    super.draw();
+                    if(Core.settings.getBool("playerliststyle")){
+                        //Square always
+                        Draw.color(user.team().color);
+                        Draw.alpha(parentAlpha);
+                        Lines.stroke(Scl.scl(4f));
+                        Lines.rect(x, y, width, height);
+                        if(listener.isOver()){
+                            //Fill in when hovered
+                            Draw.alpha(parentAlpha * 0.2f);
+                            Fill.crect(x, y, width, height);
+                        }
+                        Draw.reset();
+                    } else {
+                        if(listener.isOver()){
+                            //Square only when hovered
+                            Draw.color(Pal.accent);
+                            Draw.alpha(parentAlpha);
+                            Lines.stroke(Scl.scl(4f));
+                            Lines.rect(x, y, width, height);
+                            Draw.reset();
+                        }
+                    }
+                }
+            };
 
-            if(user.admin && !(!user.isLocal() && net.server())) button.image(Icon.admin).padRight(20f);
-            if(user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))) button.image(Icon.wrench).padRight(5f).tooltip("@client.clientuser");
+            iconTable.addListener(listener);
+            iconTable.addListener(new HandCursorListener());
+            iconTable.margin(8);
+            iconTable.add(new Image(user.icon()).setScaling(Scaling.bounded)).grow();
+            iconTable.name = user.name();
+            iconTable.touchable = user == player ? Touchable.disabled : Touchable.enabled;
 
-            var style = new ImageButtonStyle(){{
-                down = Styles.none;
-                up = Styles.none;
-                imageCheckedColor = Pal.accent;
-                imageDownColor = Pal.accent;
-                imageUpColor = Color.white;
-                imageOverColor = Color.lightGray;
-            }};
+            iconTable.tapped(() -> {
+                if(!user.dead()){
+                    Spectate.INSTANCE.spectate(user, Core.input.shift());
+                    ui.showInfoToast(Core.bundle.format("viewplayer", user.coloredName()), 1.5f);
+                    Core.app.post(this::rebuild);
+                }
+            });
 
-            var ustyle = new ImageButtonStyle(){{
-                down = Styles.none;
-                up = Styles.none;
-                imageDownColor = Pal.accent;
-                imageUpColor = Color.white;
-                imageOverColor = Color.lightGray;
-            }};
+            button.add(iconTable).size(h);
 
-            button.add().growY();
+            Button nameButton = new Button(nameStyle);
+            nameButton.clicked(() -> {
+                Core.app.setClipboardText(playerClipboard.get(user));
+                ui.showInfoToast(Core.bundle.get("client.copy"), 1.5f);
+            });
+
+            nameButton.add(new Label(playerName.get(user), new Label.LabelStyle(Fonts.outline, Color.white)));
+
+            if(user.fooUser || (user.isLocal() && Core.settings.getBool("displayasuser"))){
+                nameButton.add(new Image(clientIcon).setScaling(Scaling.fit))
+                    .size(h/5).scaling(Scaling.fit).padLeft(4f).padBottom(18f).tooltip("@client.clientuser");
+            }
+
+            button.add(nameButton).width(400).pad(10);
+
+            button.add().growX();
+            if(net.server()){
+                button.button(adminIcon, style, () -> {
+                    String id = user.uuid();
+
+                    if(user.admin){
+                        ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin", user.name()), () -> {
+                            netServer.admins.unAdminPlayer(id);
+                            user.admin = false;
+                            rebuild();
+                        });
+                    }else{
+                        ui.showConfirm("@confirm", Core.bundle.format("confirmadmin", user.name()), () -> {
+                            netServer.admins.adminPlayer(id, user.usid());
+                            user.admin = true;
+                            rebuild();
+                        });
+                    }
+                    }).update(b -> b.setChecked(user.admin))
+                    .checked(user.admin)
+                    .tooltip("@player.admin").get().resizeImage(h/2.2f);
+            }
+
             button.table(t -> {
-                float tableWidth = bs;
-
                 t.defaults().size(bs);
-                if(net.server() || (Server.current.adminui() && (!user.admin || user.isLocal()))){
+
+                if(user.admin && net.client()){
+                    t.image(adminIcon);
+                }
+
+                if(adminui && (!user.admin || user.isLocal())){
                     if(!user.isLocal()){
-                        tableWidth += bs * 5;
-                        t.button(Icon.hammer, ustyle,
+                        t.button(hammerIcon, ustyle,
                             () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()),
-                                () -> Server.current.handleBan(user)))
-                        .tooltip("@player.ban");
+                                () -> Server.current.handleBan(user))
+                        ).tooltip("@player.ban").get().resizeImage(h/2.2f);
 
-                        t.button(Icon.exit, ustyle,
+                        t.button(kickIcon, ustyle,
                             () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick", user.name()),
-                                () -> Call.adminRequest(user, AdminAction.kick, null)))
-                        .tooltip("@player.kick");
+                                () -> Call.adminRequest(user, AdminAction.kick, null))
+                        ).tooltip("@player.kick").get().resizeImage(h/2.2f);
 
-                        t.button(Icon.admin, style, () -> {
-                            if(net.client()) return;
-
-                            String id = user.uuid();
-
-                            if(user.admin){
-                                ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin", user.name()), () -> {
-                                    netServer.admins.unAdminPlayer(id);
-                                    user.admin = false;
-                                });
-                            }else{
-                                ui.showConfirm("@confirm", Core.bundle.format("confirmadmin", user.name()), () -> {
-                                    netServer.admins.adminPlayer(id, user.usid());
-                                    user.admin = true;
-                                });
-                            }
-                        }).update(b -> b.setChecked(user.admin))
-                            .disabled(b -> net.client())
-                            .touchable(() -> net.client() ? Touchable.disabled : Touchable.enabled)
-                            .checked(user.admin)
-                            .tooltip("@player.admin");
-
-                        t.button(Icon.fileTextFill, ustyle, () -> Call.adminRequest(user, AdminAction.trace, null)).tooltip("@player.trace");
+                        t.button(traceIcon, ustyle,
+                            () -> Call.adminRequest(user, AdminAction.trace, null)
+                        ).tooltip("@player.trace").get().resizeImage(h/2.2f);
                     }
 
-                    t.button(Icon.redo, ustyle, () -> {
+                    t.button(teamIcon, ustyle, () -> {
                         var teamSelect = new BaseDialog(Core.bundle.get("player.team") + ": " + user.name);
                         teamSelect.setFillParent(false);
 
@@ -220,63 +330,61 @@ public class PlayerListFragment{
 
                         teamSelect.addCloseButton();
                         teamSelect.show();
-                    }).tooltip("@player.team");
+                    }).tooltip("@player.team").get().resizeImage(h/2.2f);
 
                     t.row();
                 }
 
-                if(!Server.current.adminui() && !user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
-                    tableWidth += bs;
-
-                    button.button(Icon.hammer, ustyle,
-                        () -> {
-                            ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "", reason -> {
-                                Call.sendChatMessage("/votekick #" + user.id() + " " + reason);
-                                if(Server.io.b() && (user.trace != null || user.serverID != null))
-                                    ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () ->
-                                        Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID))
-                                    );
-                            });
-                        }).size(h/2).tooltip("@player.kick");
+                if(!adminui && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){
+                    button.button(hammerIcon, ustyle,
+                        () -> ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "", reason -> {
+                            Call.sendChatMessage("/votekick #" + user.id() + " " + reason);
+                            if(Server.io.b() && (user.trace != null || user.serverID != null))
+                                ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () ->
+                                    Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID))
+                                );
+                        })).size(h/2).tooltip("@player.kick").get().resizeImage(h/2.2f);
                 }
                 if(user != player){
-                    t.button(Icon.lock, ustyle, // Mute player
-                        () -> ClientUtils.toggleMutePlayer(user)).size(h / 2).tooltip("@client.mute");
-                    t.button(Icon.copy, ustyle, // Assist/copy
-                        () -> Navigation.follow(new AssistPath(user,
-                            Core.input.shift() ? AssistPath.Type.FreeMove :
-                            Core.input.ctrl() ? AssistPath.Type.Cursor :
-                            Core.input.alt() ? AssistPath.Type.BuildPath :
-                                            AssistPath.Type.Regular, Core.settings.getBool("circleassist"))
-                        )).size(h / 2).tooltip("@client.assist");
-                    t.button(Icon.cancel, ustyle, // Unassist/block
-                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))).size(h / 2).tooltip("@client.unassist");
-                    t.button(Icon.move, ustyle, // Goto
-                        () -> Navigation.navigateTo(user)).size(h / 2).tooltip("@client.goto");
-                    t.button(Icon.zoom, ustyle, // Spectate/stalk
-                        () -> Spectate.INSTANCE.spectate(user, Core.input.shift())).size(h / 2).tooltip("@client.spectate");
+                    t.button(muteIcon, ustyle, // Mute player
+                        () -> ClientUtils.toggleMutePlayer(user)
+                    ).size(h / 2).tooltip("@client.mute").get().resizeImage(h/2.2f);
 
+                    t.button(assistIcon, ustyle, // Assist/copy
+                        () -> Navigation.follow(new AssistPath(user,
+                            Core.input.shift() ? Type.FreeMove :
+                            Core.input.ctrl() ? Type.Cursor :
+                            Core.input.alt() ? Type.BuildPath :
+                            Type.Regular, Core.settings.getBool("circleassist")))
+                    ).size(h / 2).tooltip("@client.assist").get().resizeImage(h/2.2f);
+
+                    t.button(blockBuildingIcon, ustyle, // Unassist/block
+                        () -> Navigation.follow(new UnAssistPath(user, !Core.input.shift()))
+                    ).size(h / 2).tooltip("@client.unassist").get().resizeImage(h/2.3f);
+
+                    t.button(moveIcon, ustyle, // Goto
+                        () -> Navigation.navigateTo(user)
+                    ).size(h / 2).tooltip("@client.goto").get().resizeImage(h/2.2f);
                 }
-                t.setWidth(tableWidth);
             }).height(bs);
 
-            if (Server.current.freeze.canRun()) { // Apprentice+ on io, Colonel+ on phoenix
-                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () -> {
-                    Moderation.freezePlayer = user;
-                    Call.serverPacketReliable("playerdata_by_id", String.valueOf(user.id)); // Retrieve freeze state from server
-                }).tooltip("@client.freeze");
+            if(Server.current.freeze.canRun()){
+                button.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () ->
+                    Server.current.handleFreeze(user)
+                ).tooltip("@client.freeze");
             }
 
-            if (Server.current.mute.canRun()) { // Apprentice+ on io
-                button.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () -> {
-                    Moderation.mutePlayer = user;
-                    Call.serverPacketReliable("playerdata_by_id", String.valueOf(user.id)); // Retrieve mute state from server
-                }).tooltip("@client.modmute");
+            if(Server.current.mute.canRun()){
+                button.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
+                    Server.current.handleMute(user)
+                ).tooltip("@client.modmute");
             }
 
-            content.add(button).padBottom(-6).width(width).maxHeight(h + 14);
-            content.row();
-            content.image().height(4f).color(shouldShowTeams() ? user.team().color : Pal.gray).growX();
+            var cell = content.add(button);
+            if(!Core.settings.getBool("playerliststyle")){
+                cell.padBottom(-6);
+            }
+            cell.width(width).maxHeight(h + 14);
             content.row();
         }
 
@@ -287,14 +395,6 @@ public class PlayerListFragment{
         content.marginBottom(5);
     }
 
-    public static boolean shouldShowTeams(){
-        return (
-            state.rules.pvp ||
-            (Vars.player != null && Groups.player.find(p -> p.team() != Vars.player.team()) != null) ||
-            Core.settings.getBool("alwaysshowteams")
-        );
-    }
-
     public void toggle(){
         visible = !visible;
         if(visible){
@@ -302,6 +402,8 @@ public class PlayerListFragment{
         }else{
             Core.scene.setKeyboardFocus(null);
             search.clearText();
+            playerName = p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
+            playerClipboard = Player::plainName;
         }
     }
 
@@ -309,4 +411,9 @@ public class PlayerListFragment{
         return visible;
     }
 
+    private String formatLabel(){
+        return Core.bundle.format("players" + (Groups.player.size() == 1 && (ui.join.lastHost == null || ui.join.lastHost.playerLimit <= 0) ? ".single" : ""),
+            Groups.player.size() + " (" + Groups.player.count(p -> p.fooUser || p.isLocal()) + Iconc.wrench + ") " +
+                (ui.join.lastHost != null && ui.join.lastHost.playerLimit > 0 ? " / " + ui.join.lastHost.playerLimit : ""));
+    }
 }

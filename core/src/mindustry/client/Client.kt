@@ -215,7 +215,7 @@ object Client {
             bounds.grow(tilesizeF * Blocks.massDriver.size - tilesizeF) // grow bounds to accommodate for entire mass driver
             val aS = Mathf.clamp(bounds.width / 100f, 8f, 20f) // arrow size
             massDrivers.forEach { b ->
-                if (!b.linkValid()) return@forEach
+                if (!b.linkValid() || !b.isDiscovered(player.team())) return@forEach
                 val to = world.tile(b.link).build as? MassDriver.MassDriverBuild ?: return@forEach
                 if ((bounds.contains(b.x, b.y) && bounds.contains(to.x, to.y)) || Intersector.intersectSegmentRectangle(b.x, b.y, to.x, to.y, bounds)) {
                     //val maxTime = (Mathf.dst(b.x, b.y, to.x, to.y) / 5.5f).coerceAtLeast(90f) // 5.5 is from MassDriver.java - projectile speed. // 90f is min 1.5 seconds
@@ -241,7 +241,7 @@ object Client {
             // FINISHME: literally copypasted code
             bounds.grow(tilesizeF * Blocks.largePayloadMassDriver.size - tilesizeF) // grow bounds to accommodate for entire mass driver
             payloadMassDrivers.forEach { b ->
-                if (!b.linkValid()) return@forEach
+                if (!b.linkValid() || !b.isDiscovered(player.team())) return@forEach
                 val to = world.tile(b.link).build as? PayloadMassDriver.PayloadDriverBuild ?: return@forEach
                 if ((bounds.contains(b.x, b.y) && bounds.contains(to.x, to.y)) || Intersector.intersectSegmentRectangle(b.x, b.y, to.x, to.y, bounds)) {
                     Lines.stroke(1.5f, if (to.state === PayloadMassDriver.PayloadDriverState.idle) massDriverYellow else massDriverGreen)

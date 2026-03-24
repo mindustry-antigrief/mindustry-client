@@ -74,27 +74,31 @@ public class SchematicBrowserDialog extends BaseDialog {
 
         hide(Actions.sequence(Actions.fadeOut(0.4f, Interp.fade), Actions.run(() -> { // Nuke previews to save ram FINISHME: Nuke the schematics as well and reload them on dialog open. Ideally, we should do that across all threads similar to how we load saves
             var previews = schematics.previews();
-            var removed = new Seq<FrameBuffer>();
+            var removed = new Queue<FrameBuffer>();
             for (var schems : loadedRepositories.values()) {
-                removed.add(schems.map((previews::remove)));
+                schems.each(schem -> removed.add(previews.remove(schem)));
             }
             Core.app.post(() -> disposeBuffers(removed)); // Start removing next frame as the process above may already take a few ms on slow cpus or in large repositories
         })));
     }
 
     /** Disposes a list of FrameBuffers over the course of multiple frames to not cause lag. */
-    void disposeBuffers(Seq<FrameBuffer> todo) {
-        var start = Time.nanos();
-        while (!todo.isEmpty()) {
-            if (Time.millisSinceNanos(start) >= 5) {
-                Log.debug("Couldn't finish disposing buffers in time, resuming next frame. @ remain", todo.size);
-                Core.app.post(() -> disposeBuffers(todo));
-                return;
+    void disposeBuffers(Queue<FrameBuffer> todo) {
+        if (todo.size == 0) return;
+        new BackgroundTask<>(0, todo) {
+            @Override
+            public boolean processStep() {
+                var buf = units.removeFirst();
+                if (buf != null) buf.dispose();
+                return units.isEmpty();
             }
-            var buf = todo.pop();
-            if(buf != null) buf.dispose();
-        }
-        Log.debug("Finished disposing of FrameBuffers");
+
+            @Override
+            public synchronized void done() {
+                super.done();
+                Log.debug("Finished disposing of FrameBuffers");
+            }
+        }.submit();
     }
 
     void setup(){
@@ -547,7 +551,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         if(unloadedRepositories.isEmpty()) return;
         Time.mark();
         var previews = schematics.previews();
-        var removed = new Seq<FrameBuffer>();
+        var removed = new Queue<FrameBuffer>();
         for (String link : unloadedRepositories) {
             Time.mark();
             if (hiddenRepositories.contains(link)) continue; // Skip loading
@@ -599,7 +603,7 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
             schems.sort();
             var out = loadedRepositories.get(link, () -> new Seq<>(schems.size));
-            removed.add(out.map(previews::remove)); // If we're reloading this repo, we want to remove the previews from the list
+            out.each(m -> removed.add(previews.remove(m))); // If we're reloading this repo, we want to remove the previews from the list
             out.set(schems);
             Log.debug("Loaded @/@ schems from repo '@' in @ms. Walked in @ms", schems.size, count[0] - nonSchem, link, Time.elapsed(), walk);
         }

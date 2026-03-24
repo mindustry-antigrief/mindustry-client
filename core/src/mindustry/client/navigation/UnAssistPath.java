@@ -150,10 +150,4 @@ public class UnAssistPath extends Path {
     public Position next() {
         return null;
     }
-
-    @Override
-    public synchronized void draw() {
-        if (target == null || target.unit() == null) return;
-        target.unit().drawBuildPlans();
-    }
 }

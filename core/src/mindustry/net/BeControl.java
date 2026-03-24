@@ -37,6 +37,10 @@ public class BeControl{
     }
 
     public BeControl(){
+    
+    }
+
+    public void init(){
         Events.on(EventType.ClientLoadEvent.class, event -> {
             checkUpdates = Core.settings.getBool("autoupdate");
             Timer.schedule(() -> {

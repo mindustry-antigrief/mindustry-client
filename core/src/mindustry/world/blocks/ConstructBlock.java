@@ -616,7 +616,6 @@ public class ConstructBlock extends Block{
             var warnBlock = warnBlocks.get(current);
             if (warnBlock == null) return;
 
-            lastBuilder.drawBuildPlans(); // Draw their build plans FINISHME: This is kind of dumb because it only draws while they are building one of these blocks rather than drawing whenever there is one in the queue
             int distance = distanceToGreaterCore();
 
             // Play warning sound (only played when no reactor has been built for 10s)

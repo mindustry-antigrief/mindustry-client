@@ -61,7 +61,10 @@ object ResearchAssistant : Table() {
         Time.mark()
         queue.clear()
         @Suppress("UNCHECKED_CAST")
-        (Core.settings.getJson("autoresearchqueue-${ui.research.root.node.name}", Seq::class.java, UnlockableContent::class.java) { null } as? Seq<UnlockableContent>)?.each { queue.add(ui.research.nodes.find { n -> n.node == (it.techNode ?: return@each) } ?: return@each) }
+        (Core.settings.getJson("autoresearchqueue-${ui.research.root.node.name}", Seq::class.java, UnlockableContent::class.java) { null } as? Seq<UnlockableContent>)?.each {
+            val rNode = it.techNode ?: return@each
+            queue.add(ui.research.nodes.find { n -> n.node == rNode } ?: return@each)
+        }
         updateQueue(true)
         Log.debug("Research queue loaded in ${Time.elapsed()}")
     }

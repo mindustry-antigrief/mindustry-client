@@ -659,8 +659,12 @@ public class UnitType extends UnlockableContent implements Senseable{
 
     /** Adds all available unit stances based on the unit's current state. This can change based on the command of the unit. */
     public void getUnitStances(Unit unit, Seq<UnitStance> out){
+        if(!(unit.controller() instanceof CommandAI ai)) return;
+
+        var current = ai.currentCommand();
+
         //return mining stances based on present items
-        if(unit.controller() instanceof CommandAI ai && ai.currentCommand() == UnitCommand.mineCommand){
+        if(current == UnitCommand.mineCommand){
             out.add(UnitStance.mineAuto);
             for(Item item : indexer.getAllPresentOres()){
                 if(unit.canMine(item) && ((mineFloor && indexer.hasOre(item)) || (mineWalls && indexer.hasWallOre(item)))){
@@ -671,8 +675,15 @@ public class UnitType extends UnlockableContent implements Senseable{
                 }
             }
         }else{
-            out.addAll(stances);
+            for(var stance : stances){
+                if(stance.isCompatible(current)){
+                    out.add(stance);
+                }
+            }
         }
+
+        //there might be duplicates, but that shouldn't cause issues
+        out.addAll(current.extraStances);
     }
 
     public boolean allowStance(Unit unit, UnitStance stance){
@@ -808,7 +819,7 @@ public class UnitType extends UnlockableContent implements Senseable{
 
         if(legSplashDamage > 0 && legSplashRange > 0){
             stats.add(Stat.legSplashDamage, table -> {
-                table.add((String)(Core.bundle.format("bullet.splashdamage", Strings.autoFixed(legSplashDamage, 2),
+                table.add((Core.bundle.format("bullet.splashdamage", Strings.autoFixed(legSplashDamage, 2),
                     Strings.autoFixed(legSplashRange / tilesize, 2))).replace("[stat]", "[white]") + " " + StatUnit.perLeg.localized());
             });
         }
@@ -1079,10 +1090,13 @@ public class UnitType extends UnlockableContent implements Senseable{
         //assign default commands.
         if(commands.size == 0){
 
-            commands.add(UnitCommand.moveCommand, UnitCommand.enterPayloadCommand);
+            commands.add(UnitCommand.moveCommand);
+
+            if(allowedInPayloads){
+                commands.add(UnitCommand.enterPayloadCommand);
+            }
 
             if(canBoost){
-                commands.add(UnitCommand.boostCommand);
 
                 if(buildSpeed > 0f){
                     commands.add(UnitCommand.rebuildCommand, UnitCommand.assistCommand);
@@ -1120,6 +1134,9 @@ public class UnitType extends UnlockableContent implements Senseable{
                 stances.addAll(UnitStance.stop, UnitStance.holdFire, UnitStance.pursueTarget, UnitStance.patrol);
                 if(!flying){
                     stances.add(UnitStance.ram);
+                }
+                if(canBoost){
+                    stances.add(UnitStance.boost);
                 }
             }else{
                 stances.addAll(UnitStance.stop, UnitStance.patrol);

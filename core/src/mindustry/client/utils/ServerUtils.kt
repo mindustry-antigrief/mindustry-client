@@ -7,6 +7,7 @@ import arc.files.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
+import mindustry.client.antigrief.*
 import mindustry.client.ui.*
 import mindustry.client.utils.CustomMode.*
 import mindustry.client.utils.Server.*
@@ -87,6 +88,15 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
                 }
                 Call.adminRequest(p, AdminAction.ban, reason)
             }
+        }
+        override fun handleFreeze(p: Player) {
+            Moderation.freezePlayer = p
+            Call.serverPacketReliable("playerdata_by_id", p.id.toString())
+        }
+
+        override fun handleMute(p: Player) {
+            Moderation.mutePlayer = p
+            Call.serverPacketReliable("playerdata_by_id", p.id.toString())
         }
 
         override fun adminui() = player.admin || ClientVars.rank >= 4
@@ -218,7 +228,13 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     /** Run when banning [p] */
     open fun handleBan(p: Player) = Call.adminRequest(p, AdminAction.ban, null)
 
-    /** Whether or not the player has access to the admin ui in the player list */
+    /** Run when freezing [p] */
+    open fun handleFreeze(p: Player) {}
+
+    /** Run when muting [p] */
+    open fun handleMute(p: Player) {}
+
+    /** Whether the player has access to the admin ui in the player list */
     open fun adminui() = player.admin
 
     /** Map like/dislike */

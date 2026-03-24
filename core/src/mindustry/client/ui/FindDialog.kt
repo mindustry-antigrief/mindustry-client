@@ -4,9 +4,11 @@ import arc.*
 import arc.input.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
+import arc.struct.*
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.utils.*
+import mindustry.content.*
 import mindustry.core.*
 import mindustry.ui.dialogs.*
 import mindustry.world.*
@@ -19,7 +21,16 @@ object FindDialog : BaseDialog("@client.find") {
     private var guesses: MutableList<Block> = mutableListOf()
 
     private fun updateGuesses() {
-        guesses = content.blocks().copy().toMutableList().apply { sortBy { biasedLevenshtein(it.localizedName, inputField.text) } }
+        guesses = content.blocks().copy().apply {
+            //these remove()s will be fast because they are at indexes 0, 2, and 3
+            removeAll(Seq.with(Blocks.air, Blocks.removeWall, Blocks.removeOre), true)
+        }.toMutableList().apply {
+            if(" " in inputField.text) sortBy {
+                biasedLevenshtein(it.localizedName, inputField.text, false, true)
+            } else sortBy {
+                biasedLevenshtein(it.localizedName.replace(" ", ""), inputField.text, false, true)
+            }
+        }
     }
 
     private fun updateImages() {
@@ -49,8 +60,10 @@ object FindDialog : BaseDialog("@client.find") {
         cont.add(imageTable)
 
         inputField.typed {
-            updateGuesses()
-            updateImages()
+            if (!inputField.text.isEmpty()){
+                updateGuesses()
+                updateImages()
+            }
         }
 
         keyDown(KeyCode.enter) {

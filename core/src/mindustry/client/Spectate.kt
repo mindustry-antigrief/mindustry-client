@@ -27,6 +27,6 @@ object Spectate { // FINISHME v8: Remove this as vanilla now has a spectate feat
     }
 
     fun draw() {
-        if(!hidingPlans) (pos as? Player)?.unit()?.drawBuildPlans()
+        // if(!hidingPlans) (pos as? Player)?.unit()?.drawBuildPlans()
     }
 }

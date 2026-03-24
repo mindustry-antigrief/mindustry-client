@@ -8,6 +8,7 @@ import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.client.*;
 import mindustry.core.GameState.*;
 import mindustry.game.EventType.*;
 import mindustry.io.*;
@@ -40,8 +41,23 @@ public class Saves{
     long totalPlaytime;
     private long lastTimestamp;
 
-    private final LinkedBlockingQueue<Runnable> previewQueue = new LinkedBlockingQueue<>();
     private SaveSlot createPreviewFor;
+    private final BackgroundTask<Runnable> previewTask = new BackgroundTask<>() {
+        @Override
+        public boolean processStep() {
+            if (!units.isEmpty()) units.removeFirst().run(); // Load previews
+
+            var createPreviews = Core.settings.getBool("createmissingsavepreviews");
+            if (createPreviewFor != null && createPreviews) { // Create missing save previews
+                doExpensiveStep(50, () -> {
+                    createPreview(createPreviewFor);
+                    createPreviewFor = null;
+                });
+            }
+
+            return units.isEmpty() && (createPreviewFor == null || !createPreviews);
+        }
+    };
 
     public Saves(){
         Events.on(StateChangeEvent.class, event -> {
@@ -120,7 +136,7 @@ public class Saves{
             cancelling = false;
             loading = true;
             for(var task : tasks){
-                previewQueue.add(() -> {
+                previewTask.addUnit(() -> {
                     var s = Threads.await(task);
                     if(s != null){
                         processSave(s, remaps, remapped);
@@ -128,7 +144,7 @@ public class Saves{
                     }
                 });
             }
-            previewQueue.add(() -> { // Signifies that loading has completed
+            previewTask.addUnit(() -> { // Signifies that loading has completed
                 if(cancelling){
                     hasLoaded = false;
                     Log.debug("Cancelled loading saves | Size: @", saves.size);
@@ -246,7 +262,8 @@ public class Saves{
     public void unload(){
         Log.debug("Unloading saves");
         cancelling = true;
-        while(!previewQueue.isEmpty()) previewQueue.remove().run(); // Process the queue immediately (jank)
+        previewTask.block();
+        previewTask.addUnit(() -> saves.each(SaveSlot::unloadTexture));
         saves.each(SaveSlot::unloadTexture);
         saves.clear().shrink(); // Don't want all of this stuff in memory
         createPreviewFor = null;
@@ -303,7 +320,11 @@ public class Saves{
         if(current != null && state.isGame()
         && !(state.isPaused() && Core.scene.hasDialog())){
             if(lastTimestamp != 0){
-                totalPlaytime += Time.timeSinceMillis(lastTimestamp);
+                long change = Time.timeSinceMillis(lastTimestamp);
+                totalPlaytime += change;
+                if(state.isCampaign()){
+                    state.getPlanet().stats().playtime += change;
+                }
             }
             lastTimestamp = Time.millis();
         }
@@ -326,21 +347,8 @@ public class Saves{
         }else{
             time = 0;
         }
-    }
 
-    /** Processes a portion of the existing preview/loading queue. Also creates the pending save preview if needed. */
-    public long processQueue(long start, long lastPreview, int limit){
-        int i = 0; // Time.millis() is not free and these are generally very small tasks, we should run Time.millis() less frequently to reduce the overhead
-        while(!previewQueue.isEmpty() && ((i = (i + 1) % 5) == 0 || Time.timeSinceMillis(start) < limit)){
-            previewQueue.remove().run();
-        }
-
-        if(Core.settings.getBool("createmissingsavepreviews") && createPreviewFor != null && Time.timeSinceMillis(start) < 1 && Time.timeSinceMillis(lastPreview) > 50){ // Only create the preview if we didn't do much work above
-            createPreview(createPreviewFor);
-            createPreviewFor = null;
-            lastPreview = Time.millis();
-        }
-        return lastPreview;
+        createPreviewFor = null; // If we enable the creation of previews we need to run the task again, this is an easy way to do so.
     }
 
     public long getTotalPlaytime(){
@@ -493,7 +501,7 @@ public class Saves{
             mainExecutor.execute(() -> {
                 try{
                     previewFile().writePng(renderer.minimap.getPixmap());
-                    previewQueue.add(this::unloadTexture);
+                    previewTask.addUnit(this::unloadTexture);
                 }catch(Throwable t){
                     Log.err(t);
                 }
@@ -510,7 +518,7 @@ public class Saves{
                         try {
                             var data = TextureData.load(previewFile(), false);
                             data.prepare();
-                            previewQueue.add(() -> {
+                            previewTask.addUnit(() -> {
                                 if (preview == null) { // By the time the pixmap finished loading, we no longer needed it, so we don't create a texture.
                                     data.consumePixmap().dispose(); // Since we don't create a texture, we need to manually dispose the pixmap.
                                     return;
@@ -525,6 +533,7 @@ public class Saves{
                 }
             }else if(createPreviewFor == null && preview == Core.atlas.find("nomap") && !previewFile().exists()){ // Doesn't have the default
                 createPreviewFor = this;
+                previewTask.submit(); // preview creation uses the previewTask
             }
             return preview;
         }

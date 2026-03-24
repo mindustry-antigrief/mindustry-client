@@ -384,7 +384,7 @@ public class DesktopLauncher extends ClientLauncher{
     }
 
     void showNativeFileChooser(boolean open, Cons<Fi> cons, boolean selectMulti, String... shownExtensions){
-        showNativeFileChooser(open, cons, false, shownExtensions);
+        showNativeFileChooser("@open", open, cons, false, shownExtensions);
     }
 
     public void showMultiFileChooser(Cons<Fi> cons, String... extensions){
