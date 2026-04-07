@@ -723,9 +723,9 @@ public class UnitType extends UnlockableContent implements Senseable{
                 if(unit.shield > 0f && unit.type.abilities.find(a -> a instanceof ForceFieldAbility) == null){
                     //If it has a shield, display the shield in health bar
                     //unless it has a force field, because then the shield is already displayed as a separate bar
-                    return Strings.format("@ (@ + @)", Core.bundle.get("stat.health"), Mathf.round(unit.health, 0.1f), Mathf.round(unit.shield, 0.1f));
+                    return Strings.format("@ (@ + @)", Core.bundle.get("stat.health"), Strings.fixed(unit.health, 1), Strings.fixed(unit.shield, 1));
                 } else {
-                    return Strings.format("@ (@ / @)", Core.bundle.get("stat.health"), Mathf.round(unit.health, 0.1f), Mathf.round(health, 0.1f));
+                    return Strings.format("@ (@ / @)", Core.bundle.get("stat.health"), Strings.fixed(unit.health, 1), Strings.fixed(health, 1));
                 }
             }, () -> Pal.health, unit::healthf).blink(Color.white));
             bars.row();

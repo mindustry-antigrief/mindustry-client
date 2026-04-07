@@ -419,17 +419,15 @@ public class LCanvas extends Table{
                 t.button(Icon.add, Styles.logici, () -> Vars.ui.logic.showAddDialog(index + 1)).tooltip("Add Here")
                     .disabled(b -> canvas.statements.getChildren().size >= LExecutor.maxInstructions).size(24f).padRight(6);
 
-                t.button(Icon.copy, Styles.logici, () -> {
-                }).size(24f).padRight(6).get().tapped(this::copy);
+                t.button(Icon.copy, Styles.logici, this::copy).size(24f).padRight(6).disabled(i -> canvas.statements.getChildren().size >= LExecutor.maxInstructions);
 
                 t.button(Icon.paste, Styles.logici, () -> {
-                }).size(24f).padRight(6).tooltip("Paste Here").get().tapped(() -> {
                     try {
                         this.paste(LAssembler.read(Core.app.getClipboardText().replace("\r\n", "\n"), privileged));
                     } catch (Throwable e) {
                         ui.showException(e);
                     }
-                });
+                }).size(24f).padRight(6).tooltip("Paste Here");
 
                 var temp = t.button(Icon.cancel, Styles.logici, () -> {
                     remove();
@@ -546,7 +544,9 @@ public class LCanvas extends Table{
 
         public void paste(Seq<LStatement> states) {
             var idx = statements.getChildren().indexOf(this) + 1;
-            states.truncate(LExecutor.maxInstructions - statements.getChildren().size);
+            var maxAdd = LExecutor.maxInstructions - statements.getChildren().size;
+            if (states.size > maxAdd) ui.announce(Core.bundle.format("client.pastelimit", maxAdd, states.size), 5);
+            states.truncate(maxAdd);
             states.reverse();
 
             for (var state : states) {

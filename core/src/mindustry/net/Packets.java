@@ -85,6 +85,11 @@ public class Packets{
         public byte type;
 
         @Override
+        public boolean allow(boolean server){
+            return !server;
+        }
+
+        @Override
         public void write(Writes buffer){
             buffer.i(id);
             buffer.i(total);
@@ -102,6 +107,11 @@ public class Packets{
     public static class StreamChunk extends Packet{
         public int id;
         public byte[] data;
+
+        @Override
+        public boolean allow(boolean server){
+            return !server;
+        }
 
         @Override
         public void write(Writes buffer){

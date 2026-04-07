@@ -38,7 +38,8 @@ import static arc.Core.*;
 
 public class Mods implements Loadable{
     public static final String[] metaFiles = {"mod.json", "mod.hjson", "plugin.json", "plugin.hjson"};
-    private static final ObjectSet<String> blacklistedMods = ObjectSet.with("ui-lib", "braindustry");
+    //it would be nice to parse semver and have syntax like "<1.0.5" here, but mods clearly don't use semver and it's an inconsistent mess
+    private static final ObjectSet<String> blacklistedMods = ObjectSet.with("ui-lib", "braindustry", "schema", "scheme-size:1.0.5", "scheme-size:1.0.4", "scheme-size:1.0.3", "scheme-size:1.0.1", "scheme-size:1.0.0", "scheme-size:1.0.4.1");
 
     private Json json = new Json();
     private @Nullable Scripts scripts;
@@ -1442,7 +1443,7 @@ public class Mods implements Loadable{
 
         /** Some mods are known to cause issues with the game; this detects and returns whether a mod is manually blacklisted. */
         public boolean isBlacklisted(){
-            return blacklistedMods.contains(name) && !OS.hasProp(Strings.format("allow-@", name));
+            return (blacklistedMods.contains(name) || blacklistedMods.contains(name + ":" + meta.version)) && !OS.hasProp(Strings.format("allow-@", name));
         }
 
         /** @return whether this mod is outdated, i.e. not compatible with v8. */

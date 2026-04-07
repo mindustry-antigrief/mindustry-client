@@ -215,19 +215,26 @@ fun setupCommands() {
     var installingKt = false
     // This command doesn't work unless the supporting jar file is on the class path
     register("kt <code...>", Core.bundle.get("client.command.kt.description")) { args, player: Player ->
+        val file = Fi(ScriptEngineHolder::class.java.protectionDomain.codeSource.location.toURI().path).sibling("fooKotlinScriptSupport.jar")
+        val version = 1 // The kotlin version needs bumping every so often to support new java versions. Easiest way is to redownload the file.
+
         try { ScriptEngineHolder } catch (_: Throwable) { player.sendMessage("client.command.kt.unsupported".bundle()); return@register }
 
         if (installingKt) player.sendMessage("client.command.kt.installing".bundle())
-        else if (ScriptEngineHolder.kts == null) ui.showConfirm("client.command.kt.install".bundle()) {
+        else if (Core.settings.getInt("fooScriptVersion") != version || ScriptEngineHolder.kts == null) ui.showConfirm("client.command.kt.install".bundle()) {
+            Log.info("Download")
             installingKt = true
             becontrol.downloadJar(
                 "https://github.com/mindustry-antigrief/kotlinScriptSupport/releases/latest/download/fooKotlinScriptSupport.jar",
-                Fi(ScriptEngineHolder::class.java.protectionDomain.codeSource.location.toURI().path).sibling("fooKotlinScriptSupport.jar"),
-                { ui.showConfirm("client.command.kt.finished".bundle()) { restartGame() } },
+                file,
+                { Core.settings.put("fooScriptVersion", version); ui.showConfirm("client.command.kt.finished".bundle()) { restartGame() } },
                 { player.sendMessage("client.command.kt.error".bundle(Strings.neatError(it))) }
             )
         }
-        else player.sendMessage("[accent]${try { ScriptEngineHolder.kts!!.eval(args[0]) } catch (e: Throwable /* ScriptException */) { e.message }}")
+        else {
+            Log.info("Existing")
+            player.sendMessage("[accent]${try { ScriptEngineHolder.kts!!.eval(args[0]) } catch (e: Throwable /* ScriptException */) { e.message }}")
+        }
     }
 
     register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
@@ -395,11 +402,13 @@ fun setupCommands() {
 
     register("stoppathing <name/id...>", Core.bundle.get("client.command.stoppathing.description")) { args, _ ->
         val name = args.joinToString(" ")
-        val player = Groups.player.find { it.id == Strings.parseInt(name) } ?: Groups.player.minByOrNull { Strings.levenshtein(
-            Strings.stripColors(it.name), name) }!!
-        Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: return@register, player))
-        // FINISHME: Force stop instead of prompt
-        // FINISHME: success message
+        val player = Groups.player.find { it.id == Strings.parseInt(name) } ?:
+            Groups.player.minByOrNull { biasedLevenshtein(Strings.stripColors(it.name), name, false, true) }!!
+        Main.send(CommandTransmission(CommandTransmission.Commands.STOP_PATH, Main.keyStorage.cert() ?: run {
+            player.sendMessage("Failed to send transmission: invalid certificate!")
+            return@register
+        }, player))
+        player.sendMessage("Stopped pathing of player ${player.name}[white].")
     }
 
     register("c <message...>", Core.bundle.get("client.command.c.description")) { args, _ ->

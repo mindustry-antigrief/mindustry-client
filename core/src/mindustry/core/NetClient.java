@@ -383,8 +383,12 @@ public class NetClient implements ApplicationListener{
     }
 
     public static Seq<FoundCoords> findCoords(String message) {
+        return findCoords(message, false);
+    }
+
+    public static Seq<FoundCoords> findCoords(String message, boolean whole) {
         if (message == null) return new Seq<>();
-        Matcher matcher = coordPattern.matcher(message);
+        Matcher matcher = (whole ? wholeCoordPattern : coordPattern).matcher(message);
         Seq<FoundCoords> out = new Seq<>();
         while (matcher.find()) {
             var result = matcher.toMatchResult();

@@ -139,10 +139,15 @@ public class BeamDrill extends Block{
 
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid){
+        drawPlaceInner(x, y, rotation, valid, true);
+    }
+
+    public void drawPlaceInner(int x, int y, int rotation, boolean valid, boolean showText){
         Item item = null, invalidItem = null;
         boolean multiple = false;
         int count = 0;
 
+        Draw.reset();
         for(int i = 0; i < size; i++){
             nearbySide(x, y, rotation, i, Tmp.p1);
 
@@ -182,6 +187,8 @@ public class BeamDrill extends Block{
             );
         }
 
+        if(!showText) return;
+
         if(item != null){
             float width = drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / getDrillTime(item) * count, 3), x, y, valid);
             if(!multiple){
@@ -195,6 +202,11 @@ public class BeamDrill extends Block{
             drawPlaceText(Core.bundle.get("bar.drilltierreq"), x, y, false);
         }
 
+    }
+
+    @Override
+    public void drawPlanConfigTop(BuildPlan req, Eachable<BuildPlan> list){
+        drawPlaceInner(req.x, req.y, req.rotation, true, false);
     }
 
     @Override

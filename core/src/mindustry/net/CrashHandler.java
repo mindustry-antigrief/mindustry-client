@@ -45,8 +45,8 @@ public class CrashHandler{
         + "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n"
         + "Cores: " + OS.cores + "\n"
         + (cause == null ? "" : "Likely Cause: " + cause.meta.displayName + " (" + cause.name + " v" + cause.meta.version + ")\n")
-        + (enabledMods == null ? "<no mod init>" : "Mods: " + (enabledMods.isEmpty() ? "none (foos)" : enabledMods.toString(", ", mod -> mod.name + ":" + mod.meta.version)))
-        + (state != null && state.patcher != null && state.patcher.patches != null && state.patcher.patches.size > 0 ? "Patches: \n" + state.patcher.patches.toString("\n---\n", p -> p.patch) + "\n" : "")
+        + (enabledMods == null ? "<no mod init>" : "Mods: " + (enabledMods.isEmpty() ? "none" : enabledMods.toString(", ", mod -> mod.name + ":" + mod.meta.version)))
+        + (state != null && state.patcher != null && state.patcher.patches != null && state.patcher.patches.size > 0 ? "\nPatches: \n" + state.patcher.patches.toString("\n---\n", p -> p.patch) + "\n" : "")
         + "\n\n") + error + "```";
     }
 

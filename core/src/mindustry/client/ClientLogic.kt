@@ -89,8 +89,8 @@ class ClientLogic {
             dispatchingBuildPlans = false
             hidingBlocks = false
             hidingUnits = false
-            if (state.rules.pvp && !isDeveloper()) ui.announce("[scarlet]Don't use a client in pvp, it's uncool!", 5f)
-            if (!state.rules.schematicsAllowed && !syncing) ui.announce("[scarlet]This map has schematics disabled.", 5f)
+            if (state.rules.pvp && !isDeveloper()) ui.announce("@client.nopvp", 5f)
+            if (!state.rules.schematicsAllowed && !syncing) ui.announce("@client.schematicsdisabled", 5f)
             overdrives.clear()
             massDrivers.clear()
             payloadMassDrivers.clear()
@@ -183,7 +183,7 @@ class ClientLogic {
 
             if (settings.getBool("clientjoinleave") && !Server.io() && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
                 player.sendMessage(bundle.format("client.disconnected", e.player.name))
-            
+
             if (settings.getBool("showidinjoinleave", false))
                 ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", e.player.id.toString()))
                     .addButton(e.player.id.toString()) { app.clipboardText = "!undo ${e.player.id}" }

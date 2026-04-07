@@ -78,13 +78,12 @@ abstract class Navigator {
         state.teams.active.each { team ->
             if (player.team() !== null && state.teams.getOrNull(player.team()) === team) return@each
             for (block in BaseShield.baseShields) {
-                val radius = block.radius + additionalRadius
                 team.getBuildings(block).each { shield ->
                     realObstacles.add(
                         pool.obtain().set(
                             shield.x,
                             shield.y,
-                            radius
+                            (shield as BaseShield.BaseShieldBuild).radius() + additionalRadius - tilesize / 2,
                         )
                     )
                 }

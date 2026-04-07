@@ -132,7 +132,7 @@ dependencies{
     }
 
     def version, highestVersion
-    new File((String)findSdkDir(), "/platforms").eachFileMatch ~/android-\d+/, {
+    if (new File((String)findSdkDir(), "/platforms").exists()) new File((String)findSdkDir(), "/platforms").eachFileMatch ~/android-\d+/, {
         version = it.name.find(/\d+/).toInteger()
         highestVersion = version > highestVersion ? version : highestVersion
     }

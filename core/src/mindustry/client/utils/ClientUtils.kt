@@ -262,7 +262,7 @@ fun pixmapFromClipboard(): Pixmap? {
         val clipboard = tkClass.getMethod("getSystemClipboard").invoke(tk)
         val clipboardClass = Class.forName("java.awt.datatransfer.Clipboard")
 
-        val content = clipboardClass.getMethod("getContents", java.lang.Object::class.java)
+        val content = clipboardClass.getMethod("getContents", Object::class.java)
             .invoke(clipboard, null)
 
         val flavorClass = Class.forName("java.awt.datatransfer.DataFlavor")
@@ -318,7 +318,7 @@ fun compressImage(img: Pixmap): ByteArray {
         bytes.reset()
         val memCacheOutCls = Class.forName("javax.imageio.stream.MemoryCacheImageOutputStream")
         val out = memCacheOutCls.getConstructor(OutputStream::class.java).newInstance(bytes)
-        writerCls.getMethod("setOutput", java.lang.Object::class.java).invoke(writer, out)
+        writerCls.getMethod("setOutput", Object::class.java).invoke(writer, out)
 
         val bufImCls = Class.forName("java.awt.image.BufferedImage")
         val im = bufImCls.getConstructor(Int::class.java, Int::class.java, Int::class.java)
@@ -409,7 +409,7 @@ inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {
 }
 
 /** Send a signed message to chat. */
-fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg))
+fun sendMessage(msg: String) = Call.sendChatMessage(Main.sign(msg).also { checkPing(it) })
 
 fun getName(builder:mindustry.gen.Unit?):String {
     return if(builder == null){

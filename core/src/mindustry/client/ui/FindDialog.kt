@@ -88,7 +88,7 @@ object FindDialog : BaseDialog("@client.find") {
                 ClientVars.lastSentPos.set(closest.x.toFloat(), closest.y.toFloat())
 
 //                    val text = "${Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, results.size)} ${Iconc.left} ${Iconc.right}"
-                val text = Core.bundle.format("client.find.found", block.localizedName, closest.x, closest.y, results.size)
+                val text = Core.bundle.format("client.find.found", block.localizedName, closest.x.toString(), closest.y.toString(), results.size)
                 val msg = ui.chatfrag.addMsg(text)
 
 /*                  FINISHME: This implementation will cause a mem leak as the results list will exist forever

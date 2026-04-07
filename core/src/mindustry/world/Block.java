@@ -678,8 +678,8 @@ public class Block extends UnlockableContent implements Senseable{
     }
 
     public void setBars(){
-        addBar("health", entity -> new Bar(() -> 
-            Strings.format("@ (@ / @)", Core.bundle.get("stat.health"), Mathf.round(entity.health, 0.1f), Mathf.round(health, 0.1f))
+        addBar("health", entity -> new Bar(() ->
+            Strings.format("@ (@ / @)", Core.bundle.get("stat.health"), Strings.fixed(entity.health, 1),Strings.fixed(health, 1))
         , () -> Pal.health, entity::healthf).blink(Color.white));
 
         if(consPower != null){
@@ -847,7 +847,7 @@ public class Block extends UnlockableContent implements Senseable{
         Draw.rect(reg, plan.drawx(), plan.drawy(), !rotate || !rotateDraw ? 0 : plan.rotation * 90);
 
         if(plan.worldContext && player != null && teamRegion != null && teamRegion.found()){
-            if(teamRegions[player.team().id] == teamRegion) Draw.color(player.team().color);
+            if(teamRegions[player.team().id] == teamRegion) Draw.color(player.team().color, a);
             Draw.rect(teamRegions[player.team().id], plan.drawx(), plan.drawy());
             Draw.color(1f, 1f, 1f, a);
         }

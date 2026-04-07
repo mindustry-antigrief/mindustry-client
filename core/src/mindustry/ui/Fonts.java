@@ -134,10 +134,37 @@ public class Fonts{
         });
     }
 
-    public static void loadContentIcons(){
-        Seq<FontData> fontsData = Seq.with(Fonts.def, Fonts.outline).map(Font::getData);
-        Texture uitex = Core.atlas.find("logo").texture;
+    public static void registerIcon(String name, String regionName, int ch, TextureRegion region){
         int size = (int)(Fonts.def.getData().lineHeight/Fonts.def.getData().scaleY);
+
+        unicodeIcons.put(name, ch);
+        stringIcons.put(name, ((char)ch) + "");
+        unicodeToName.put(ch, regionName);
+
+        Vec2 out = Scaling.fit.apply(region.width, region.height, size, size);
+
+        Glyph glyph = new Glyph();
+        glyph.id = ch;
+        glyph.srcX = 0;
+        glyph.srcY = 0;
+        glyph.width = (int)out.x;
+        glyph.height = (int)out.y;
+        glyph.u = region.u;
+        glyph.v = region.v2;
+        glyph.u2 = region.u2;
+        glyph.v2 = region.v;
+        glyph.xoffset = 0;
+        glyph.yoffset = -size;
+        glyph.xadvance = size;
+        glyph.kerning = null;
+        glyph.fixedWidth = true;
+        glyph.page = 0;
+        Fonts.def.getData().setGlyph(ch, glyph);
+        Fonts.outline.getData().setGlyph(ch, glyph);
+    }
+
+    public static void loadContentIcons(){
+        Texture uitex = Core.atlas.find("logo").texture;
 
         try(var reader = Core.files.internal("icons/icons.properties").reader(Vars.bufferSize)){
             String line;
@@ -152,29 +179,7 @@ public class Fonts{
                     continue;
                 }
 
-                unicodeIcons.put(nametex[0], ch);
-                stringIcons.put(nametex[0], ((char)ch) + "");
-                unicodeToName.put(ch, texture);
-
-                Vec2 out = Scaling.fit.apply(region.width, region.height, size, size);
-
-                Glyph glyph = new Glyph();
-                glyph.id = ch;
-                glyph.srcX = 0;
-                glyph.srcY = 0;
-                glyph.width = (int)out.x;
-                glyph.height = (int)out.y;
-                glyph.u = region.u;
-                glyph.v = region.v2;
-                glyph.u2 = region.u2;
-                glyph.v2 = region.v;
-                glyph.xoffset = 0;
-                glyph.yoffset = -size;
-                glyph.xadvance = size;
-                glyph.kerning = null;
-                glyph.fixedWidth = true;
-                glyph.page = 0;
-                fontsData.each(f -> f.setGlyph(ch, glyph));
+                registerIcon(nametex[0], texture, ch, region);
             }
         }catch(IOException e){
             throw new RuntimeException(e);
