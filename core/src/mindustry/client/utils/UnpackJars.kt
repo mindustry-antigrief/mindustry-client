@@ -3,7 +3,7 @@ package mindustry.client.utils
 import arc.*
 import arc.files.*
 
-class UnpackJars {
+object UnpackJars {
     fun unpack() {
         val jars = arrayOf("bcprov-jdk15on.jar", "bcpkix-jdk15on.jar", "bctls-jdk15on.jar", "bcutil-jdk15on.jar")
         val outputDir = Fi(this::class.java.protectionDomain.codeSource.location.toURI().path).parent()

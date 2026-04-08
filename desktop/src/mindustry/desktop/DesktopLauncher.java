@@ -49,7 +49,6 @@ public class DesktopLauncher extends ClientLauncher{
         System.setProperty("java.awt.headless", "false");
         System.out.println("Launching Mindustry! Arguments: " + Arrays.toString(arg));
         try{
-            int[] aaSamples = new int[1];
             Version.init();
             Vars.loadLogger();
             Vars.loadFileLogger(new Fi(Version.isSteam ? "saves" : OS.getAppDataDirectoryString(appName)).child("last_log.txt"));
@@ -57,15 +56,13 @@ public class DesktopLauncher extends ClientLauncher{
             check32Bit();
             checkJavaVersion();
 
-            String env = OS.hasProp("aaSamples") ? OS.prop("aaSamples") : OS.hasEnv("aaSamples") ? OS.env("aaSamples") : "";
+            String env = OS.hasProp("aaSamples") ? OS.propNoNull("aaSamples") : OS.hasEnv("aaSamples") ? OS.env("aaSamples") : "";
+            int[] aaSamples = new int[1];
             if (Strings.canParsePositiveInt(env)) aaSamples[0] = Math.min(Integer.parseInt(env), 32);
-
-            Vars.loadLogger();
-            Version.init();
 
             Events.on(EventType.ClientLoadEvent.class, e -> Core.graphics.setTitle(getWindowTitle()));
 
-            new UnpackJars().unpack();
+            UnpackJars.INSTANCE.unpack();
             Log.infoTag("AA Samples", "" + aaSamples[0]);
 
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig() {{
@@ -166,11 +163,14 @@ public class DesktopLauncher extends ClientLauncher{
 
     static void checkJavaVersion(){
         if(OS.javaVersionNumber < 17){
+            boolean itch = new Fi("jre/bin/").exists(); // Itch and steam have a jre path set.
             //this is technically a lie: Java 25 isn't actually required (17 is), but I want people to get the highest available version they can.
             //Java 25 *might* be required in the future for FFM bindings.
             ErrorDialog.show("Java 25 is required to run Mindustry. Your version: " + OS.javaVersionNumber + "\n" +
             "\n" +
-            "Please uninstall your current Java version, and download Java 25.\n" +
+            (Version.isSteam ? "If you are on a steam copy of the game, it is recommended to switch to the v8 beta branch.\n\n\nOtherwise: " :
+            (itch ? "If you are on an itch copy of the game, it is recommended to install the latest version from there.\n\n\nOtherwise: " : "")) +
+            "Please uninstall your current Java version, and download Java 25. Reboot after doing so.\n" +
             "\n" +
             "It is recommended to download Java from adoptium.net.\n" +
             "Do not download from java.com, as that will give you Java 8 by default.");
@@ -193,7 +193,7 @@ public class DesktopLauncher extends ClientLauncher{
             ErrorDialog.show("You are running a 32-bit installation of Windows and/or a 32-bit JVM. 32-bit windows is no longer supported." + versionWarning);
         }
     }
-        
+
 
     public DesktopLauncher(String[] args){
         this.args = args;
@@ -532,7 +532,7 @@ public class DesktopLauncher extends ClientLauncher{
     @Override
     public void checkIntegrity(){ // This whole method is a disaster. It works though and I can't find any less convoluted way to do this
         try{
-            Fi out = new UnpackJars().unpackSteamUninstaller();
+            Fi out = UnpackJars.INSTANCE.unpackSteamUninstaller();
             Log.info(Arrays.toString(new String[]{"cmd", "/c", "start", "", javaPath, "-jar", out.absolutePath()}));
             if(OS.isWindows) Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", "", javaPath, "-jar", out.absolutePath()});
             else Runtime.getRuntime().exec(new String[]{"sh", "-c", '"' + javaPath + "\" -jar \"" + out.absolutePath() + '"'});
