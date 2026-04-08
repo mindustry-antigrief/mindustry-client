@@ -140,7 +140,7 @@ public class NetClient implements ApplicationListener{
             } else if (ui.join.communityHosts.contains(h -> "mindustry.ddns.net".equals(h.group) && h.address.equals(address))) {
                 // such a bad naming system
                 // https://github.com/BnDLett/NameValidation/blob/master/src/org/lettsn/NameValidation/Constants.java#L9
-                var matcher = Pattern.compile("[^ -~]").matcher(player.name);
+                var matcher = Pattern.compile("\\A(?!\\(Admin\\)|\\(Staff\\))([ -~])+\\z", Pattern.CASE_INSENSITIVE).matcher(player.name);
                 if (matcher.find()) c.name = matcher.replaceAll("");
             }
 
