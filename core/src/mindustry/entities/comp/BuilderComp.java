@@ -164,8 +164,11 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                     Vars.control.sound.loop(Sounds.loopBuild, tile, 1.3f);
                 }
 
+                
+                boolean allowBuildCurrent = current.block != null && (state.isEditor() || (state.rules.waves && team == state.rules.waveTeam && current.block.isVisible()) || (current.block.unlockedNowHost() && current.block.environmentBuildable() && current.block.isPlaceable()));
+
                 if(!(tile.build instanceof ConstructBuild cb)){
-                    if(!current.initialized && !current.breaking && Build.validPlaceIgnoreUnits(current.block, team, current.x, current.y, current.rotation, true, false)){
+                    if(!current.initialized && !current.breaking && Build.validPlaceIgnoreUnits(current.block, team, current.x, current.y, current.rotation, true, false) && allowBuildCurrent){
                         if(!Build.validPlaceCoreRange(current.block, team, current.x, current.y) ||
                             !Build.validPlaceUnit(current.block, current.x, current.y)
                         ){
@@ -174,11 +177,12 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
                             if(!instant) plans.addLast(plans.removeFirst());
                             return;
                         }
-                        boolean hasAll = infinite || current.isRotation(team) ||
-                        //derelict repair
-                        (tile.team() == Team.derelict && tile.block() == current.block && tile.build != null && tile.block().allowDerelictRepair && state.rules.derelictRepair) ||
-                        //make sure there's at least 1 item of each type first
-                        !Structs.contains(current.block.requirements, i -> !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
+
+                    boolean hasAll = infinite || current.isRotation(team) ||
+                    //derelict repair
+                    (tile.team() == Team.derelict && tile.block() == current.block && tile.build != null && tile.block().allowDerelictRepair && state.rules.derelictRepair) ||
+                    //make sure there's at least 1 item of each type first
+                    !Structs.contains(current.block.requirements, i -> !core.items.has(i.item, Math.min(Mathf.round(i.amount * state.rules.buildCostMultiplier), 1)));
 
                     if(hasAll){
                         Call.beginPlace(self(), current.block, team, current.x, current.y, current.rotation, current.block.instantBuild ? current.config : null);
@@ -219,7 +223,7 @@ abstract class BuilderComp implements Posc, Statusc, Teamc, Rotc{
             //otherwise, update it.
             if(current.breaking){
                 entity.deconstruct(self(), core, bs);
-            }else if(entity.current != null && (state.isEditor() || (state.rules.waves && team == state.rules.waveTeam && entity.current.isVisible()) || (entity.current.unlockedNowHost() && entity.current.environmentBuildable() && entity.current.isPlaceable()))){ //only allow building unlocked blocks
+            }else if(allowBuildCurrent){ //only allow building unlocked blocks
                 entity.construct(self(), core, bs, current.config);
             }
 

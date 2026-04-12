@@ -424,6 +424,14 @@ public class TypeIO{
         return val == 255 || val >= content.unitStances().size ? UnitStance.stop : content.unitStance(val);
     }
 
+    public static void writePosEntity(Writes write, Posc entity){
+        write.i(entity == null ? -1 : entity.id());
+    }
+
+    public static Posc readPosEntity(Reads read){
+        return (Posc)Groups.sync.getByID(read.i());
+    }
+
     public static void writeEntity(Writes write, Entityc entity){
         write.i(entity == null ? -1 : entity.id());
     }
@@ -824,7 +832,7 @@ public class TypeIO{
     public static Rules readRules(Reads read){
         int length = read.i();
         //this is only called clientside, but the byte limit is reasonable either way...
-        if(length > maxByteArraySize) throw new ArcRuntimeException("Rules too long");
+        if(length > 100_000) throw new ArcRuntimeException("Rules too long");
         String string = new String(read.b(new byte[length]), charset);
         return JsonIO.read(Rules.class, string);
     }

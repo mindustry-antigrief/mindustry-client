@@ -647,6 +647,7 @@ public class ResearchDialog extends BaseDialog{
             boolean selectable = selectable(node);
 
             infoTable.table(b -> {
+                b.left();
                 b.margin(0).left().defaults().left();
 
                 if(selectable){
@@ -743,7 +744,7 @@ public class ResearchDialog extends BaseDialog{
                     }else{
                         desc.add("@completed");
                     }
-                }).pad(9);
+                }).pad(9).left().growX();
 
                 if(mobile && locked(node) && !net.client()){
                     b.row();
@@ -756,11 +757,12 @@ public class ResearchDialog extends BaseDialog{
                         over = buttonDown;
                     }}, () -> spend(node)).disabled(i -> !canSpend(node)).growX().height(44f).colspan(3);
                 }
-            });
+            }).growX().left();
 
             infoTable.row();
             if(node.content.description != null && node.content.inlineDescription && selectable){
-                infoTable.table(t -> t.margin(3f).left().labelWrap(node.content.displayDescription()).color(Color.lightGray).growX()).fillX();
+                infoTable.table(t -> t.margin(3f).left().labelWrap(node.content.displayDescription()).color(Color.lightGray)
+                .minWidth(node.content.displayDescription().length() > 20 ? 270f : 0f).growX()).fillX();
             }
 
             addChild(infoTable);

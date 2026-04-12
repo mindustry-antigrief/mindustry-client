@@ -64,7 +64,7 @@ public class MenuFragment{
 
         parent.fill(c -> c.bottom().right().button(Icon.discord, new ImageButtonStyle(){{ // FINISHME: This is cursed af
             up = discordBanner;
-        }}, ui.discord::show).marginTop(9f).marginLeft(10f).tooltip("@discord").size(84, 45).name("discord"));
+        }}, ui.discord::show).visible(() -> !ui.consolefrag.shown()).marginTop(9f).marginLeft(10f).tooltip("@discord").size(84, 45).name("discord"));
 
         parent.fill(c ->
             c.bottom().left().image(

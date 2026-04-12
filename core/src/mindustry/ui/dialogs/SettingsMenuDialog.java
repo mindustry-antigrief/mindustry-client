@@ -521,10 +521,6 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         }*/
 
-        if(!mobile){
-            game.checkPref("crashreport", true);
-        }
-
         game.checkPref("communityservers", true, val -> {
             defaultServers.clear();
             if(val){
@@ -567,9 +563,7 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         }
 
-        if(!mobile){
-            game.checkPref("console", false);
-        }
+        game.checkPref("console", false);
 
         graphics.sliderPref("uiEdgePadding", 0, 0, 100, s -> s + "px", s -> {
             if(ui != null){
@@ -630,37 +624,12 @@ public class SettingsMenuDialog extends BaseDialog{
 
         if(!mobile){
             graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
-            graphics.checkPref("fullscreen", false, b -> {
-                if(b && settings.getBool("borderlesswindow")){
-                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
-                    settings.put("borderlesswindow", false);
-                    graphics.rebuild();
-                }
-
-                if(b){
-                    Core.graphics.setFullscreen();
-                }else{
-                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
-                }
-            });
-
-            graphics.checkPref("borderlesswindow", false, b -> {
-                if(b && settings.getBool("fullscreen")){
-                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
-                    settings.put("fullscreen", false);
-                    graphics.rebuild();
-                }
-                Core.graphics.setBorderless(b);
-            });
+            graphics.checkPref("fullscreen", false, b -> Core.graphics.setFullscreen(b));
 
             Core.graphics.setVSync(Core.settings.getBool("vsync"));
 
             if(Core.settings.getBool("fullscreen")){
-                Core.app.post(() -> Core.graphics.setFullscreen());
-            }
-
-            if(Core.settings.getBool("borderlesswindow")){
-                Core.app.post(() -> Core.graphics.setBorderless(true));
+                Core.app.post(() -> Core.graphics.setFullscreen(true));
             }
         }else if(!ios){
             graphics.checkPref("landscape", false, b -> {

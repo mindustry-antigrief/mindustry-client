@@ -342,6 +342,11 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
             unit.team(team);
             unit.controller(this);
 
+            //this player just became remote, snap the interpolation so it doesn't go wild
+            if(unit.isRemote() && !net.client()){
+                unit.snapInterpolation();
+            }
+
             if(!headless && isLocal() && !persistPlans.isEmpty()){ // Persist plans through unit swaps
                 if(!ClientVars.syncing && Time.timeSinceMillis(ClientVars.lastJoinTime) < 3000) persistPlans.clear(); // I can't find a more reliable way to not persist through map changes
                 control.input.playerPlanTree.clear();
