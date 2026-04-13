@@ -1,4 +1,4 @@
-@file:Suppress("UNUSED")
+@file:Suppress("UNUSED", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 @file:JvmName("ClientUtils")
 
 package mindustry.client.utils
