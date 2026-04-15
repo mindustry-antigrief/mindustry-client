@@ -315,7 +315,7 @@ public class WaveInfoDialog extends BaseDialog{
                                     int max = 20;
 
                                     if(spawner.getSpawns().size >= max){
-                                        p.add("[lightgray](first " + max + ")").colspan(cols).padBottom(4).row();
+                                        p.add(Core.bundle.format("waves.spawn.first", max)).colspan(cols).padBottom(4).row();
                                     }
 
                                     for(Tile spawn : Seq.<Tile>withArrays(spawner.getSpawns(), spawner.getCoreSpawns())){

@@ -3443,7 +3443,6 @@ public class Blocks{
                     hitEffect = Fx.hitFlameSmall;
                     despawnEffect = Fx.none;
                     status = StatusEffects.burning;
-                    keepVelocity = false;
                     hittable = false;
                 }},
                 Items.pyratite, new BulletType(4f, 30f){{

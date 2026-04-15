@@ -40,7 +40,7 @@ abstract class BackgroundTask<T>(val longTaskDuration: Int = 0, @JvmField val un
     @Synchronized
     open fun addUnit(unit: T) {
         units.add(unit)
-        submit()
+        if (!queued) submit() // Only submit if not queued
     }
 
     @Synchronized
@@ -58,6 +58,7 @@ abstract class BackgroundTask<T>(val longTaskDuration: Int = 0, @JvmField val un
     /** Runs all remaining units immediately */
     @Synchronized
     fun block() { // Dang. I almost wrote this whole class without any jank
+        if (!queued) return // Do not attempt to process if the queue is empty, this will cause crashes on removeFirst and such.
         do {
             lastLongRunningTask = 0
             start = Time.millis()

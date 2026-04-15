@@ -448,7 +448,6 @@ public class Maps{
         @Override
         public boolean processStep() {
             // Create map preview file
-            if(units.isEmpty()) return true;
             var map = units.removeFirst();
             var s = Time.nanos();
             createNewPreview(map, e -> map.texture = Core.assets.get("sprites/error.png"));
@@ -459,7 +458,7 @@ public class Maps{
 
     @SuppressWarnings("unused") // Kept in case some mod uses it for whatever reason, vanilla compatibility sure is a pain sometimes
     private void createAllPreviews(){
-        previewCreationTask.block();
+        Core.app.post(previewCreationTask::block);
     }
 
     public void queueNewPreview(Map map){ // Vanilla api kept for compatibility
