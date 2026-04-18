@@ -528,7 +528,6 @@ public class SettingsMenuDialog extends BaseDialog{
 //        game.checkPref("blockreplace", true); We have this as a client setting in foo's
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("hints", true);
-        game.checkPref("logichints", true);
 
         if(!mobile){
             game.checkPref("backgroundpause", true);

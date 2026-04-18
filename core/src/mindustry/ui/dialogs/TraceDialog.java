@@ -26,11 +26,11 @@ public class TraceDialog extends BaseDialog{
         buttons.clear();
         addCloseButton();
 
-        buttons.button("JS Ban (Requires /js)", () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", player.name()), () -> {
-            Call.sendChatMessage("/js Vars.netServer.admins.banPlayerID(" + info.uuid + ")");
-            Call.sendChatMessage("/js Vars.netServer.admins.banPlayerIP(" + info.ip + ")");
-        })).width(420);
+        buttons.button("JS Ban (Requires /js)", () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", player.name()), () ->
+            Call.sendChatMessage("/js Vars.netServer.admins.banPlayerID(" + info.uuid + "); Vars.netServer.admins.banPlayerIP(" + info.ip + ")")
+        )).width(420);
         if(!offline) buttons.button("Ban (Won't work if they leave before pressed)", () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", player.name()), () -> Call.adminRequest(player, Packets.AdminAction.ban, null))).width(420);
+        // FINISHME: Would be cool to be able to queue a ban so that they are immediately banned if they rejoin
 
         Table table = new Table(Tex.clear);
         table.margin(14);

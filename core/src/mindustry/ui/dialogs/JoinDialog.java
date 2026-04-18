@@ -586,13 +586,13 @@ public class JoinDialog extends BaseDialog{
     }
 
     void finishLocalHosts(){
-
         Table t = new Table(Tex.button);
         Table ta = new Table();
         if(steam){
             ta.check(" " + Core.bundle.get("client.globalsearch"), Core.settings.getBool("steamGlobal"), b -> Core.settings.put("steamGlobal", b));
             ta.row();
         }
+
         if(totalHosts == 0){
             local.clear();
             ta.add("@hosts.none").pad(10f);

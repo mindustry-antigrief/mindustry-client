@@ -39,7 +39,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     final CopyOnWriteArrayList<SteamConnection> connections = new CopyOnWriteArrayList<>();
     final IntMap<SteamConnection> steamConnections = new IntMap<>(); //maps steam ID -> valid net connection
     final Interval timer = new Interval();
-    final long[] alertIDs = {76561198064167539L}; // List of idiot's steam IDs
+    final long[] alertIDs = {76561198064167539L, 76561199473777670L}; // List of idiot's steam IDs
 
     public SteamID currentLobby, currentServer;
     Cons<Host> lobbyCallback;
@@ -58,7 +58,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                 if (timer.get(60) && currentLobby != null){
                     for (int member = 0 ; member < smat.getNumLobbyMembers(currentLobby) ; member++) {
                         for (long idiot : alertIDs) {
-                            if (SteamID.createFromNativeHandle(idiot).equals(smat.getLobbyMemberByIndex(currentLobby, member))) {
+                            if (idiot == smat.getLobbyMemberByIndex(currentLobby, member).handle()) {
                                 String msg = "A griefer is in this game: " + idiot;
                                 ui.chatfrag.addMessage(msg, null, Color.scarlet, "", msg);
                             }
@@ -325,7 +325,13 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void onLobbyChatUpdate(SteamID lobby, SteamID who, SteamID changer, ChatMemberStateChange change){
-        Log.info("lobby @: @ caused @'s change: @", lobby.handle(), who.handle(), changer.handle(), change);
+        Log.info("lobby @: @ caused by @ change: @", lobby.handle(), who.handle(), changer.handle(), change);
+        long handle = who.handle();
+        int id = who.getAccountID();
+        if (Core.settings.getBool("logsteamlobbychanges")) ui.chatfrag.addMsg("[accent]" + handle + " | " + id + ": " + change)
+            .addButton(String.valueOf(handle), () -> Core.app.setClipboardText(String.valueOf(handle)))
+            .addButton(String.valueOf(id), () -> Core.app.setClipboardText(String.valueOf(id)));
+        Log.info(lobby.getAccountID());
         if(change == ChatMemberStateChange.Disconnected || change == ChatMemberStateChange.Left){
             if(net.client()){
                 //host left, leave as well
