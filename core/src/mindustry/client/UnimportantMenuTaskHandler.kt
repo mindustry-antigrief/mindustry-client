@@ -33,7 +33,7 @@ abstract class BackgroundTask<T>(val longTaskDuration: Int = 0, @JvmField val un
     /** @return whether the task is complete */
     abstract fun processStep(): Boolean
 
-    /** @return whether the tak should be processed */
+    /** @return whether the task should be processed */
     open fun shouldProcess(): Boolean = true
 
     /** Add extra units to this task, automatically queues the task if needed. */
@@ -69,7 +69,7 @@ abstract class BackgroundTask<T>(val longTaskDuration: Int = 0, @JvmField val un
     companion object {
         private val tasks = Queue<BackgroundTask<*>>()
         private var lastLongRunningTask = 0L
-        private var start: Long = 0
+        private var start = 0L
 
         fun update(budgetMillis: Int = Core.settings.getInt("maxsyncbackgroundtaskduration", 15)) {
             start = Time.millis()

@@ -10,6 +10,7 @@ import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.graphics.*;
+import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
@@ -151,6 +152,12 @@ public class SolidPump extends Pump{
             pumpTime += warmup * edelta();
 
             dumpLiquid(result);
+        }
+
+        @Override
+        public double sense(LAccess sensor){
+            if(sensor == LAccess.efficiency) return (validTiles + boost) * efficiency;
+            return super.sense(sensor);
         }
 
         @Override

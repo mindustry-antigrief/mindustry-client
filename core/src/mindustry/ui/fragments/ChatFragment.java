@@ -100,7 +100,7 @@ public class ChatFragment extends Table{
                     }
                 }
                 if (input.keyTap(Binding.chatMode) && !tabConsumed) {
-                    nextMode(input.shift());
+                    nextMode();
                 }
                 scrollPos = (int)Mathf.clamp(scrollPos + input.axis(Binding.chatScroll), 0, Math.max(0, messages.size - messagesShown));
             }
@@ -580,13 +580,10 @@ public class ChatFragment extends Table{
     }
 
     public void nextMode(){
-        nextMode(false);
-    }
-    public void nextMode(boolean shift){
         ChatMode prev = mode;
 
         do{
-            mode = mode.next(shift);
+            mode = mode.next();
         }while(!mode.isValid());
 
         if(chatfield.getText().startsWith(prev.normalizedPrefix())){
@@ -758,13 +755,8 @@ public class ChatFragment extends Table{
     private enum ChatMode{
         normal(""),
         team("/t"),
-        admin("/a", () ->
-            //Only add "/a" to tab cycle if there is another admin to chat with
-            (player.admin && Groups.player.find(p -> p.admin && p != player) != null)
-            //Unless it's io, because the other player may not have the admin flag
-            || (Server.io.b() && ClientVars.rank >= 4)
-            || settings.getBool("always-allow-admin-chat", false)
-        ),
+        // set disableadminchatifsolo to true if you want to hide admin chat as a solo admin.
+        admin("/a", () -> (player.admin || Server.io.b() && ClientVars.rank >= 4) && (!settings.getBool("disableadminchatifsolo") || Groups.player.count(p -> p.admin) > 1)),
         staff("/s", () -> Server.fish.b() && settings.getBool("fish-staff", false)),
         client("!c");
 
@@ -783,10 +775,7 @@ public class ChatFragment extends Table{
         }
 
         public ChatMode next(){
-            return next(false);
-        }
-        public ChatMode next(boolean shift){
-            return all[(ordinal() + all.length + (shift ? -1 : 1)) % all.length];
+            return all[(ordinal() + all.length + (input.ctrl() ? -1 : 1)) % all.length]; // ctrl to cycle backwards (we cant use shift as steam exists)
         }
 
         public String normalizedPrefix(){

@@ -131,7 +131,11 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         Events.run(Trigger.newGame, this::updateWave);
 
         Events.on(PlayerIpBanEvent.class, e -> updateBans(e.ip));
-        Events.on(PlayerIpUnbanEvent.class, e -> updateBans(e.ip));
+        Events.on(PlayerUnbanEvent.class, e -> {
+            // updateBans works off of ip ban list. Unbanning a player does not unban their ip but since this is steam, their "ip" is just their steam id (which is their uuid as well) prefixed with steam:
+            netServer.admins.unbanPlayerIP("steam:" + e.uuid);
+            updateBans(null);
+        });
     }
 
     public boolean isSteamClient(){
@@ -202,6 +206,25 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
         //after the steam lobby is done discovering, look for local network servers.
         lobbyDoneCallback = () -> provider.discoverServers(callback, done);
+        if(Core.settings.getBool("propagateBans")){
+            Seq<Host> hosts = new Seq<>();
+            lobbyCallback = hosts::add;
+            lobbyDoneCallback = () -> {
+                if (hosts.isEmpty()) {
+                    Core.settings.remove("propagateBans");
+                    ui.join.show(); // Trigger refresh
+                    return;
+                }
+                Host h = hosts.pop();
+                try {
+                    if (h.version != -1 && h.version < 157) throw new IOException("Version doesn't support ban list.");
+                    connectClient(h.address, h.port, lobbyDoneCallback);
+                } catch (IOException e) {
+                    lobbyDoneCallback.run();
+                }
+
+            };
+        }
     }
 
     @Override
@@ -283,6 +306,12 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     public void onLobbyEnter(SteamID steamIDLobby, int chatPermissions, boolean blocked, ChatRoomEnterResponse response){
         Log.info("onLobbyEnter @ @", steamIDLobby.getAccountID(), response);
 
+        if(Core.settings.getBool("propagateBans")){
+            smat.leaveLobby(steamIDLobby);
+            joinCallback.run();
+            return;
+        }
+
         if(response != ChatRoomEnterResponse.Success){
             ui.loadfrag.hide();
             ui.showErrorMessage(Core.bundle.format("cantconnect", response.toString()));
@@ -325,13 +354,13 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void onLobbyChatUpdate(SteamID lobby, SteamID who, SteamID changer, ChatMemberStateChange change){
-        Log.info("lobby @: @ caused by @ change: @", lobby.handle(), who.handle(), changer.handle(), change);
+        Log.info("lobby @: @ caused @'s change: @", lobby.getAccountID(), changer.getAccountID(), who.getAccountID(), change);
+        if(net.server() && change == ChatMemberStateChange.Entered && SteamAdmin.isAdmin("steam:" + who.getAccountID())) SteamAdmin.fetch(true); //fetch on admin join
         long handle = who.handle();
         int id = who.getAccountID();
         if (Core.settings.getBool("logsteamlobbychanges")) ui.chatfrag.addMsg("[accent]" + handle + " | " + id + ": " + change)
             .addButton(String.valueOf(handle), () -> Core.app.setClipboardText(String.valueOf(handle)))
             .addButton(String.valueOf(id), () -> Core.app.setClipboardText(String.valueOf(id)));
-        Log.info(lobby.getAccountID());
         if(change == ChatMemberStateChange.Disconnected || change == ChatMemberStateChange.Left){
             if(net.client()){
                 //host left, leave as well
@@ -352,6 +381,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
         if(lobbyDoneCallback != null){
             Seq<Host> hosts = new Seq<>();
+            ObjectIntMap<String> bans = new ObjectIntMap<>();
             for(int i = 0; i < matches; i++){
                 try{
                     SteamID lobby = smat.getLobbyByIndex(i);
@@ -361,6 +391,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                     if(mode == null || mode.isEmpty() || (!Core.settings.getBool("allowjoinany") && Version.build != -1 && Strings.parseInt(smat.getLobbyData(lobby, "version"), -1) != Version.build)) continue;
 
                     String banList = smat.getLobbyData(lobby, "banned");
+                    Structs.each(bans::increment, banList.split(",")); // Count all bans
 
                     boolean banned = banList.length() > 0 && Structs.contains(banList.split(","), SVars.user.user.getSteamID().getAccountID() + "");
                     Host out = new Host(
@@ -382,6 +413,8 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                     Log.err(e);
                 }
             }
+            bans.remove("");
+            Log.debug(bans.entries().toArray().sort(b -> -b.value));
 
             hosts.sort(Structs.comparingInt(h -> -h.players));
             hosts.each(lobbyCallback);

@@ -25,12 +25,7 @@ class NTP {
                         val time = Instant.ofEpochMilli(timeInfo.message.transmitTimeStamp.time)
 
                         val baseClock = clock.get()
-                        clock.set(
-                            Clock.offset(
-                                baseClock,
-                                Duration.between(baseClock.instant(), time)
-                                    .apply { if (Core.settings.getBool("logntp")) Log.debug("Fetched time from NTP (clock was ${toMillis()} ms off)") })
-                        )
+                        clock.set(Clock.offset(baseClock, Duration.between(baseClock.instant(), time).apply { if (Core.settings.getBool("logntp")) Log.debug("Fetched time from NTP (clock was ${toMillis()} ms off)") }))
                     } catch (e: SocketTimeoutException) {
                         Log.debug("NTP Timed out")
                         Log.err(e)

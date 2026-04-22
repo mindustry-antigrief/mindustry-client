@@ -64,13 +64,10 @@ fun ByteBuffer.bytes(num: Int): ByteArray {
 /** Converts a [Long] representing unix time in seconds to [Instant] */
 fun Long.toInstant(): Instant = try { Instant.ofEpochSecond(this) } catch (e: DateTimeException) { Instant.EPOCH }
 
-/** Seconds between this and [other].  If [other] happened after this, it will be positive. */
-fun Temporal.secondsBetween(other: Temporal) = timeSince(other, ChronoUnit.SECONDS)
-
 fun Temporal.timeSince(other: Temporal, unit: TemporalUnit) = unit.between(this, other)
 
-/** The age of this temporal in the given unit (by default seconds). Always positive. */
-fun Temporal.age(unit: TemporalUnit = ChronoUnit.SECONDS) = abs(this.timeSince(Instant.now(), unit))
+/** The age of this temporal in the given unit (by default seconds). Always positive. Based on the NTP clock. */
+fun Temporal.ageNTP(unit: TemporalUnit = ChronoUnit.SECONDS) = abs(this.timeSince(Main.ntp.instant(), unit))
 
 /** Adds an element to the table followed by a row. */
 fun <T : Element> Table.row(element: T): Cell<T> = add(element).also { row() }

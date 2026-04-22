@@ -206,26 +206,25 @@ fun setupCommands() {
     var installingKt = false
     // This command doesn't work unless the supporting jar file is on the class path
     register("kt <code...>", Core.bundle.get("client.command.kt.description")) { args, player: Player ->
-        val file = Fi(ScriptEngineHolder::class.java.protectionDomain.codeSource.location.toURI().path).sibling("fooKotlinScriptSupport.jar")
         val version = 1 // The kotlin version needs bumping every so often to support new java versions. Easiest way is to redownload the file.
+        val dir = Fi(ScriptEngineHolder::class.java.protectionDomain.codeSource.location.toURI().path)
+        val file = dir.sibling("fooKotlinScriptSupport.jar")
+        val versionFile = dir.sibling("fooKotlinScriptSupport.version") // We can't just store a value in settings because some people sync settings across computers which can cause a crash if the kotlin script support is out of date. This kind of sucks but whatever
 
         try { ScriptEngineHolder } catch (_: Throwable) { player.sendMessage("client.command.kt.unsupported".bundle()); return@register }
 
         if (installingKt) player.sendMessage("client.command.kt.installing".bundle())
-        else if (Core.settings.getInt("fooScriptVersion") != version || ScriptEngineHolder.kts == null) ui.showConfirm("client.command.kt.install".bundle()) {
-            Log.info("Download")
+        else if (!versionFile.exists() || versionFile.readString().toIntOrNull() != version || ScriptEngineHolder.kts == null) ui.showConfirm("client.command.kt.install".bundle()) {
+            Log.debug("Downloading kotlin scripting support")
             installingKt = true
             becontrol.downloadJar(
                 "https://github.com/mindustry-antigrief/kotlinScriptSupport/releases/latest/download/fooKotlinScriptSupport.jar",
                 file,
-                { Core.settings.put("fooScriptVersion", version); ui.showConfirm("client.command.kt.finished".bundle()) { restartGame() } },
+                { versionFile.writeString(version.toString()); ui.showConfirm("client.command.kt.finished".bundle()) { restartGame() } },
                 { player.sendMessage("client.command.kt.error".bundle(Strings.neatError(it))) }
             )
         }
-        else {
-            Log.info("Existing")
-            player.sendMessage("[accent]${try { ScriptEngineHolder.kts!!.eval(args[0]) } catch (e: Throwable /* ScriptException */) { e.message }}")
-        }
+        else player.sendMessage("[accent]${try { ScriptEngineHolder.kts!!.eval(args[0]) } catch (e: Throwable /* ScriptException */) { e.message }}")
     }
 
     register("/js <code...>", Core.bundle.get("client.command.serverjs.description")) { args, player ->
@@ -265,12 +264,12 @@ fun setupCommands() {
     }
 
     register("networking", Core.bundle.get("client.command.networking.description")) { _, player ->
-        player.sendMessage(
+        ui.chatfrag.addMsg(
             if (pluginVersion != -1F) (Core.bundle.get("client.networking.plugin") as String) else
                 BlockCommunicationSystem.findProcessor()?.run { Core.bundle.format("client.networking.logicblock", tileX(), tileY()) } ?:
                 BlockCommunicationSystem.findMessage()?.run { Core.bundle.format("client.networking.messageblock", tileX(), tileY()) } ?:
                 Core.bundle.get("client.networking.buildplan")
-        )
+        ).findCoords()
     }
 
     register("fixpower [c]", Core.bundle.get("client.command.fixpower.description")) { args, player ->
@@ -399,7 +398,7 @@ fun setupCommands() {
             player.sendMessage("Failed to send transmission: invalid certificate!")
             return@register
         }, player))
-        player.sendMessage("Stopped pathing of player ${player.name}[white].")
+        ui.chatfrag.addMsg("Stopped pathing of player ${player.name}[white].")
     }
 
     register("c <message...>", Core.bundle.get("client.command.c.description")) { args, _ ->

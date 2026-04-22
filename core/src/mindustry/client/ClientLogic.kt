@@ -266,7 +266,7 @@ class ClientLogic {
                 event.tile.disconnections += count
 
                 val message: String = bundle.format("client.powerwarn", Strings.stripColors(event.player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
-                lastCorePos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
+                lastWarnPos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
                 if (event.tile.message == null || ui.chatfrag.messages.indexOf(event.tile.message) > 8) {
                     event.tile.disconnections = count
                     event.tile.message = ui.chatfrag.addMessage(message, null, null, "", message)

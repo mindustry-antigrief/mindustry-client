@@ -591,6 +591,11 @@ public class JoinDialog extends BaseDialog{
         if(steam){
             ta.check(" " + Core.bundle.get("client.globalsearch"), Core.settings.getBool("steamGlobal"), b -> Core.settings.put("steamGlobal", b));
             ta.row();
+            Core.settings.remove("propagateBans");
+            if(Core.settings.getBool("steamadmintools")) {
+                ta.check(" [lightgray]Propagate ban list", b -> { Core.settings.put("propagateBans", b); Http.get(steamBansURLs[1].replace("cdn.", "purge.")).block(r -> Log.info(r.getStatus().code + "\n" + r.getResultAsString())); refreshLocal(); }).left();
+                ta.row();
+            }
         }
 
         if(totalHosts == 0){

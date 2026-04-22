@@ -78,7 +78,7 @@ public class OverlayRenderer{
     }
 
     public void drawBottom(){
-        if(ClientVars.hidingPlans /*|| player.dead()*/) return;
+        if(ClientVars.hidingPlans) return;
 
         InputHandler input = control.input;
 

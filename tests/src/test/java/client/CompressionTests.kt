@@ -8,7 +8,7 @@ class CompressionTests {
 
     @Test
     fun testCompression() {
-        val input = Random.Default.nextBytes(1024)
+        val input = Random.nextBytes(1024)
         Assertions.assertArrayEquals(input, input.compress().inflate())
     }
 }

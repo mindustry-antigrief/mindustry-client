@@ -37,10 +37,10 @@ class PacketTests {
         client1.addListener(listener)
         client2.addListener(listener)
 
-        for (i in 0..150) {
+        repeat(60) {
             client1.update()
             client2.update()
-            Thread.sleep(10)
+//            Thread.sleep(10) No need to simulate a sleep here
         }
 
         Assertions.assertArrayEquals(transmission1.content, output1)

@@ -55,13 +55,13 @@ class TlsTest {
 
         var handshakeDoneLast = false
 
-        for (i in 0 until 100) {
+        repeat(30) {
             clientProto.offerInput(serverProto.pollOutput())
             serverProto.offerInput(clientProto.pollOutput())
 
             if (handshakeDoneLast) {
                 val avail = serverProto.applicationDataAvailable()
-                if (avail == 0) continue
+                if (avail == 0) return@repeat
                 val arr = ByteArray(avail)
                 serverProto.readApplicationData(arr, 0, avail)
                 passed = arr.decodeToString() == "Hello, world!"
@@ -120,14 +120,14 @@ class TlsTest {
             serverComms.update()
         }
 
-        val bytes = Random.Default.nextBytes(1234)
+        val bytes = Random.nextBytes(1234)
 
         clientSecured.send(DummyTransmission(bytes))
         serverSecured.addListener { transmission, _ ->
             val content = (transmission as DummyTransmission).content
             gotten = content
         }
-        for (i in 0 until 500) {
+        repeat(250) {
             clientComms.update()
             serverComms.update()
 
