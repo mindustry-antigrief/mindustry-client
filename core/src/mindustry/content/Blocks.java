@@ -3635,6 +3635,7 @@ public class Blocks{
                     shieldDamageMultiplier = 0.2f;
                 }};
             }};
+            researchCostMultiplier = 1/3f;
             reload = 35f;
             shootCone = 40f;
             rotateSpeed = 8f;

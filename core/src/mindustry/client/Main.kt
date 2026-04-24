@@ -34,7 +34,7 @@ object Main : ApplicationListener {
     val tlsPeers = CopyOnWriteArrayList<Pair<Packets.CommunicationClient, TlsCommunicationSystem>>()
     lateinit var keyStorage: KeyStorage
     lateinit var signatures: Signatures
-    lateinit var ntp: NTP
+    val ntp = NTP()
     private var planSendTime = 0L
     private var isSendingPlans = false
 
@@ -42,7 +42,6 @@ object Main : ApplicationListener {
     override fun init() {
         val start = Time.nanos()
         if (Core.app.isDesktop) {
-            ntp = NTP()
             communicationSystem = SwitchableCommunicationSystem(BlockCommunicationSystem, PluginCommunicationSystem) // FINISHME: Profile this, it takes ~40ms which it really shouldn't
             communicationSystem.init()
 

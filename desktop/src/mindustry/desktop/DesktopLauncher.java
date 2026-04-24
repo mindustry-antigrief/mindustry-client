@@ -168,7 +168,7 @@ public class DesktopLauncher extends ClientLauncher{
             //Java 25 *might* be required in the future for FFM bindings.
             ErrorDialog.show("Java 25 is required to run Mindustry. Your version: " + OS.javaVersionNumber + "\n" +
             "\n" +
-            (Version.isSteam ? "If you are on a steam copy of the game, it is recommended to switch to the v8 beta branch.\n\n\nOtherwise: " :
+            (Version.isSteam ? "If you are on a steam copy of the game, it is recommended to switch to the v8 (stable) branch.\n\n\nOtherwise: " :
             (itch ? "If you are on an itch copy of the game, it is recommended to install the latest version from there.\n\n\nOtherwise: " : "")) +
             "Please uninstall your current Java version, and download Java 25. Reboot after doing so.\n" +
             "\n" +

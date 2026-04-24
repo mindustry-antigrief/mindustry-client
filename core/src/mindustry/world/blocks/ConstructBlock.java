@@ -25,6 +25,7 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.*;
 import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -119,6 +120,7 @@ public class ConstructBlock extends Block{
                 tile.build.configured(builder, config);
             }else if(player != null){ // Foo's addition that allows for local configuration of blocks
                 control.input.playerPlanTree.intersect(tile.getBounds(Tmp.r1), Build.planSeq);
+                if (control.input instanceof DesktopInput d && d.splan != null) Build.planSeq.add(d.splan); // Also add the plan currently being moved if it exists
                 var plan = Build.planSeq.find(p -> p.x == tile.x && p.y == tile.y && p.block == block && p.configLocal);
                 if (plan != null) ClientVars.configs.add(new ConfigRequest(tile.build, plan.config)); // Found a matching plan, configure the building to match the plan
                 Build.planSeq.clear();

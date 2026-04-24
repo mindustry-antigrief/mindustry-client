@@ -6,7 +6,6 @@ import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import mindustry.Vars.*
-import mindustry.client.*
 import mindustry.client.ClientVars.*
 import mindustry.client.communication.*
 import mindustry.entities.units.*
@@ -22,6 +21,7 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
     private var buildPath: BuildPath? = if (type == Type.BuildPath) BuildPath.Self() else null
     private var theta: Float = 0F
     private var circleRadius: Float = 0F
+    private val transferTimer = Interval()
 
     init {
         lastAssisted = null
@@ -83,10 +83,8 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
                 val core = player.unit().team.core()
 
                 if (core != null && com.mineTile().drop() != null && player.unit().within(core, player.unit().type.range) && !player.unit().acceptsItem(com.mineTile().drop())) {
-                    if (core.acceptStack(player.unit().stack.item, player.unit().stack.amount, player.unit()) > 0) {
+                    if (core.acceptStack(player.unit().stack.item, player.unit().stack.amount, player.unit()) > 0 && transferTimer.get(60F)) {
                         Call.transferInventory(player, core)
-
-                        player.unit().clearItem() // FINISHME: Why is this here? This seems like it would cause issues
                     }
                 }
             } else {
@@ -94,17 +92,19 @@ class AssistPath(val assisting: Player?, val type: Type = Type.Regular, var circ
             }
         }
 
-        if (assisting.isBuilder && player.isBuilder /* && build */) {
-            if (assisting.unit().updateBuilding && assisting.team() == player.team()) {
-                plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
-                plans.clear()
-                for (plan in assisting.unit().plans) {
-                    if (BuildPlanCommunicationSystem.isNetworking(plan)) continue
-                    plans.add(plan)
-                    player.unit().addBuild(plan, false)
-                }
+        if (assisting.isBuilder && player.isBuilder && assisting.unit().updateBuilding && assisting.team() == player.team()) {
+            plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
+            plans.clear()
+            for (plan in assisting.unit().plans) {
+                if (BuildPlanCommunicationSystem.isNetworking(plan)) continue
+                plans.add(plan)
+                player.unit().addBuild(plan, false)
             }
+        } else { // The player isn't building, we shouldn't be either.
+            plans.forEach { player.unit().removeBuild(it.x, it.y, it.breaking) }
+            plans.clear()
         }
+
     }
 
     private fun handleInput() {

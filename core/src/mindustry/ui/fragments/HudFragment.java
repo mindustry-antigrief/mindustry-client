@@ -684,11 +684,19 @@ public class HudFragment{
                     }
                     lastWarn = Time.millis(); // Reset timer so that it sends 30s after the last core damage rather than every 30s FINISHME: Better way to do this?
                     coreAttackTime[0] = notifDuration;
-                    ClientVars.lastCorePos.set(event.core.x, event.core.y);
+                    ClientVars.lastWarnPos.set(event.core.x, event.core.y);
                 });
 
                 //'core is under attack' table
                 c.collapser(top -> top.background(Styles.black6).add("@coreattack").pad(8)
+                .with(co -> {
+                    co.tapped(() -> {
+                        if(control.lastDamagedCore != null){
+                            control.input.panCamera(Tmp.v1.set(control.lastDamagedCore));
+                        }
+                    });
+                    co.addListener(new HandCursorListener());
+                })
                 .update(label -> label.color.set(Color.orange).lerp(Color.scarlet, Mathf.absin(Time.time, 2f, 1f))), true,
                 () -> {
                     if(!shown || state.isPaused()) return false;
@@ -702,8 +710,8 @@ public class HudFragment{
                 .touchable(Touchable.disabled)
                 .fillX()
                 .get().clicked(() -> {
-                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.lastCorePos.cpy().scl(tilesize));
-                    else Spectate.INSTANCE.spectate(ClientVars.lastCorePos.cpy().scl(tilesize));
+                    if (Time.timeSinceMillis(lastWarnClick) < 400)  Navigation.navigateTo(ClientVars.lastWarnPos.cpy().scl(tilesize));
+                    else Spectate.INSTANCE.spectate(ClientVars.lastWarnPos.cpy().scl(tilesize));
                     lastWarnClick = Time.millis();
                 });
             }).row();

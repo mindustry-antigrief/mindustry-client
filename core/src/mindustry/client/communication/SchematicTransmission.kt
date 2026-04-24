@@ -2,6 +2,7 @@ package mindustry.client.communication
 
 import arc.*
 import arc.files.*
+import arc.graphics.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import mindustry.Vars.*
@@ -45,6 +46,7 @@ class SchematicTransmission : Transmission {
             Core.bundle.format("client.schematic.chatsharemessage", Groups.player.getByID(this.senderID).name)
         )
 
+        message.backgroundColor = Color.darkGray.cpy()
         message.addButton(0, message.message.length) {
             //Parse the schematic
             this.schematic = Schematics.read(ByteArrayInputStream(bytes))

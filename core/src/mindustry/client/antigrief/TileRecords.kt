@@ -73,7 +73,9 @@ object TileRecords {
             val build = it.tile // Horrible misnomer
             val constructor = if (it.player == null && build.tile.block() is PowerNode) ::NodeLinkAddedTileLog else ::ConfigureTileLog
             build.tile.getLinkedTiles { tile ->
-                addLog(tile, constructor(it.player.toInteractor(), tile.block(),build.rotation, it.value))
+                addLog(tile, constructor(it.player.toInteractor(), tile.block(),build.rotation, it.value))?.apply {
+                    configuration = it.previous
+                }
             }
         }
 
@@ -116,7 +118,9 @@ object TileRecords {
             val player = it.unit?.player ?: return@on
             val direction = rotationDirection(it.previous, it.build.rotation)
             it.build.tile.getLinkedTiles { tile ->
-                addLog(tile, RotateTileLog(player.toInteractor(), it.build.block, it.build.rotation, direction))
+                addLog(tile, RotateTileLog(player.toInteractor(), it.build.block, it.build.rotation, direction))?.apply {
+                    rotation = it.previous
+                }
             }
         }
     }
@@ -125,9 +129,9 @@ object TileRecords {
 
     operator fun get(tile: Tile): TileRecord? = this[tile.x.toInt(), tile.y.toInt()]
 
-    private fun addLog(tile: Tile, log: TileLog) {
-        val logs = this[tile] ?: return
-        logs.add(log, tile)
+    private fun addLog(tile: Tile, log: TileLog): TileState? {
+        val logs = this[tile] ?: return null
+        return logs.add(log, tile)
     }
 
     fun show(tile: Tile) {

@@ -4,7 +4,6 @@ import arc.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.input.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.style.*;
@@ -19,8 +18,8 @@ import mindustry.client.navigation.*;
 import mindustry.client.navigation.AssistPath.*;
 import mindustry.client.utils.*;
 import mindustry.content.*;
-import mindustry.game.*;
 import mindustry.game.EventType.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
@@ -29,16 +28,16 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.utils.ClientUtils.*;
 
 public class PlayerListFragment{
     public Table content = new Table().marginRight(13f).marginLeft(13f);
     private boolean visible = false;
     private TextField search;
     private final Seq<Player> players = new Seq<>();
-    private Func<Player, String> playerName = p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
-    private Func<Player, String> playerClipboard = Player::plainName;
+    private Func<Player, String> playerName = p -> "";
+    private Func<Player, String> playerClipboard = p -> "";
     private boolean showTeams;
+    private int lastMod = -2;
     private final TextureRegionDrawable adminIcon = new TextureRegionDrawable(Fonts.getLargeIcon("admin")),
     hammerIcon = new TextureRegionDrawable(Fonts.getLargeIcon("hammer")),
     kickIcon = new TextureRegionDrawable(Fonts.getLargeIcon("exit")),
@@ -67,28 +66,29 @@ public class PlayerListFragment{
                     Core.settings.getBool("alwaysshowteams") ||
                     (player != null && Groups.player.find(p -> p.team() != player.team()) != null);
 
-                if(shiftKeyTap()){
-                    playerName = p -> String.valueOf(p.id);
-                    playerClipboard = p -> String.valueOf(p.id);
-                    rebuild();
-                }
-                else if(shiftKeyRelease()){
-                    playerName = Core.input.ctrl() ? p -> "Groups.player.getByID(" + p.id + ")" :
-                        p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
-                    playerClipboard = Core.input.ctrl() ? p -> "Groups.player.getByID(" + p.id + ")" :
-                        Player::plainName;
-                    rebuild();
-                }
-                else if(ctrlKeyTap()){
-                    playerName = p -> "Groups.player.getByID(" + p.id + ")";
-                    playerClipboard = p -> "Groups.player.getByID(" + p.id + ")";
-                    rebuild();
-                }
-                else if(ctrlKeyRelease()){
-                    playerName = Core.input.shift() ? p -> String.valueOf(p.id) :
-                        p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
-                    playerClipboard = Core.input.ctrl() ? p -> String.valueOf(p.id) :
-                        Player::plainName;
+                int mod = Core.input.shift() ? 0 : Core.input.ctrl() ? 1 : Core.input.alt() ? 2 : -1;
+                if (mod != lastMod) { // Update modifier key based on what is held.
+                    lastMod = mod;
+                    // Set defaults in case they are not overwritten
+                    playerName = p -> p.coloredName() + (Core.settings.getBool("showuserid") ? " [accent](#" + p.id + ")" : "");
+                    playerClipboard = Player::plainName;
+
+                    if (Core.input.shift()) {
+                        playerName = playerClipboard = p -> String.valueOf(p.id);
+                    } else if (Core.input.ctrl()) {
+                        playerName = playerClipboard = p -> "Groups.player.getByID(" + p.id + ")";
+                    } else if (Core.input.alt()) {
+                        var idMapper = Server.current.playerIDCopy;
+                        if (idMapper != null) { // Server specific id support (i.e. io player codes and such)
+                            playerName = p -> p.coloredName() + "[accent] | " + idMapper.get(p);
+                            playerClipboard = idMapper;
+                        }
+                        // Client/host on a steam server with admin
+                        if (steam && ui.join.lastHost == null && player.admin && Groups.player.contains(p -> p.ip().startsWith("steam:") || p.trace != null && p.trace.ip.startsWith("steam:"))) {
+                            playerName = p -> p.coloredName() + (playerClipboard.get(p) != null ? "[accent] | " + playerClipboard.get(p) : "");
+                            playerClipboard = p -> p.trace != null && p.trace.ip.startsWith("steam:") ? p.trace.uuid : p.ip().startsWith("steam:") ? p.uuid() : null;
+                        }
+                    }
                     rebuild();
                 }
             });
@@ -124,9 +124,9 @@ public class PlayerListFragment{
         Events.on(PlayerJoin.class, e -> {
             if(visible) rebuild();
         });
-        Events.on(ServerJoinEvent.class, e -> Timer.schedule(() -> {
+        Events.on(WorldLoadEvent.class, e -> Timer.schedule(() -> {
             if(visible) rebuild();
-        }, .3f)); // delay so client has time to get all the players
+        }, .5f, 1f , 10)); // delay so client has time to get all the players. Certain things such as server id are requested from the server.
     }
 
     public void rebuild(){
@@ -189,7 +189,7 @@ public class PlayerListFragment{
                 @Override
                 public void draw(){
                     super.draw();
-                    Draw.color(showTeams && !Core.settings.getBool("playerliststyle") ? user.team().color : Pal.gray);
+                    Draw.color(showTeams && !Core.settings.getBool("playerliststyle") ? user.team().color : Pal.gray); // FINISHME: The always outline units & always show teams settings interfere with each other.
                     Fill.crect(x, y, width, 4);
                     Draw.reset();
                 }
@@ -246,8 +246,11 @@ public class PlayerListFragment{
 
             Button nameButton = new Button(nameStyle);
             nameButton.clicked(() -> {
-                Core.app.setClipboardText(playerClipboard.get(user));
-                ui.showInfoToast(Core.bundle.get("client.copy"), 1.5f);
+                var clip = playerClipboard.get(user);
+                if (clip != null && !clip.isEmpty()) {
+                    Core.app.setClipboardText(clip);
+                    ui.showInfoToast("@client.copy", 1.5f);
+                } else ui.showInfoToast("@client.nocopy", 1.5f);
             });
 
             nameButton.add(new Label(playerName.get(user), new Label.LabelStyle(Fonts.outline, Color.white)));

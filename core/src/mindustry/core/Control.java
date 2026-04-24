@@ -54,6 +54,7 @@ public class Control implements ApplicationListener, Loadable{
     public SoundControl sound;
     public InputHandler input;
     public AttackIndicators indicators;
+    public @Nullable CoreBuild lastDamagedCore; //TODO not sure where else to put this
 
     private Interval timer = new Interval(2);
     private boolean hiscore = false;
