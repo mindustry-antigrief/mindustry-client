@@ -366,6 +366,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showuserid", false);
         client.checkPref("hideserversbydefault", false); // Inverts behavior of server hiding
         client.checkPref("enablechatlimit", false);
+        client.checkPref("playerchat", true);
         client.sliderPref("shownmessagescount", 10, 1, 25, 1, s -> {
             ChatFragment.setShownMessages();
             return String.valueOf(s);

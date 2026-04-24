@@ -904,7 +904,9 @@ public class NetClient implements ApplicationListener{
             unit instanceof Mechc m ? m.baseRotation() : 0,
             unit == null ? 0f : unit.vel.x, unit == null ? 0f : unit.vel.y,
             dead ? null : unit.mineTile,
-            player.boosting, player.shooting, ui.chatfrag.shown(), control.input.isBuilding,
+            player.boosting, player.shooting,
+            Core.settings.getBool("playerchat") && ui.chatfrag.shown(),
+            control.input.isBuilding,
             player.selectedBlock, player.selectedRotation, player.isBuilder() && unit != null ? unit.plans : null,
             Core.camera.position.x, Core.camera.position.y,
             Core.camera.width, Core.camera.height

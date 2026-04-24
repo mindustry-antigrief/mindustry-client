@@ -24,6 +24,7 @@
  * Admin UI - Staff on CN will still view the admin ui if they have previously had it, requires you to be logged in to work correctly, useful for undercover mode
  * Pan To Core - Disables the pan to core after gameover behaviour so you are no longer forced to spectate dead cores on gameover
  * DDNS Name Verifyer - Replaces all illegal characters in your player name so you can join the DDNS servers with a fancy name without changing it constantly
+ * Playerchat toggle - Toggles typing indicator on servers so you can hide that you have the chat open
 
 # Keybinds
  * {tile_actions_menu_modifier} - display actions for a tile
