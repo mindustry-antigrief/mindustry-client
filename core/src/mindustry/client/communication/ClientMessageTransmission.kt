@@ -54,7 +54,7 @@ class ClientMessageTransmission : Transmission {
             if (Core.settings.getBool("showclientmsgsendername")) originalSender = Vars.player.name
         } else sender = Vars.player.name
         senderID = Vars.player.id
-        timestamp = Instant.now()
+        timestamp = Main.ntp.instant()
         this.message = limit
         this.certSN = Main.keyStorage.cert()?.serialNumber?.toByteArray()
         this.signature = Main.signatures.sign(toSignable(senderID, limit, timestamp))
@@ -84,7 +84,7 @@ class ClientMessageTransmission : Transmission {
         val cert = if (certSN != null) Main.keyStorage.findTrusted(BigInteger(certSN)) else null
 
         // if it's too old, it's invalid even if the cert is unknown or nonexistent
-        if (timestamp.age() > Signatures.SIGNATURE_EXPIRY_SECONDS) return cert to INVALID
+        if (timestamp.ageNTP() > Signatures.SIGNATURE_EXPIRY_SECONDS) return cert to INVALID
 
         // if the cert is unknown/nonexistent but timed correctly it's merely unknown
         cert ?: return null to UNKNOWN_CERT

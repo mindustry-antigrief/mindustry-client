@@ -93,19 +93,22 @@ class TileRecord(val x: Int, val y: Int) {
     val size get() = sequences?.lastOrNull()?.range?.last ?: 0
     private val totalRange get() = 0..size
 
-    fun add(log: TileLog, tile: Tile) {
+    fun add(log: TileLog, tile: Tile): TileState? {
+        var state: TileState? = null
         when {
             sequences == null -> {
                 sequences = mutableListOf()
-                val state = TileState(tile)
+                state = TileState(tile)
                 state.time = joinTime
                 sequences!!.add(TileLogSequence(state, 0))
             }
             sequences!!.last().logs.size > 100 -> {
-                sequences!!.add(TileLogSequence(TileState(tile), sequences!!.last().range.last))
+                state = TileState(tile)
+                sequences!!.add(TileLogSequence(state, sequences!!.last().range.last))
             }
         }
         sequences!!.last().addLog(log)
+        return state
     }
 
     operator fun get(index: Int): TileState? {

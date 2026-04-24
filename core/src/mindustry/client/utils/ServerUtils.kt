@@ -4,6 +4,7 @@ package mindustry.client.utils
 
 import arc.*
 import arc.files.*
+import arc.func.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
@@ -34,7 +35,9 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     @JvmField val unmute: Cmd = Cmd("/unmute", -1),
     @JvmField val ghost: Boolean = false,
     private val votekickString: String = "Type[orange] /vote <y/n>[] to agree.",
-    @JvmField var blockAnnoyances: Boolean = true
+    @JvmField var blockAnnoyances: Boolean = true,
+    /** Converts a player to a copyable server specific player identifier. Alt click in tab list will copy to clipboard. */
+    @JvmField val playerIDCopy: Func<Player, String?>? = null
 ) {
     other(null),
     nydus("nydus"),
@@ -77,7 +80,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
     },
     io("io", MapVote(), Cmd("/w"), Cmd("/rtv"),
         Cmd("/freeze", 4), Cmd("/thaw", 4), Cmd("/mute", 4), Cmd("/unmute", 4),
-        votekickString = "Type[orange] /vote <y/n>[] to vote.") {
+        votekickString = "Type[orange] /vote <y/n>[] to vote.", playerIDCopy = { it.serverID }) {
         override fun handleBan(p: Player) {
             ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing.") { reason ->
                 val id = p.trace?.uuid ?: p.serverID
@@ -93,7 +96,6 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             Moderation.freezePlayer = p
             Call.serverPacketReliable("playerdata_by_id", p.id.toString())
         }
-
         override fun handleMute(p: Player) {
             Moderation.mutePlayer = p
             Call.serverPacketReliable("playerdata_by_id", p.id.toString())
@@ -250,6 +252,9 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
 
     /** Used to block effects on servers that spam them. */
     open fun blockEffect(fx: Effect, rot: Float): Boolean = false
+
+    // FINISHME: Encourage servers to add a packet just for id. Maybe even one packet that gets all member ids. That would be nice.
+    open fun getStats(player: Player) = if (Core.settings.getBool("autostats") && (this == io || this == phoenix)) Call.serverPacketReliable("playerdata_by_id", player.id.toString()) else Unit // FINISHE: Make this not hardcoded.
 }
 
 enum class CustomMode(

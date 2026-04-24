@@ -157,12 +157,17 @@ public class SettingsMenuDialog extends BaseDialog{
                     control.saves.load(true);
                     for(var planet : content.planets()){
                         planet.clearStats();
+                        boolean any = false;
                         for(var sec : planet.sectors){
                             sec.clearInfo();
                             if(sec.save != null){
+                                any = true;
                                 sec.save.delete();
                                 sec.save = null;
                             }
+                        }
+                        if(any){
+                            planet.reloadMeshAsync();
                         }
                     }
 
@@ -534,7 +539,6 @@ public class SettingsMenuDialog extends BaseDialog{
 //        game.checkPref("blockreplace", true); We have this as a client setting in foo's
         game.checkPref("conveyorpathfinding", true);
         game.checkPref("hints", true);
-        game.checkPref("logichints", true);
 
         if(!mobile){
             game.checkPref("backgroundpause", true);

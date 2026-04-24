@@ -181,12 +181,14 @@ class ClientLogic {
         Events.on(PlayerLeave::class.java) { e -> // Run when a player leaves the server
             if (e.player == null) return@on
 
+            val id = e.player.id.toString()
+
             if (settings.getBool("clientjoinleave") && !Server.io() && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
-                player.sendMessage(bundle.format("client.disconnected", e.player.name))
+                ui.chatfrag.addMsg(bundle.format("client.disconnected", e.player.name)).addButton(e.player.name) { app.clipboardText = id } // FINISHME: Also apply to io leaves!
 
             if (settings.getBool("showidinjoinleave", false))
-                ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", e.player.id.toString()))
-                    .addButton(e.player.id.toString()) { app.clipboardText = "!undo ${e.player.id}" }
+                ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", id))
+                    .addButton(id) { app.clipboardText = "!undo $id" }
         }
 
         Events.on(GameOverEventClient::class.java) {
@@ -264,7 +266,7 @@ class ClientLogic {
                 event.tile.disconnections += count
 
                 val message: String = bundle.format("client.powerwarn", Strings.stripColors(event.player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
-                lastCorePos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
+                lastWarnPos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
                 if (event.tile.message == null || ui.chatfrag.messages.indexOf(event.tile.message) > 8) {
                     event.tile.disconnections = count
                     event.tile.message = ui.chatfrag.addMessage(message, null, null, "", message)

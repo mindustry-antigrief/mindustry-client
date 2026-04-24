@@ -445,8 +445,8 @@ public class DesktopInput extends InputHandler{
                     if (Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(lastSentPos.cpy().scl(tilesize));
                     else Spectate.INSTANCE.spectate(lastSentPos.cpy().scl(tilesize));
                 } else if(input.ctrl()) {
-                    if (Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(lastCorePos.cpy().scl(tilesize));
-                    else Spectate.INSTANCE.spectate(lastCorePos.cpy().scl(tilesize)); // reusing lastShiftZ should be fine since its a small interval welp
+                    if (Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(lastWarnPos.cpy().scl(tilesize));
+                    else Spectate.INSTANCE.spectate(lastWarnPos.cpy().scl(tilesize)); // reusing lastShiftZ should be fine since its a small interval welp
                 }
                 lastShiftZ = Time.millis();
 

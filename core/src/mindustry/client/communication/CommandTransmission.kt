@@ -97,7 +97,7 @@ class CommandTransmission : Transmission {
     fun verify(): Boolean {
         if (destination != Vars.player.id) return false
         type ?: return false
-        if (timestamp.age() > Signatures.SIGNATURE_EXPIRY_SECONDS) return false  // replay attacks are bad
+        if (timestamp.ageNTP() > Signatures.SIGNATURE_EXPIRY_SECONDS) return false  // replay attacks are bad
         val res = Main.signatures.verify(toSignable(), signature, certSN)
         if (type.builtinOnly) {
             res.second ?: return false
