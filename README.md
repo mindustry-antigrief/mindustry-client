@@ -37,7 +37,7 @@ Run this command in a CMD window [**as admin**](https://www.howtogeek.com/howto/
 
 ## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md).
+See [CONTRIBUTING](https://github.com/Anuken/Mindustry/blob/master/CONTRIBUTING.md).
 
 ## Building
 
