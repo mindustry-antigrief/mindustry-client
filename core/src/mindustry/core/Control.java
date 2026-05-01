@@ -659,7 +659,11 @@ public class Control implements ApplicationListener, Loadable{
                 state.set(State.playing);
             }
 
-            if(!net.client() && Core.input.keyTap(Binding.pause) && !renderer.isCutscene() && !scene.hasDialog() && !scene.hasKeyboard() && !ui.restart.isShown() && (state.is(State.paused) || state.is(State.playing))){
+            // holding search focus modifier and pressing space will not pause if
+            // this feature is enabled, so we can use space as a convenient keybind
+            boolean modifierHeldWithFragmentSearchEnabled = Core.settings.getBool("placementfragmentsearch") && Core.input.keyDown(Binding.focus_block_search_modifier);
+
+            if(!net.client() && Core.input.keyTap(Binding.pause) && !renderer.isCutscene() && !scene.hasDialog() && !scene.hasKeyboard() && !ui.restart.isShown() && (state.is(State.paused) || state.is(State.playing)) && !modifierHeldWithFragmentSearchEnabled){
                 state.set(state.isPaused() ? State.playing : State.paused);
             }
 
