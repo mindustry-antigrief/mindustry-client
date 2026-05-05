@@ -380,7 +380,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("instantturn", true);
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
-        client.checkPref("returnonmove", false);
+        client.checkPref("returnonmove", true);
         client.checkPref("nostrafepenalty", false);
         client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
@@ -395,7 +395,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "@off" : String.valueOf(s); });
         client.sliderPref("formationopacity", 30, 10, 100, 5, s -> { UnitType.formationAlpha = s / 100f; return s + "%"; });
         client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "@off" : s + "%"; });
-        client.sliderPref("transferrangeopacity", 30, 0, 100, 5, s -> s == 0 ? "@off" : s + "%");
+        client.sliderPref("transferrangeopacity", 0, 0, 100, 5, s -> s == 0 ? "@off" : s + "%");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("placementfragmentsearch", true);
@@ -428,7 +428,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("colorizelogs", false);
         client.checkPref("showmassdriverdistance", false);
         client.checkPref("alwaysfullnumbers", false);
-        client.checkPref("enableunderwaterenv", false);
+        client.checkPref("enableunderwaterenv", true);
         client.checkPref("alwaysshowteams", false);
         client.checkPref("playerliststyle", true);
 
@@ -475,6 +475,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("schematicmenuexporttags", true);
         client.checkPref("schematicbrowserimporttags", true);
         client.checkPref("schematicuicarryover", true);
+        client.checkPref("client-experimentals", false);
 
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
             client.category("experimental");
