@@ -335,6 +335,19 @@ public class PlayerListFragment{
                         teamSelect.show();
                     }).tooltip("@player.team").get().resizeImage(h/2.2f);
 
+                    // Server-integrated buttons
+                    if(Server.current.freeze.canRun()){
+                        t.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () ->
+                        Server.current.handleFreeze(user)
+                        ).tooltip("@client.freeze");
+                    }
+
+                    if(user == player && Server.current.mute.canRun()){ // If the player is local, the mute button won't be drawn on a new row, otherwise it will be drawn on a new row
+                        t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
+                        Server.current.handleMute(user)
+                        ).tooltip("@client.modmute");
+                    }
+
                     t.row();
                 }
 
@@ -368,22 +381,12 @@ public class PlayerListFragment{
                     t.button(moveIcon, ustyle, // Goto
                         () -> Navigation.navigateTo(user)
                     ).size(h / 2).tooltip("@client.goto").get().resizeImage(h/2.2f);
-                }
-            }).height(bs);
 
-
-            button.table(t -> { // Foo's server integration buttons FINISHME: Can we make it so the buttons line up correctly in rows even if only one is shown? Can't figure that out
-                if(Server.current.freeze.canRun()){
-                    t.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () ->
-                        Server.current.handleFreeze(user)
-                    ).tooltip("@client.freeze");
-                }
-
-                if(Server.current.mute.canRun()){
-                    t.row();
-                    t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
+                    if(Server.current.mute.canRun()){ // Server-integrated mute
+                        t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
                         Server.current.handleMute(user)
-                    ).tooltip("@client.modmute");
+                        ).tooltip("@client.modmute");
+                    }
                 }
             }).height(bs);
 
