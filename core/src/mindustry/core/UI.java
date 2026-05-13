@@ -23,6 +23,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.client.claj.*;
 import mindustry.client.ui.*;
+import mindustry.client.utils.*;
 import mindustry.editor.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -164,6 +165,8 @@ public class UI implements ApplicationListener, Loadable{
         PerfCounter.ui.begin();
 
         Events.fire(Trigger.uiDrawBegin);
+
+        updatePopup();
 
         Core.scene.act();
         Core.scene.draw();
@@ -460,7 +463,27 @@ public class UI implements ApplicationListener, Loadable{
         });
         table.actions(Actions.delay(duration), Actions.remove(), Actions.run(() -> { if(id != null) popups.remove(id); }));
         table.align(align).table(Styles.black3, t -> t.margin(4).add(info).style(Styles.outlineLabel)).pad(top, left, bottom, right);
+
         Core.scene.add(table);
+        table.pack();
+        table.act(0f);
+        lastMinY = -1; // Force recalculation next frame
+    }
+
+    private float lastMinY = -1;
+    /** Prevents popups from overlapping with block placement ui. Terrible but works */
+    void updatePopup(){
+        float[] minY = {Vars.ui.hudfrag.blockfrag.toggler.getChildren().get(0).getTop() + 4}; // Min y
+        if(minY[0] == lastMinY) return;
+        lastMinY = minY[0];
+        var sorted = popups.values().toSeq().sort(t -> t.getChildren().get(0).y); // Horrifically unoptimized.
+        var minX = ui.hudfrag.blockfrag.toggler.getChildren().get(0).x; // Anything right of this can be boosted.
+        sorted.each(t -> t.getChildren().get(0).getRight() > minX, t -> { // Adjust all popups that intersect ui
+            var newY = Math.max(t.getChildren().get(0).y, minY[0]);
+            if (newY == t.getChildren().get(0).y) t.invalidate(); // Allow moving stuff back down. This is horrible and unoptimized but it works.I
+            t.getChildren().get(0).y = newY;
+            minY[0] = newY;
+        });
     }
 
     /** Shows a label in the world. This label is behind everything. Does not fade. */
@@ -490,7 +513,6 @@ public class UI implements ApplicationListener, Loadable{
         table.act(0f);
         //make sure it's at the back
         Core.scene.root.addChildAt(0, table);
-
         table.getChildren().first().act(0f);
     }
 
