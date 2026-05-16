@@ -265,14 +265,6 @@ public class SettingsMenuDialog extends BaseDialog{
         addSettings();
     }
 
-    // FIX CURSED MENU SCREEN
-//    public void updateSettings(){
-//        ConstructBlock.updateWarnBlocks();
-//        if(Vars.ui.menufrag.renderer.cursednessLevel != CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1))){
-//            Vars.ui.menufrag.renderer.updateCursedness();
-//        }
-//    }
-
     String getLogs(){
         Fi log = settings.getDataDirectory().child("last_log.txt");
 
@@ -422,7 +414,13 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showtoasts", true);
         client.checkPref("unloaderview", false, i -> Unloader.drawUnloaderItems = i);
         client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
-        client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
+        int[] lastCursednessLevelI = {Core.settings.getInt("cursednesslevel", 0)};
+        client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name(), s -> {
+            if(Vars.ui.menufrag.renderer != null && Vars.state.isMenu() && s != lastCursednessLevelI[0]){
+                Vars.ui.menufrag.renderer.refresh();
+                lastCursednessLevelI[0] = s;
+            }
+        });
         client.checkPref("logiclinkorder", false);
         client.checkPref("showcutscenes", true);
         client.checkPref("powerinfo", true);
@@ -470,9 +468,10 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
         client.checkPref("autorestart", true);
+        client.checkPref("realautorestart", true);
         client.checkPref("attemwarfare", false);
         client.checkPref("onjoinfixcode", true);
-        client.checkPref("removeatteminsteadoffixing", true);
+        client.checkPref("removeatteminsteadoffixing", false);
         client.checkPref("downloadmusic", true);
         client.checkPref("downloadsound", true);
         client.checkPref("circleassist", false);
@@ -482,6 +481,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("schematicmenuexporttags", true);
         client.checkPref("schematicbrowserimporttags", true);
         client.checkPref("schematicuicarryover", true);
+        client.checkPref("uselocalizedname", true);
 
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
             client.category("experimental");

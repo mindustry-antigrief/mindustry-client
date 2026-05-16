@@ -913,10 +913,7 @@ public class Mods implements Loadable{
             checkDependencies(newImports, newImports.contains(m -> m.softDependencies.any()));
         }else{
             ui.showInfoOnHidden("@mods.reloadexit", () -> {
-                if(settings.getBool("autorestart")){
-                    Log.info("Exiting to reload mods.");
-                    ClientUtils.restartGame();
-                }
+                ClientUtils.restartGame();
             });
         }
     }

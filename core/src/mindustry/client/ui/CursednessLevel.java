@@ -1,5 +1,7 @@
 package mindustry.client.ui;
 
+import arc.*;
+
 public enum CursednessLevel {
 	NORMAL,
 	UHH,
@@ -16,5 +18,11 @@ public enum CursednessLevel {
 			case 4 -> WWWHHHHHYYYY;
 			default -> NORMAL;
 		};
+	}
+	public static CursednessLevel get(){
+		return Core.settings != null ? fromInteger(Core.settings.getInt("cursednesslevel", 1)) : CursednessLevel.NORMAL;
+	}
+	public static boolean atLeast(CursednessLevel level){
+		return get().ordinal() >= level.ordinal();
 	}
 }

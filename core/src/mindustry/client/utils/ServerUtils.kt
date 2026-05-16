@@ -160,7 +160,7 @@ enum class Server( // FINISHME: This is horrible. Why have I done this?
             return blockAnnoyances && rot == 0F && fx == Fx.pointBeam
         }
     },
-    darkdustry("Darkdustry")
+    darkdustry("Mindurka")
     ;
 
     companion object {

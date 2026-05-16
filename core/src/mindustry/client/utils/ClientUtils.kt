@@ -5,6 +5,7 @@ package mindustry.client.utils
 
 import arc.*
 import arc.files.*
+import arc.func.Floatf
 import arc.graphics.*
 import arc.input.*
 import arc.math.*
@@ -468,7 +469,14 @@ fun ChatMessage.findLinks(start: Int = 0): ChatMessage = NetClient.findLinks(thi
 
 fun findItem(arg: String): Item = content.items().min { b -> biasedLevenshtein(arg, b.localizedName) }
 
-fun findUnit(arg: String): UnitType = content.units().min({ u -> !u.internal }) { b -> biasedLevenshtein(arg, b.localizedName) } // Filter out internals as people will try spawning block entities and crash the game otherwise (all internals are filtered since they should likely never be manually spawned)
+fun findUnit(arg: String): UnitType = content.units().min(
+    { u: UnitType -> !u.internal },
+    // Filter out internals as people will try spawning block entities and crash the game otherwise (all internals are filtered since they should likely never be manually spawned)
+    if (Core.settings.getBool("uselocalizedname", true))
+        fun(u: UnitType):Float = biasedLevenshtein(arg, u.localizedName)
+    else
+        fun(u: UnitType):Float = biasedLevenshtein(arg, u.name)
+)
 
 fun findBlock(arg: String): Block = content.blocks().min { b -> biasedLevenshtein(arg, b.localizedName) }
 
@@ -479,15 +487,25 @@ fun parseBool(arg: String) = arg.lowercase().startsWith("y") || arg.lowercase().
 /** Returns true if right, false if left. */
 fun rotationDirection(old: Int, new: Int) = old < new && (old != 0 || new != 3) || old == 3 && new == 0
 
-fun restartGame() = openJar(
-    // JVM args
-    *try { java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.toTypedArray() }
-        catch (e: Exception) { arrayOf() }
-        catch (e: NoClassDefFoundError) { arrayOf() },
-    "-jar", Fi.get(ClientVars::class.java.protectionDomain.codeSource.location.toURI().path).absolutePath(),
-    // Game args
-    *try { Reflect.get(Core.app.listeners[0], "args") } catch (e: Exception) { arrayOf() } // Gets the DesktopLauncher instance which has the launch args
-)
+fun restartGame(){
+    if(!Core.settings.getBool("autorestart", true)){
+        return
+    }
+    if(!Core.settings.getBool("realautorestart", true)){
+        Log.info("Exiting to reload game.")
+        Core.app.exit()
+        return
+    }
+    openJar(
+        // JVM args
+        *try { java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.toTypedArray() }
+            catch (e: Exception) { arrayOf() }
+            catch (e: NoClassDefFoundError) { arrayOf() },
+        "-jar", Fi.get(ClientVars::class.java.protectionDomain.codeSource.location.toURI().path).absolutePath(),
+        // Game args
+        *try { Reflect.get(Core.app.listeners[0], "args") } catch (e: Exception) { arrayOf() } // Gets the DesktopLauncher instance which has the launch args
+    )
+}
 
 fun openJar(vararg extraArgs: String) {
     try {

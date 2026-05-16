@@ -423,10 +423,7 @@ public class ModsDialog extends BaseDialog{
 
     private void reload(){
         ui.showInfoOnHidden("@mods.reloadexit", () -> {
-            if(settings.getBool("autorestart")){
-                Log.info("Exiting to reload mods.");
-                ClientUtils.restartGame();
-            }
+            ClientUtils.restartGame();
         });
     }
 
