@@ -380,7 +380,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("instantturn", true);
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
-        client.checkPref("returnonmove", true);
+        client.checkPref("returnonmove", false);
         client.checkPref("nostrafepenalty", false);
         client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
