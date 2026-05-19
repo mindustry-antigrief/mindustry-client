@@ -40,6 +40,10 @@ public class MenuRenderer implements Disposable{
     public UnitType flyerType;
 
     public MenuRenderer(){
+        refresh();
+    }
+
+    public void refresh(){
         generate();
         cache();
         updateCursedness();
@@ -49,7 +53,7 @@ public class MenuRenderer implements Disposable{
         Rand rand = new Rand(System.nanoTime());
         cursednessLevel = Core.settings == null ?
             CursednessLevel.NORMAL :
-            CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1));
+            CursednessLevel.get();
         numFlyers = switch(cursednessLevel){
             case NORMAL, UHH -> rand.chance(0.2) ? rand.random(35) : rand.random(15);
             case OHNO, CURSED -> rand.random(35, 70);
@@ -69,7 +73,7 @@ public class MenuRenderer implements Disposable{
         blockFlyerSpeed = 2f;
     }
 
-    private void generate(){
+    public void generate(){
         //suppress tile change events.
         world.setGenerating(true);
 
@@ -90,14 +94,37 @@ public class MenuRenderer implements Disposable{
         new Block[]{Blocks.dirt, Blocks.dirtWall},
         new Block[]{Blocks.dacite, Blocks.daciteWall}
         );
-        Block[] selected2 = Structs.random(
-        new Block[]{Blocks.basalt, Blocks.duneWall},
-        new Block[]{Blocks.basalt, Blocks.duneWall},
-        new Block[]{Blocks.stone, Blocks.stoneWall},
-        new Block[]{Blocks.stone, Blocks.stoneWall},
-        new Block[]{Blocks.moss, Blocks.sporeWall},
-        new Block[]{Blocks.salt, Blocks.saltWall}
-        );
+        Block[] selected2 = switch(CursednessLevel.get()){
+            case NORMAL, UHH, OHNO -> Structs.random(
+                new Block[]{Blocks.basalt, Blocks.duneWall},
+                new Block[]{Blocks.basalt, Blocks.duneWall},
+                new Block[]{Blocks.stone, Blocks.stoneWall},
+                new Block[]{Blocks.stone, Blocks.stoneWall},
+                new Block[]{Blocks.moss, Blocks.sporeWall},
+                new Block[]{Blocks.salt, Blocks.saltWall}
+            );
+            case CURSED -> Structs.random(
+                new Block[]{Blocks.basalt, Blocks.duneWall},
+                new Block[]{Blocks.basalt, Blocks.duneWall},
+                new Block[]{Blocks.stone, Blocks.stoneWall},
+                new Block[]{Blocks.stone, Blocks.stoneWall},
+                new Block[]{Blocks.moss, Blocks.sporeWall},
+                new Block[]{Blocks.salt, Blocks.saltWall},
+                new Block[]{Blocks.magmarock, Blocks.router},
+                new Block[]{Blocks.iceSnow, Blocks.titaniumWall}
+            );
+            //craziness
+            case WWWHHHHHYYYY -> Structs.random(
+                new Block[]{Blocks.magmarock, Blocks.router},
+                new Block[]{Blocks.iceSnow, Blocks.titaniumWall},
+                new Block[]{Blocks.arkyicVent, Blocks.duo},
+                new Block[]{Blocks.crystallineVent, Blocks.powerNode},
+                new Block[]{Blocks.arkyciteFloor, Blocks.mechanicalPump},
+                new Block[]{Blocks.oreCopper, Blocks.conveyor},
+                new Block[]{Blocks.slag, Blocks.distributor},
+                new Block[]{Blocks.space, Blocks.air}
+            );
+        };
 
         Block ore1 = ores.random();
         ores.remove(ore1);
@@ -190,14 +217,30 @@ public class MenuRenderer implements Disposable{
                 tile.setFloor(floor.asFloor());
                 tile.setBlock(wall);
                 tile.setOverlay(ore);
+                tile.build = null;
             }
+        }
+
+        int numBlocks = switch(CursednessLevel.get()){
+            case NORMAL, UHH, OHNO -> 0;
+            case CURSED -> 1;
+            case WWWHHHHHYYYY -> Mathf.random(3, 8);
+        };
+        for(int i = 0; i < numBlocks; i ++){
+            Tile tile = tiles.get(Mathf.random(width / 3, 2 * width / 3), Mathf.random(height / 3, 2 * height / 3));
+            tile.setBlock(Structs.random(
+                Blocks.foreshadow, Blocks.spectre, Blocks.meltdown, Blocks.fuse,
+                Blocks.tetrativeReconstructor, Blocks.exponentialReconstructor,
+                Blocks.largePayloadMassDriver
+            ));
+            tile.build = null;
         }
 
         //don't fire a world load event, it just causes lag and confusion
         world.setGenerating(false);
     }
 
-    private void cache(){
+    public void cache(){
 
         //draw shadows
         Draw.proj().setOrtho(0, 0, shadows.getWidth(), shadows.getHeight());
@@ -241,7 +284,11 @@ public class MenuRenderer implements Disposable{
     public void render(){
         
         if (Core.input.keyTap(KeyCode.h) && Core.scene.getKeyboardFocus() == null) {
-            updateCursedness();
+            if(Core.input.shift()){
+                Core.app.post(this::refresh);
+            } else {
+                updateCursedness();
+            }
         }
         time += Time.delta;
         float scaling = Math.max(Scl.scl(4f), Math.max(Core.graphics.getWidth() / ((width - 1f) * tilesize), Core.graphics.getHeight() / ((height - 1f) * tilesize)));
@@ -349,9 +396,7 @@ public class MenuRenderer implements Disposable{
             Tmp.v1.trns(flyerRot, time * (flyerType.speed));
             float x = (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500));
             float y = (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th;
-            float prevRot = flyerRot;
             cons.get(x, y);
-            flyerRot = prevRot;
         }
     }
 
@@ -365,9 +410,7 @@ public class MenuRenderer implements Disposable{
             Tmp.v1.trns(flyerRot, time * blockFlyerSpeed);
             float x = (Mathf.randomSeedRange(i + 10, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 12, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 15, 0, 500));
             float y = (Mathf.randomSeedRange(i + 11, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 13, 500), 10f, 3.4f) + offset) % th;
-            float prevRot = flyerRot;
             cons.get(x, y);
-            flyerRot = prevRot;
         }
     }
 

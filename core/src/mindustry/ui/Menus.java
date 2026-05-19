@@ -156,8 +156,6 @@ public class Menus{
 
     @Remote(variants = Variant.both, unreliable = true)
     public static void label(@Nullable String message, int id, float duration, float worldx, float worldy){
-        if(message == null) return;
-
         ui.showLabel(message, id, duration, worldx, worldy);
     }
 
@@ -195,7 +193,7 @@ public class Menus{
     public static void openURI(String uri){
         if(uri == null) return;
 
-        ui.showConfirm(Core.bundle.format("linkopen", uri), () -> Core.app.openURI(uri));
+        ui.showConfirm(Core.bundle.format("linkopen", uri), () -> { if(Core.input.shift()) Core.app.setClipboardText(uri); else Core.app.openURI(uri); });
     }
 
     @Remote(variants = Variant.both)

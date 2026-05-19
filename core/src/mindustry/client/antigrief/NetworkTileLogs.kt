@@ -48,8 +48,6 @@ object NetworkTileLogs {
         repeat(n) { // Read n logs
             val interactor = if (reads.bool()) NetworkInteractor(reads.str(), reads.str(), reads.i()) else NoInteractor
 
-            val id = reads.i() // FINISHME: Use this where it's actually needed
-
             // Time
             val sec = reads.l()
             val nano = reads.i()
@@ -58,7 +56,6 @@ object NetworkTileLogs {
             val type = reads.b().toInt()
             InteractionLog.read(type, reads, interactor).also {
                 it.time = time
-                it.id = id
                 TileRecords[t]?.add(it, t)
             }
         }
