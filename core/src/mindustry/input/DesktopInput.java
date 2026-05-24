@@ -155,6 +155,9 @@ public class DesktopInput extends InputHandler{
                         }else if(Navigation.state == NavigationState.FOLLOWING){
                             str.append("\n").append(bundle.format("client.stoppath", Binding.stopFollowingPath.value.key.toString()));
                         }
+                        if(panning){
+                            str.append("\n").append(bundle.format("client.resetcamera", Binding.resetCamera.value.key.toString()));
+                        }
 
                         if(selectPlans.any()){ // Any selection
                             str.append("\n").append(bundle.format("schematic.flip", Binding.schematicFlipX.value.key.toString(), Binding.schematicFlipY.value.key.toString()));

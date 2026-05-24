@@ -49,8 +49,8 @@ public class LogicDialog extends BaseDialog{
             wasRows = LCanvas.useRows();
             wasPortrait = Core.graphics.isPortrait();
         });
-        hidden(() -> { // If the executor is null, theres a very big problem.
-            if (!Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
+        hidden(() -> {
+            if (executor != null && !Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
         });
         onResize(() -> {
             if(wasRows != LCanvas.useRows() || wasPortrait != Core.graphics.isPortrait()){

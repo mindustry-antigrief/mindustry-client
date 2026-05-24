@@ -204,10 +204,11 @@ public class Generators{
                     Pixmap result = new Pixmap(size, size);
                     byte[][] mask = new byte[size][size];
 
+                    int val = (bi & 0xff) == 128 ? 128 : (byte)bi;
                     //check each bit/direction
                     for(int j = 0; j < 8; j++){
-                        if((bi & (1 << j)) != 0){
-                            if(j % 2 == 1 && (((bi & (1 << (j + 1))) == 0) == ((bi & (1 << (j - 1))) != 0))){
+                        if((val & (1 << j)) != 0){
+                            if(j % 2 == 1 && (((val & (1 << (j + 1))) != 0) != ((val & (1 << (j - 1))) != 0))){
                                 continue;
                             }
 
@@ -258,7 +259,7 @@ public class Generators{
                         }
                     });
 
-                    Fi fi = Fi.get("../blocks/environment/cliffmask" + (bi & 0xff) + ".png");
+                    Fi fi = Fi.get("../blocks/environment/cliffmask" + (val & 0xff) + ".png");
                     fi.writePng(result);
                     result.dispose();
                 });

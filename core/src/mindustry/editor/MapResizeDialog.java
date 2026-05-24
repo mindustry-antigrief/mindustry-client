@@ -9,7 +9,7 @@ import mindustry.ui.dialogs.*;
 import static mindustry.Vars.*;
 
 public class MapResizeDialog extends BaseDialog{
-    public static int minSize = 50, maxSize = 2000;
+    public static int minSize = 50, maxSize = 2000, increment = 50;
 
     int width, height, shiftX, shiftY;
 
