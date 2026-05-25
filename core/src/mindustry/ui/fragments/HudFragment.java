@@ -1034,19 +1034,24 @@ public class HudFragment{
         table.marginTop(0).marginBottom(4).marginLeft(4);
 
         class SideBar extends Element{
-            public final Floatp amount;
-            public final boolean flip;
-            public final Boolp flash;
+            public Floatp amount;
+            public boolean flip, drawBack;
+            public Boolp flash;
             public float lineWidth = 1; // Width as a percent, 0-1
 
             float last, blink, value;
 
-            public SideBar(Floatp amount, Boolp flash, boolean flip){
+            public SideBar(Floatp amount, Boolp flash, boolean flip, boolean drawBack, Color color){
                 this.amount = amount;
                 this.flip = flip;
                 this.flash = flash;
+                this.drawBack = drawBack;
 
-                setColor(Pal.health);
+                setColor(color);
+            }
+
+            public SideBar(Floatp amount, Boolp flash, boolean flip){
+                this(amount, flash, flip, true, Pal.health);
             }
 
             public SideBar(Floatp amount, Boolp flash, boolean flip, float lineWidth){
@@ -1074,7 +1079,7 @@ public class HudFragment{
 
                 if(Float.isNaN(value) || Float.isInfinite(value)) value = 1f;
 
-                drawInner(Pal.darkishGray, 1f);
+                if(drawBack) drawInner(Pal.darkishGray, 1f);
                 drawInner(Tmp.c1.set(color).lerp(Color.white, blink), value);
             }
 
@@ -1345,7 +1350,7 @@ public class HudFragment{
                         if(applied.get(effect.id)){
                             t.image(effect.uiIcon).scaling(Scaling.fit).size(iconMed).get()
                             .addListener(new Tooltip(l -> l.label(() ->
-                                player.dead() ? "" : effect.localizedName + " [lightgray]" + UI.formatTime(player.unit().getDuration(effect))).style(Styles.outlineLabel)));
+                                player.dead() ? "" : effect.localizedName + " [lightgray]" + (player.unit().getDuration(effect) >= Float.MAX_VALUE ? "∞" : UI.formatTime(player.unit().getDuration(effect)))).style(Styles.outlineLabel)));
                         }
                     }
 
