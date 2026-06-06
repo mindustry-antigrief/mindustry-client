@@ -673,13 +673,13 @@ public class ChatFragment extends Table{
 
     public static class ChatMessage{
         /** The sender (i.e. "bar") */
-        public String sender;
+        @Nullable public String sender;
         /** The full formatted message **as sent by the server** (i.e. "[bar]: hello", but with color tags) */
-        public String message;
+        @Nullable public String message;
         /** The message as reformatted by the client (i.e. "(checkmark) [bar]: hello" but with color tags */
         public String formattedMessage = "";
         /** The background color of the message. */
-        public Color backgroundColor;
+        @Nullable public Color backgroundColor;
         /** The prefix of the message, as added by the client.  This is usually an icon, such as a wrench or checkmark. */
         public String prefix;
         /** The content of the message (i.e. "gg") */

@@ -64,7 +64,9 @@ public class ItemSelection{
             int i = 0;
             rowCount = 0;
 
-            Seq<T> list = items.select(u -> (text.isEmpty() || u.localizedName.toLowerCase().contains(text.toLowerCase())));
+            Seq<T> list = items.select(Core.settings.getBool("uselocalizedname", true) ?
+                u -> (text.isEmpty() || u.localizedName.toLowerCase().contains(text.toLowerCase()))
+            :   u -> (text.isEmpty() || u.name.toLowerCase().contains(text.toLowerCase())));
             for(T item : list){
                 if((!item.unlockedNow() || !item.isOnPlanet(state.getPlanet()) || item.isHidden())
                     && !(item instanceof Item it && player != null && player.team() != null && player.team().items().has(it))) continue;

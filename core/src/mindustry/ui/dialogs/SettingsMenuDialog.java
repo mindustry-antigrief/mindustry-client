@@ -33,6 +33,7 @@ import mindustry.input.*;
 import mindustry.logic.*;
 import mindustry.service.*;
 import mindustry.type.*;
+import mindustry.type.Planet;
 import mindustry.ui.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.blocks.*;
@@ -52,6 +53,8 @@ public class SettingsMenuDialog extends BaseDialog{
     private Table prefs;
     private Table menu;
     private BaseDialog dataDialog;
+    private BaseDialog planetDataDialog;
+    private Planet planet = Planets.serpulo;
     private Seq<SettingsCategory> categories = new Seq<>();
 
     public SettingsMenuDialog(){
@@ -103,6 +106,83 @@ public class SettingsMenuDialog extends BaseDialog{
         prefs.clearChildren();
         prefs.add(menu);
 
+        planetDataDialog = new BaseDialog("@settings.data");
+        planetDataDialog.addCloseButton();
+
+        planetDataDialog.cont.table(Tex.button, t -> {
+            t.defaults().size(280f, 60f).left();
+            TextButtonStyle style = Styles.flatt;
+
+            t.button(bundle.format("settings.planetselect", "[#" + planet.iconColor + "]" + planet.localizedName), Icon.planet, style, () -> {
+                BaseDialog dialog = new BaseDialog("");
+                dialog.cont.pane(p -> {
+                    p.background(Tex.button).margin(1f);
+                    int i = 0;
+
+                    for(var plan : content.planets()){
+                        if(plan.generator == null || plan.sectors.size == 0 || !plan.accessible) continue;
+
+                        p.button(plan.localizedName, Styles.flatTogglet, () -> {
+                            planet = plan;
+                            dialog.hide();
+                        }).size(110f, 45f).checked(planet == plan);
+
+                        if(++i % 4 == 0){
+                            p.row();
+                        }
+                    }
+                });
+                dialog.setFillParent(false);
+                dialog.addCloseButton();
+                dialog.show();
+            }).marginLeft(4).get().getLabel().setText(() -> bundle.format("settings.planetselect", "[#" + planet.iconColor + "]" + planet.localizedName));
+
+            t.row();
+
+            t.button("@settings.clearplanetresearch", Icon.trash, style, () -> {
+                ui.showConfirm("@confirm", bundle.format("settings.clearplanetresearch.confirm", planet.localizedName), () -> {
+                    universe.clearLoadoutInfo();
+                    for(TechNode node : TechTree.all){
+                        if(node.planet == planet) node.reset();
+                    }
+                    content.each(c -> {
+                        if(c instanceof UnlockableContent u && u.databaseTabs.contains(planet)){
+                            u.clearUnlock();
+                        }
+                    });
+                    settings.remove("unlocks");
+                });
+            }).marginLeft(4);
+
+            t.row();
+
+            t.button("@settings.clearplanetcampaignsaves", Icon.trash, style, () -> {
+                ui.showConfirm("@confirm", bundle.format("settings.clearplanetcampaignsaves.confirm", planet.localizedName), () -> {
+                    planet.clearStats();
+                    boolean any = false;
+                    for(var sec : planet.sectors){
+                        sec.clearInfo();
+                        if(sec.save != null){
+                            any = true;
+                            sec.save.delete();
+                            sec.save = null;
+                        }
+                    }
+                    if(any){
+                        planet.reloadMeshAsync();
+                    }
+
+                    for(var slot : control.saves.getSaveSlots().copy()){
+                        if(slot.isSector() && slot.getSector().planet == planet){
+                            slot.delete();
+                        }
+                    }
+                });
+            }).marginLeft(4);
+
+            t.row();
+        });
+
         dataDialog = new BaseDialog("@settings.data");
         dataDialog.addCloseButton();
 
@@ -128,6 +208,8 @@ public class SettingsMenuDialog extends BaseDialog{
             })).marginLeft(4);
 
             t.row();
+
+            t.button("@settings.clearplanetdata", Icon.trash, style, () -> planetDataDialog.show()).marginLeft(4).row();
 
             t.button("@settings.clearsaves", Icon.trash, style, () -> {
                 ui.showConfirm("@confirm", "@settings.clearsaves.confirm", control.saves::deleteAll);
@@ -265,14 +347,6 @@ public class SettingsMenuDialog extends BaseDialog{
         addSettings();
     }
 
-    // FIX CURSED MENU SCREEN
-//    public void updateSettings(){
-//        ConstructBlock.updateWarnBlocks();
-//        if(Vars.ui.menufrag.renderer.cursednessLevel != CursednessLevel.fromInteger(Core.settings.getInt("cursednesslevel", 1))){
-//            Vars.ui.menufrag.renderer.updateCursedness();
-//        }
-//    }
-
     String getLogs(){
         Fi log = settings.getDataDirectory().child("last_log.txt");
 
@@ -395,7 +469,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("traveltime", 10, 0, 60, s -> { ClientVars.travelTime = 60f / s; return s == 0 ? "@off" : String.valueOf(s); });
         client.sliderPref("formationopacity", 30, 10, 100, 5, s -> { UnitType.formationAlpha = s / 100f; return s + "%"; });
         client.sliderPref("hitboxopacity", 0, 0, 100, 5, s -> { UnitType.hitboxAlpha = s / 100f; return s == 0 ? "@off" : s + "%"; });
-        client.sliderPref("transferrangeopacity", 30, 0, 100, 5, s -> s == 0 ? "@off" : s + "%");
+        client.sliderPref("transferrangeopacity", 0, 0, 100, 5, s -> s == 0 ? "@off" : s + "%");
         client.checkPref("tilehud", true);
         client.checkPref("lighting", true);
         client.checkPref("placementfragmentsearch", true);
@@ -419,7 +493,13 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showtoasts", true);
         client.checkPref("unloaderview", false, i -> Unloader.drawUnloaderItems = i);
         client.checkPref("customnullunloader", false, i -> Unloader.customNullLoader = i);
-        client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name());
+        int[] lastCursednessLevelI = {Core.settings.getInt("cursednesslevel", 0)};
+        client.sliderPref("cursednesslevel", 1, 0, 4, s -> CursednessLevel.fromInteger(s).name(), s -> {
+            if(Vars.ui.menufrag.renderer != null && Vars.state.isMenu() && s != lastCursednessLevelI[0]){
+                Vars.ui.menufrag.renderer.refresh();
+                lastCursednessLevelI[0] = s;
+            }
+        });
         client.checkPref("logiclinkorder", false);
         client.checkPref("showcutscenes", true);
         client.checkPref("powerinfo", true);
@@ -428,7 +508,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("colorizelogs", false);
         client.checkPref("showmassdriverdistance", false);
         client.checkPref("alwaysfullnumbers", false);
-        client.checkPref("enableunderwaterenv", false);
+        client.checkPref("enableunderwaterenv", true);
         client.checkPref("alwaysshowteams", false);
         client.checkPref("playerliststyle", true);
 
@@ -456,25 +536,28 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("nyduspadpatch", true);
         client.checkPref("forceallowschematics", true);
         client.checkPref("blockfishannoyances", true, i -> Server.fish.blockAnnoyances = i);
+        client.checkPref("autorestart", true);
+        client.checkPref("realautorestart", true);
+        client.checkPref("onjoinfixcode", true);
+        client.checkPref("downloadmusic", true);
+        client.checkPref("downloadsound", true);
+        client.checkPref("schematicmenuexporttags", true);
+        client.checkPref("schematicbrowserimporttags", true);
+        client.checkPref("schematicuicarryover", true);
+        client.checkPref("uselocalizedname", true);
         client.checkPref("hidebannedblocks", false);
         client.checkPref("allowjoinany", false);
         client.checkPref("debug", false, i -> Log.level = i ? Log.LogLevel.debug : Log.LogLevel.info); // Sets the log level to debug
         if (steam) client.checkPref("unlockallachievements", false, i -> { Structs.each(Achievement::complete, Achievement.all); Core.settings.remove("unlockallachievements"); });
         client.checkPref("automega", false, i -> ui.unitPicker.type = i ? UnitTypes.mega : ui.unitPicker.type);
         client.checkPref("processorconfigs", false);
-        client.checkPref("autorestart", true);
         client.checkPref("attemwarfare", false);
-        client.checkPref("onjoinfixcode", true);
-        client.checkPref("removeatteminsteadoffixing", true);
-        client.checkPref("downloadmusic", true);
-        client.checkPref("downloadsound", true);
+        client.checkPref("removeatteminsteadoffixing", false);
         client.checkPref("circleassist", false);
         client.checkPref("ignoremodminversion", false);
         client.checkPref("betterenemyblocktapping", false);
         client.checkPref("autoohno", false);
-        client.checkPref("schematicmenuexporttags", true);
-        client.checkPref("schematicbrowserimporttags", true);
-        client.checkPref("schematicuicarryover", true);
+        client.checkPref("client-experimentals", false);
 
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
             client.category("experimental");
@@ -1205,6 +1288,7 @@ public class SettingsMenuDialog extends BaseDialog{
                             becontrol.setUpdateAvailable(false); // Set this to false as we don't know if this is even a valid URL.
                             urlChanged = true;
                             settings.put(name, text);
+                            if(text.isEmpty()) settings.remove(name);
                         }).width(450).get().setMessageText("mindustry-antigrief/mindustry-client-v8-builds");
                     }).left().expandX().padTop(3).height(32).padBottom(3);
                     table.row();

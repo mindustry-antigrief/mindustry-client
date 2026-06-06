@@ -8,11 +8,12 @@ import mindustry.type.*
 @Suppress("unused")
 /** Allows for simple migrations between versions of the client. */
 class Migrations {
+    val prevMigration = settings.getInt("foomigration", 1) // Starts at 1
+
     fun runMigrations() {
         val start = Time.nanos()
         val functions = this::class.java.declaredMethods // Cached function list. Using kotlin reflection to find functions is extremely slow.
-        var migration = settings.getInt("foomigration", 1) // Starts at 1
-        val prevMigration = migration
+        var migration = prevMigration
         while (true) {
             val migrateFun = functions.find { it.name == "migration$migration" } ?: break // Find next migration or break
             Log.debug("Running foo's migration $migration")
@@ -92,5 +93,13 @@ class Migrations {
         if (settings.getInt("mapautosavetime", Integer.MAX_VALUE) <= 10)
             settings.put("mapautosavetime", 3600)
         settings.remove("displaydef") // Unrelated to above, but also remove
+    }
+
+    private fun migration11() {
+        // Transfer range opacity setting default was changed from 30 to 0
+        // This ensures people who have kept it at 30 wouldn't have their setting changed
+        if (prevMigration > 1 && !settings.has("transferrangeopacity")) {
+            settings.put("transferrangeopacity", 30)
+        }
     }
 }

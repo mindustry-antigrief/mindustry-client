@@ -469,7 +469,7 @@ public class HudFragment{
                     toggleMenus();
                 }
 
-                if(Core.input.keyTap(Binding.skipWave) && canSkipWave()){
+                if(Core.input.keyTap(Binding.skipWave) && canSkipWave() && !Core.scene.hasDialog() && !Core.scene.hasField()){
                     if(net.client() && player.admin){
                         Call.adminRequest(player, AdminAction.wave, null);
                     }else{
@@ -1034,19 +1034,24 @@ public class HudFragment{
         table.marginTop(0).marginBottom(4).marginLeft(4);
 
         class SideBar extends Element{
-            public final Floatp amount;
-            public final boolean flip;
-            public final Boolp flash;
+            public Floatp amount;
+            public boolean flip, drawBack;
+            public Boolp flash;
             public float lineWidth = 1; // Width as a percent, 0-1
 
             float last, blink, value;
 
-            public SideBar(Floatp amount, Boolp flash, boolean flip){
+            public SideBar(Floatp amount, Boolp flash, boolean flip, boolean drawBack, Color color){
                 this.amount = amount;
                 this.flip = flip;
                 this.flash = flash;
+                this.drawBack = drawBack;
 
-                setColor(Pal.health);
+                setColor(color);
+            }
+
+            public SideBar(Floatp amount, Boolp flash, boolean flip){
+                this(amount, flash, flip, true, Pal.health);
             }
 
             public SideBar(Floatp amount, Boolp flash, boolean flip, float lineWidth){
@@ -1074,7 +1079,7 @@ public class HudFragment{
 
                 if(Float.isNaN(value) || Float.isInfinite(value)) value = 1f;
 
-                drawInner(Pal.darkishGray, 1f);
+                if(drawBack) drawInner(Pal.darkishGray, 1f);
                 drawInner(Tmp.c1.set(color).lerp(Color.white, blink), value);
             }
 
@@ -1143,7 +1148,7 @@ public class HudFragment{
                 }
             });
 
-            float[] maxShield = {0};
+            float[] shieldFrac = {0};
             t.stack(
                 new Table(tt -> // Health
                     tt.add(new SideBar(() -> player.dead() ? 0f : player.unit().healthf(), () -> true, true))
@@ -1159,14 +1164,18 @@ public class HudFragment{
                     .width(bw).growY().padRight(pad)
                 ),
                 new Table(tt -> // Shield
-                    tt.add(new SideBar(() -> player.dead() ? 0 : player.unit().shield / maxShield[0], () -> true, true, 1/4f))
+                    tt.add(new SideBar(() -> player.dead() ? 0 : shieldFrac[0], () -> true, true, 1/4f))
                     .width(bw).growY().padRight(pad).color(Pal.accent)
                     .visible(() -> {
                         if(player.dead()) return false;
-                        var ff = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility);
-
-                        maxShield[0] = ff == null ? 0f : ((ForceFieldAbility)ff).max;
-                        return maxShield[0] > 0;
+                        var ab = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility || a instanceof ShieldArcAbility);
+                        if(ab instanceof ForceFieldAbility ff){
+                            shieldFrac[0] = player.unit().shield / ff.max;
+                            return ff.max > 0;
+                        } else if(ab instanceof ShieldArcAbility sa){
+                            shieldFrac[0] = sa.data / sa.max;
+                            return sa.max > 0;
+                        } else return false;
                     })
                 )
             ).fillY();
@@ -1176,7 +1185,7 @@ public class HudFragment{
             Floatp playerPayloadCapacityUsed = () -> player.unit() instanceof Payloadc pay ? pay.payloadUsed() / player.unit().type().payloadCapacity : 0f;
 
             t.add(new SideBar(() -> player.dead() ? 0f : player.displayAmmo() ? player.unit().ammof() : playerHasPayloads.get() ? playerPayloadCapacityUsed.get() : player.unit().healthf(), () -> !(player.displayAmmo() || playerHasPayloads.get()), false)).width(bw).growY().padLeft(pad).update(b -> {
-                b.color.set(player.displayAmmo() ? player.dead() || player.unit() instanceof BlockUnitc ? Pal.ammo : player.unit().type.ammoType.color() : playerHasPayloads.get() ? Pal.items : Pal.health);
+                b.color.set(player.displayAmmo() ? Pal.ammo : playerHasPayloads.get() ? Pal.items : Pal.health);
             });
 
             t.getChildren().get(1).toFront();
@@ -1342,7 +1351,7 @@ public class HudFragment{
                         if(applied.get(effect.id)){
                             t.image(effect.uiIcon).scaling(Scaling.fit).size(iconMed).get()
                             .addListener(new Tooltip(l -> l.label(() ->
-                                player.dead() ? "" : effect.localizedName + " [lightgray]" + UI.formatTime(player.unit().getDuration(effect))).style(Styles.outlineLabel)));
+                                player.dead() ? "" : effect.localizedName + " [lightgray]" + (player.unit().getDuration(effect) >= Float.MAX_VALUE ? "∞" : UI.formatTime(player.unit().getDuration(effect)))).style(Styles.outlineLabel)));
                         }
                     }
 

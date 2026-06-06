@@ -102,9 +102,9 @@ public class LoadRenderer implements Disposable{
             for(String name : assets.getAssetNames()){
                 boolean isRed = name.toLowerCase().contains("mod") || assets.getAssetType(name).getSimpleName().toLowerCase().contains("mod") || name.contains("preview");
                 assetText
-                .append(isRed ? red : orange)
-                .append(name.replace(OS.username, "<<host>>").replace("/", "::")).append(red).append("::[]")
-                .append(assets.getAssetType(name).getSimpleName()).append("\n");
+                    .append(isRed ? red : orange)
+                    .append(name.replace(OS.username, "<<host>>").replace("/", "::")).append(red).append("::[]")
+                    .append(assets.getAssetType(name).getSimpleName()).append("\n");
             }
 
             lastLength = assets.getLoadedAssets();

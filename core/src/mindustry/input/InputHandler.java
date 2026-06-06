@@ -440,6 +440,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(net.server() && !netServer.admins.allowAction(player, ActionType.commandUnits, event -> {
             event.unitIDs = unitIds;
+            event.unitCommand = command;
         })){
             throw new ValidateException(player, "Player cannot command units.");
         }
@@ -756,25 +757,36 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(net.client() && player == Vars.player){ // Foo's code to handle the config being undone when rate limit is exceeded (as shown above)
             if(fromServer){ // This config came from the server, it's an undo packet
-//                ui.chatfrag.addMsg(Strings.format("From server for @ @ (@)", build.tileX(), build.tileY(), Arrays.deepToString((Point2[])value)));
-                var it = prevs.iterator();
-                while(it.hasNext()){ // Search the previous configs for this building and add a new request to redo the undone config
-                    var prev = it.next();
-                    var pBuild = prev.getFirst();
-                    if(build != pBuild) continue; // We only care about the building that was just configured
-
-                    var pConf = prev.getSecond();
-                    if(value != pConf){ // Only update the config if it's not the same as what the client wants
-                        if (ratelimitRemaining > 0) ratelimitRemaining = 0; // If we ever have to do a config we assume the remaining limit is 0 since we wouldn't have to redo this config otherwise FINISHME: Handle case where sufficient time elapses. This could also be implemented so that it only happens when a retry fails
-                        int id = queued.increment(build.pos()) + 1; // FINISHME: Terrible way of ensuring that only one config is queued for any given block at any given time
-                        configs.add(() -> {
-                            if(queued.get(build.pos()) != id) return;
-                            Call.tileConfig(Vars.player, build, pConf);
-                            queued.remove(build.pos());
-                        });
+                var isRatelimited = false;
+                // Check if any message received in last 2.5s is the ratelimit message. If so, we can assume this was a ratelimit rollback.
+                // The message will always come first since TCP packets are ordered.
+                for(int i = Math.max(0, ui.chatfrag.messages.size - 25); i < ui.chatfrag.messages.size; i++){
+                    var msg = ui.chatfrag.messages.get(i);
+                    if(Time.timeSinceMillis(msg.receivedAt) < 2500 && msg.sender == null && "[scarlet]You are interacting with blocks too quickly.".equals(msg.message)){
+                        isRatelimited = true;
+                        break;
                     }
-                    it.remove();
-                    break;
+                }
+                if(isRatelimited){
+                    var it = prevs.iterator();
+                    while(it.hasNext()){ // Search the previous configs for this building and add a new request to redo the undone config
+                        var prev = it.next();
+                        var pBuild = prev.getFirst();
+                        if(build != pBuild) continue; // We only care about the building that was just configured
+
+                        var pConf = prev.getSecond();
+                        if(value != pConf){ // Only update the config if it's not the same as what the client wants
+                            if (ratelimitRemaining > 0) ratelimitRemaining = 0; // If we ever have to do a config we assume the remaining limit is 0 since we wouldn't have to redo this config otherwise FINISHME: Handle case where sufficient time elapses. This could also be implemented so that it only happens when a retry fails
+                            int id = queued.increment(build.pos()) + 1; // FINISHME: Terrible way of ensuring that only one config is queued for any given block at any given time
+                            configs.add(() -> {
+                                if(queued.get(build.pos()) != id) return;
+                                Call.tileConfig(Vars.player, build, pConf);
+                                queued.remove(build.pos());
+                            });
+                        }
+                        it.remove();
+                        break;
+                    }
                 }
             }else{ // This config was performed on the client
 //                if(redoing) ratelimitRemaining = 0; // This is more of a hack fix than anything
@@ -801,7 +813,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         Events.fire(new TapEvent(player, tile));
     }
 
-    @Remote(targets = Loc.both, called = Loc.server, forward = true, ratelimited = true)
+    @Remote(targets = Loc.both, called = Loc.server, ratelimited = true)
     public static void buildingControlSelect(Player player, Building build){
         if(player == null || build == null || player.dead()) return;
 
@@ -813,7 +825,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         if(player.team() == build.team && build.canControlSelect(player.unit())){
             var before = player.unit();
 
-            build.onControlSelect(player.unit());
+            Call.unitBuildingControlSelect(player.unit(), build);
 
             if(!before.dead && before.spawnedByCore && !before.isPlayer()){
                 Call.unitDespawn(before);
@@ -990,6 +1002,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         lastUnit = null;
         lastPlans.clear();
         queued.clear(51);
+        prevs.clear();
         player.shooting = false;
     }
 

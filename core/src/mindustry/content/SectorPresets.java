@@ -1,5 +1,6 @@
 package mindustry.content;
 
+import mindustry.client.ui.*;
 import mindustry.maps.*;
 import mindustry.type.*;
 
@@ -27,6 +28,9 @@ public class SectorPresets{
             overrideLaunchDefaults = true;
             noLighting = true;
             startWaveTimeMultiplier = 3f;
+            if(localizedName.equals("Ground Zero") && CursednessLevel.atLeast(CursednessLevel.UHH)){
+                localizedName = "Soybean Base";
+            }
         }};
 
         saltFlats = new SectorPreset("saltFlats", serpulo, 101){{
