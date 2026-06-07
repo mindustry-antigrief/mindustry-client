@@ -708,6 +708,7 @@ public class MobileInput extends InputHandler implements GestureListener{
             tapCommandUnit();
         }else if(count == 3 && net.active()){
             Call.pingLocation(Vars.player, worldx, worldy, null);
+            DesktopInput.sendPingCoords(worldx, worldy);
         }else{
             //control units
             if(count == 2){

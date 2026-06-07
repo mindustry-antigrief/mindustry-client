@@ -428,11 +428,13 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
+        client.checkPref("unitfactorywarnings", true);
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("removecorenukes", false);
         client.checkPref("seer-enabled", false);
 
         client.category("chat");
+        client.checkPref("sendpingcoords", false);
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
         client.checkPref("clientjoinleave", true);
@@ -459,6 +461,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
         client.checkPref("fastrespawn", false);
+        client.checkPref("nounitcollision", false);
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
@@ -479,6 +482,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("drawpath", true);
         client.checkPref("selectionsizeoncursor", true);
         client.checkPref("drawselectionvanilla", false);
+        client.checkPref("simpleunitselection", false);
         client.checkPref("drawcursors", false);
         client.checkPref("drawdisplayborder", false);
         client.checkPref("tracelogicunits", false);
@@ -504,6 +508,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("showcutscenes", true);
         client.checkPref("powerinfo", true);
         client.checkPref("activemodesdisplay", true);
+        client.checkPref("listallunits", false);
         client.checkPref("useiconslogs", false);
         client.checkPref("colorizelogs", false);
         client.checkPref("showmassdriverdistance", false);
@@ -511,8 +516,10 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("enableunderwaterenv", true);
         client.checkPref("alwaysshowteams", false);
         client.checkPref("playerliststyle", true);
+        client.textPref("stripprefixregex", "");
 
         client.category("misc");
+        client.pref(new SettingsTable.UUIDSetting("uuid"));
         client.updatePref();
         client.textPref("keybind1shiftcommand", "");
         client.textPref("keybind1ctrlcommand", "");
@@ -1344,6 +1351,51 @@ public class SettingsMenuDialog extends BaseDialog{
 
                 addDesc(table.label(() -> title).left().padTop(3f).get());
                 table.row().add(area).left();
+                table.row();
+            }
+        }
+
+        public static class UUIDSetting extends Setting{
+            public UUIDSetting(String name){
+                super(name);
+            }
+
+            @Override
+            public void add(SettingsTable table){
+                TextField field = new TextField(settings.getString(name, platform.getUUID()));
+
+                Table prefTable = table.table().left().padTop(3f).get();
+                prefTable.label(() -> title);
+                prefTable.add(field).width(240).padRight(4f);
+
+                prefTable.button("@waves.random", () -> {
+                    byte[] uuidBytes = new byte[8];
+                    new Rand().nextBytes(uuidBytes);
+                    String randomUUID = new String(arc.util.serialization.Base64Coder.encode(uuidBytes));
+                    field.setText(randomUUID);
+                }).width(110).padRight(4f);
+
+                prefTable.button("@save", () -> {
+                    String val = field.getText().trim();
+                    if(val.length() != 12) {
+                        ui.showInfo("UUID must be exactly 12 characters.");
+                        return;
+                    }
+                    ui.showConfirm("@confirm",
+                        "Are you sure you want to change your UUID?\nThis will change your identity (admin status, bans) on servers.",
+                        () -> {
+                            settings.put(name, val);
+                            ui.showInfo("UUID saved. Reconnect or restart game to apply.");
+                        }
+                    );
+                }).width(100).padRight(4f);
+
+                prefTable.button("Reset", () -> {
+                    field.setText(settings.getString(name, platform.getUUID()));
+                    ui.showInfo("UUID reloaded from settings.");
+                }).width(100);
+
+                addDesc(prefTable);
                 table.row();
             }
         }

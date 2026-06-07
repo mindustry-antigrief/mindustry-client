@@ -30,7 +30,7 @@ public class PhysicsProcess implements AsyncProcess{
 
         //remove stale entities
         refs.removeAll(ref -> {
-            if(!ref.entity.isAdded()){
+            if(!ref.entity.isAdded() || (ref.entity.isLocal() && arc.Core.settings.getBool("nounitcollision", false))){
                 physics.remove(ref.body);
                 ref.entity.physref(null);
                 return true;
@@ -41,6 +41,7 @@ public class PhysicsProcess implements AsyncProcess{
         //find Units without bodies and assign them
         for(Unit entity : group){
             if(entity == null || entity.type == null || !entity.type.physics) continue;
+            if(entity.isLocal() && arc.Core.settings.getBool("nounitcollision", false)) continue;
 
             if(entity.physref == null){
                 PhysicsBody body = new PhysicsBody();

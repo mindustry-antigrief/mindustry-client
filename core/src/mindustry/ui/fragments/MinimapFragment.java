@@ -102,12 +102,13 @@ public class MinimapFragment{
                 }
             }
 
-            @Override
+             @Override
             public void tap(InputEvent event, float x, float y, int count, KeyCode button){
                 super.tap(event, x, y, count, button);
                 if(mobile && count == 2){
                     Vec2 pos = convert(x, y);
                     Call.pingLocation(Vars.player, pos.x, pos.y, null);
+                    mindustry.input.DesktopInput.sendPingCoords(pos.x, pos.y);
                 }
             }
 
@@ -130,9 +131,13 @@ public class MinimapFragment{
                 if(keycode == Binding.ping.value.key){
                     Vec2 pos = convert(event.stageX, event.stageY).cpy();
                     if(input.ctrl()){
-                        ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> Call.pingLocation(Vars.player, pos.x, pos.y, UI.formatIcons(result)));
+                        ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> {
+                            Call.pingLocation(Vars.player, pos.x, pos.y, UI.formatIcons(result));
+                            mindustry.input.DesktopInput.sendPingCoords(pos.x, pos.y, UI.formatIcons(result));
+                        });
                     }else{
                         Call.pingLocation(Vars.player, pos.x, pos.y, null);
+                        mindustry.input.DesktopInput.sendPingCoords(pos.x, pos.y);
                     }
                 }
                 return super.keyDown(event, keycode);

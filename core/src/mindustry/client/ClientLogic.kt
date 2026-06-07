@@ -13,6 +13,7 @@ import mindustry.client.navigation.Navigation.stopFollowing
 import mindustry.client.ui.*
 import mindustry.client.utils.*
 import mindustry.core.*
+import mindustry.entities.units.BuildPlan
 import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.input.*
@@ -24,6 +25,7 @@ import mindustry.world.blocks.defense.turrets.*
 import mindustry.world.blocks.power.*
 import mindustry.world.blocks.sandbox.*
 import kotlin.random.*
+import mindustry.content.Blocks
 
 /** WIP client logic class, similar to [Logic] but for the client.
  * Handles various events and such.
@@ -33,6 +35,9 @@ class ClientLogic {
     private var turretVoidWarnCount = 0
     private var turretVoidWarnPlayer: Player? = null
     private var lastTurretVoidWarn = 0L
+    private var unitFactoryBuildInterval = Interval()
+    private val lastFactoryBuildMsgs = HashMap<String, Long>()
+
 
     /** Create event listeners */
     init {
@@ -84,6 +89,7 @@ class ClientLogic {
                 showingInvTurrets = false
             }
             configs.clear()
+            lastFactoryBuildMsgs.clear()
             control.input.lastVirusWarning = null
             control.input.followGameEndPan = true
             dispatchingBuildPlans = false
@@ -178,8 +184,97 @@ class ClientLogic {
             }
         }
 
+        Events.run(Trigger.update) {
+            if (settings.getBool("unitfactorywarnings")) {
+                if (unitFactoryBuildInterval.get(60f)) {
+                    for (other in Groups.player) {
+                        if (other.team() != player.team()) {
+                            val plans = other.unit()?.plans ?: continue
+                            if (plans.isEmpty) continue
+
+                            var hasFactory = false
+                            for (i in 0 until plans.size) {
+                                val b = plans[i].block
+                                if (b == Blocks.multiplicativeReconstructor || 
+                                    b == Blocks.exponentialReconstructor || 
+                                    b == Blocks.tetrativeReconstructor) {
+                                    hasFactory = true
+                                    break
+                                }
+                            }
+                            if (!hasFactory) continue
+
+                            val uuid = other.uuid()
+                            val lastTime = lastFactoryBuildMsgs[uuid] ?: 0L
+                            if (Time.millis() - lastTime <= 10_000) continue
+
+                            val factoryPlans = ArrayList<BuildPlan>()
+                            for (i in 0 until plans.size) {
+                                val plan = plans[i]
+                                val b = plan.block
+                                if (b == Blocks.multiplicativeReconstructor || 
+                                    b == Blocks.exponentialReconstructor || 
+                                    b == Blocks.tetrativeReconstructor) {
+                                    factoryPlans.add(plan)
+                                }
+                            }
+
+                            lastFactoryBuildMsgs[uuid] = Time.millis()
+
+                            val clusters = ArrayList<ArrayList<BuildPlan>>()
+                            for (i in 0 until factoryPlans.size) {
+                                val factoryPlan = factoryPlans[i]
+                                var targetCluster: ArrayList<BuildPlan>? = null
+                                for (j in 0 until clusters.size) {
+                                    val cluster = clusters[j]
+                                    val center = cluster[0]
+                                    val dx = factoryPlan.x - center.x
+                                    val dy = factoryPlan.y - center.y
+                                    if (dx * dx + dy * dy <= 900) {
+                                        targetCluster = cluster
+                                        break
+                                    }
+                                }
+
+                                if (targetCluster != null) {
+                                    targetCluster.add(factoryPlan)
+                                } else {
+                                    val newCluster = ArrayList<BuildPlan>()
+                                    newCluster.add(factoryPlan)
+                                    clusters.add(newCluster)
+                                }
+                            }
+
+                            val clustersMessage = ArrayList<String>()
+                            for (i in clusters.indices) {
+                                val cluster = clusters[i]
+                                var maxTier = 3
+                                
+                                for (j in cluster.indices) {
+                                    val b = cluster[j].block
+                                    if (b == Blocks.tetrativeReconstructor) {
+                                        maxTier = 5
+                                        break
+                                    } else if (b == Blocks.exponentialReconstructor) {
+                                        maxTier = 4
+                                    }
+                                }
+
+                                clustersMessage.add("[accent]T$maxTier[] [lightgray]at[] [accent](${cluster[0].x}, ${cluster[0].y})[]")
+                            }
+
+                            val finalMessage = "${other.name} [lightgray]is building[] ${clustersMessage.joinToString()}"
+                            ui.chatfrag.addMsg(finalMessage).findCoords()
+                        }
+                    }
+                }
+            }
+        }
+
         Events.on(PlayerLeave::class.java) { e -> // Run when a player leaves the server
             if (e.player == null) return@on
+
+            lastFactoryBuildMsgs.remove(e.player.uuid())
 
             val id = e.player.id.toString()
 

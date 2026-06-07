@@ -1289,7 +1289,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void drawCommand(Unit sel){
-        Drawf.poly(sel.x, sel.y, 6, sel.hitSize / unitSelectRadScl + Mathf.absin(4f, 1f), 0f, selectedUnits.contains(sel) ? Pal.remove : Pal.accent);
+        if(Core.settings.getBool("simpleunitselection")){
+            Draw.color(selectedUnits.contains(sel) ? Pal.remove : Pal.accent);
+            Lines.stroke(1f);
+            Lines.square(sel.x, sel.y, sel.hitSize * 0.73f);
+            Draw.reset();
+        }else{
+            Drawf.poly(sel.x, sel.y, 6, sel.hitSize / unitSelectRadScl + Mathf.absin(4f, 1f), 0f, selectedUnits.contains(sel) ? Pal.remove : Pal.accent);
+        }
     }
 
     public void drawCommand(Building build){
@@ -1367,21 +1374,28 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
                 float rad = unit.hitSize / unitSelectRadScl + 1f;
 
-                Fill.lightInner(unit.x, unit.y, sides,
-                Math.max(0f, rad * 0.8f),
-                rad,
-                0f,
-                Tmp.c3.set(color).a(0f),
-                Tmp.c2.set(color).a(0.7f)
-                );
+                if(Core.settings.getBool("simpleunitselection")){
+                    Lines.stroke(1f);
+                    Draw.color(color);
+                    Lines.square(unit.x, unit.y, unit.hitSize * 0.73f);
+                    Draw.reset();
+                }else{
+                    Fill.lightInner(unit.x, unit.y, sides,
+                    Math.max(0f, rad * 0.8f),
+                    rad,
+                    0f,
+                    Tmp.c3.set(color).a(0f),
+                    Tmp.c2.set(color).a(0.7f)
+                    );
 
-                Lines.stroke(1f);
-                Draw.color(color);
-                Lines.poly(unit.x, unit.y, sides, rad + 0.5f);
-                //uncomment for a dark border
-                //Draw.color(Pal.gray);
-                //Lines.poly(unit.x, unit.y, sides, rad + 1.5f);
-                Draw.reset();
+                    Lines.stroke(1f);
+                    Draw.color(color);
+                    Lines.poly(unit.x, unit.y, sides, rad + 0.5f);
+                    //uncomment for a dark border
+                    //Draw.color(Pal.gray);
+                    //Lines.poly(unit.x, unit.y, sides, rad + 1.5f);
+                    Draw.reset();
+                }
 
                 if(lastPos == null){
                     lastPos = unit;

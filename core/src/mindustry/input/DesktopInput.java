@@ -86,6 +86,7 @@ public class DesktopInput extends InputHandler{
 
     // Client Vars
     private long lastShiftZ;
+    public static long lastPingCoordSendMillis = 0;
     /** Position where the player started drag-selecting. Overlaps with selectX/Y but is only used by client. */
     public float dragX = Float.NaN, dragY;
     /** Whether the player has provided movement input since some other code set it to false */
@@ -856,12 +857,16 @@ public class DesktopInput extends InputHandler{
 
         if(input.keyTap(Binding.ping) && !Core.scene.hasMouse() && !scene.hasKeyboard()){
             if(input.ctrl()){
-                ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> Call.pingLocation(Vars.player, input.mouseWorldX(), input.mouseWorldY(), UI.formatIcons(result)));
+                ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> {
+                    Call.pingLocation(Vars.player, input.mouseWorldX(), input.mouseWorldY(), UI.formatIcons(result));
+                    sendPingCoords(input.mouseWorldX(), input.mouseWorldY(), UI.formatIcons(result));
+                });
             }else if(input.shift()){
                 //Shift+ping to clear ping
                 Call.pingLocation(Vars.player, Float.NaN, Float.NaN, null);
             }else{
                 Call.pingLocation(Vars.player, input.mouseWorldX(), input.mouseWorldY(), null);
+                sendPingCoords(input.mouseWorldX(), input.mouseWorldY());
             }
         }
 
@@ -1454,5 +1459,23 @@ public class DesktopInput extends InputHandler{
 
     private boolean isBuildingIgnoreNetworking() {
         return !player.dead() && player.unit().plans.size != 0 && !BuildPlanCommunicationSystem.INSTANCE.isNetworking(player.unit().plans.last());
+    }
+
+    public static void sendPingCoords(float x, float y) {
+        sendPingCoords(x, y, null);
+    }
+    public static void sendPingCoords(float x, float y, String text) {
+        if(!Core.settings.getBool("sendpingcoords", false)) return;
+        if(Float.isNaN(x) || Float.isNaN(y)) return;
+        if(Time.millis() - lastPingCoordSendMillis >= 1500){
+            lastPingCoordSendMillis = Time.millis();
+            int tx = (int)(x / Vars.tilesize);
+            int ty = (int)(y / Vars.tilesize);
+            String message = tx + ", " + ty;
+            if(text != null && !text.isEmpty()){
+                message += " " + text;
+            }
+            Call.sendChatMessage(Main.INSTANCE.sign(message));
+        }
     }
 }
