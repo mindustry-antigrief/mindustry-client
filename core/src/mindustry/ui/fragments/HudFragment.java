@@ -72,6 +72,29 @@ public class HudFragment{
     private Seq<Block> blocksOut = new Seq<>();
     private Table hudLabel;
 
+    // List all units cache fields to avoid GC allocations
+    private final Seq<Teams.TeamData> presentTeams = new Seq<>();
+    private final ObjectMap<UnitType, Integer> unitCounts = new ObjectMap<>();
+    private final Seq<UnitType> sortedUnitTypes = new Seq<>();
+    private final java.util.Comparator<UnitType> unitTypeComparator = (a, b) -> {
+        int tierA = getUnitTier(a);
+        int tierB = getUnitTier(b);
+        if(tierA != tierB){
+            return Integer.compare(tierB, tierA);
+        }
+        int countA = unitCounts.get(a, 0);
+        int countB = unitCounts.get(b, 0);
+        if(countA != countB){
+            return Integer.compare(countB, countA);
+        }
+        return a.localizedName.compareTo(b.localizedName);
+    };
+
+    // List all units update throttling and settings caching
+    private boolean lastEmptyTeams = Core.settings.getBool("listemptyteams", false);
+    private String lastRegex = Core.settings.getString("stripprefixregex", "");
+    private int backupTimer = 120; // Start at 120 to build the table immediately on load
+
     private static ObjectSet<String> favoriteBlocks = new ObjectSet<>();
     private static String lastFavorited = null;
 
@@ -563,7 +586,6 @@ public class HudFragment{
 
 
             var disabled = new ObjectSet<Team>();
-            int[] lastSignature = {-1};
 
             wavesMain.row();
 
@@ -573,191 +595,146 @@ public class HudFragment{
                 st.update(() -> {
                     if (!Core.settings.getBool("listallunits")) return;
 
-                    var present = new Seq<Teams.TeamData>();
+                    // Detect settings changes
+                    boolean emptyTeams = Core.settings.getBool("listemptyteams", false);
+                    String regex = Core.settings.getString("stripprefixregex", "");
+                    if (emptyTeams != lastEmptyTeams || !regex.equals(lastRegex)) {
+                        lastEmptyTeams = emptyTeams;
+                        lastRegex = regex;
+                        backupTimer = 120; // Force immediate rebuild
+                    }
+
+                    // Rebuild every 120 frames (~2 seconds)
+                    if (backupTimer++ < 120) return;
+                    backupTimer = 0;
+
+                    st.clear();
+
+                    // 1. Build team list
+                    presentTeams.clear();
                     Teams.TeamData playerTeamData = null;
                     for (int i = 0; i < state.teams.present.size; i++) {
                         var team = state.teams.present.get(i);
                         if (team.team == Team.derelict) continue;
-                        if (team.players.size == 0 && !Core.settings.getBool("listemptyteams", false)) continue;
+                        if (team.players.size == 0 && !emptyTeams) continue;
                         if (team.team == player.team()) {
                             playerTeamData = team;
                         } else {
-                            present.add(team);
+                            presentTeams.add(team);
                         }
                     }
                     if (playerTeamData != null) {
-                        present.insert(0, playerTeamData);
+                        presentTeams.insert(0, playerTeamData);
                     }
-                    
-                    // Calculate a unique signature for this frame's teams and structural changes
-                    int signature = disabled.size * 100 + (Core.settings.getBool("listemptyteams", false) ? 1 : 0) * 1000000;
-                    for (int i = 0; i < present.size; i++) {
-                        var team = present.get(i);
-                        signature += team.team.id * 10;
-                        if (!disabled.contains(team.team)) {
-                            signature += team.players.size * 10000;
-                            for (int j = 0; j < team.players.size; j++) {
-                                signature += team.players.get(j).name.hashCode();
-                            }
-                            
-                            // Set of unique unit types present
-                            var types = new ObjectSet<UnitType>();
-                            for (int j = 0; j < team.units.size; j++) {
-                                var unit = team.units.get(j);
-                                if (unit.type != null && !isCoreUnit(unit.type)) {
-                                    types.add(unit.type);
-                                }
-                            }
-                            signature += types.size * 1000;
-                            for (var type : types) {
-                                signature += type.id;
-                            }
-                        }
-                    }
-                    signature += present.size;
 
-                    if (signature != lastSignature[0]) {
-                        lastSignature[0] = signature;
-                        st.clear();
+                    // 2. Build team filter row
+                    st.table(filters -> {
+                        filters.left();
+                        for (int i = 0; i < presentTeams.size; i++) {
+                            if (i > 0 && i % 10 == 0) {
+                                filters.row();
+                            }
+                            var team = presentTeams.get(i);
+                            var textureName = "team-" + team.team.name;
+                            
+                            Drawable baseIcon = Core.atlas.has(textureName)
+                                ? new TextureRegionDrawable(Core.atlas.find(textureName))
+                                : Tex.whiteui;
+                                
+                            var activeColor = Core.atlas.has(textureName) ? Color.white : team.team.color;
+
+                            filters.image(baseIcon).size(25f).scaling(Scaling.fit).padRight(8f).padBottom(2f).update(img -> {
+                                img.color.set(activeColor);
+                                if (disabled.contains(team.team)) {
+                                    img.color.a(img.color.a * 0.4f);
+                                }
+                            }).tooltip(t -> {
+                                String tooltipName = team.players.size == 1
+                                    ? Strings.stripColors(team.players.first().name)
+                                    : team.team.localized();
+                                if (!regex.isEmpty()) {
+                                    try {
+                                        tooltipName = tooltipName.replaceAll(regex, "");
+                                    } catch (Exception e) {}
+                                }
+                                t.background(Styles.black6).margin(4f);
+                                t.add(tooltipName).style(Styles.outlineLabel);
+                            }).get().clicked(() -> {
+                                if (disabled.contains(team.team)) {
+                                    disabled.remove(team.team);
+                                } else {
+                                    disabled.add(team.team);
+                                }
+                                backupTimer = 120; // Force immediate rebuild on click
+                            });
+                        }
+                    }).growX().row();
+
+                    // 3. Build unit lists for each enabled team
+                    for (int i = 0; i < presentTeams.size; i++) {
+                        var team = presentTeams.get(i);
+                        if (disabled.contains(team.team)) continue;
                         
-                        String regex = Core.settings.getString("stripprefixregex", "");
-
-                        // 1. Build team filter row
-                        st.table(filters -> {
-                            filters.left();
-                            for (int i = 0; i < present.size; i++) {
-                                if (i > 0 && i % 10 == 0) {
-                                    filters.row();
-                                }
-                                var team = present.get(i);
-                                var textureName = "team-" + team.team.name;
-                                
-                                Drawable baseIcon = Core.atlas.has(textureName)
-                                    ? new TextureRegionDrawable(Core.atlas.find(textureName))
-                                    : Tex.whiteui;
-                                    
-                                var activeColor = Core.atlas.has(textureName) ? Color.white : team.team.color;
-                                var disabledColor = activeColor.cpy().mul(1f, 1f, 1f, 0.4f);
-
-                                filters.image(baseIcon).size(25f).scaling(Scaling.fit).padRight(8f).padBottom(2f).update(img -> {
-                                    img.setColor(!disabled.contains(team.team) ? activeColor : disabledColor);
-                                }).tooltip(t -> {
-                                    String tooltipName = team.players.size == 1
-                                        ? Strings.stripColors(team.players.first().name)
-                                        : team.team.localized();
-                                    if (!regex.isEmpty()) {
-                                        try {
-                                            tooltipName = tooltipName.replaceAll(regex, "");
-                                        } catch (Exception e) {}
-                                    }
-                                    t.background(Styles.black6).margin(4f);
-                                    t.add(tooltipName).style(Styles.outlineLabel);
-                                }).get().clicked(() -> {
-                                    if (disabled.contains(team.team)) {
-                                        disabled.remove(team.team);
-                                    } else {
-                                        disabled.add(team.team);
-                                    }
-                                });
+                        // Count unit types to add (single pass)
+                        unitCounts.clear();
+                        for (int j = 0; j < team.units.size; j++) {
+                            var unit = team.units.get(j);
+                            if (unit.type != null && !isCoreUnit(unit.type)) {
+                                unitCounts.put(unit.type, unitCounts.get(unit.type, 0) + 1);
                             }
-                        }).growX().row();
-
-                        // 2. Build unit lists for each enabled team
-                        for (int i = 0; i < present.size; i++) {
-                            var team = present.get(i);
-                            if (disabled.contains(team.team)) continue;
-                            
-                            // Count if there are any non-core units
-                            boolean hasNonCoreUnits = false;
-                            for (int j = 0; j < team.units.size; j++) {
-                                var u = team.units.get(j);
-                                if (u.type != null && !isCoreUnit(u.type)) {
-                                    hasNonCoreUnits = true;
-                                    break;
-                                }
-                            }
-                            if (!hasNonCoreUnits) continue;
-
-                            // Header row: Team/Player name
-                            String teamLabel = team.players.size == 1
-                                ? Strings.stripColors(team.players.first().name)
-                                : team.team.localized();
-                            if (!regex.isEmpty()) {
-                                try {
-                                    teamLabel = teamLabel.replaceAll(regex, "");
-                                } catch (Exception e) {}
-                            }
-                            
-                            teamLabel = teamLabel.trim();
-                            if (teamLabel.length() > 9) {
-                                teamLabel = teamLabel.substring(0, 9) + "...";
-                            }
-                            
-                            String finalTeamLabel = teamLabel;
-                            st.table(teamRow -> {
-                                teamRow.left().top();
-                                teamRow.defaults().left().top();
-                                
-                                teamRow.add(finalTeamLabel).color(team.team.color).style(Styles.outlineLabel).padRight(4f);
-                                
-                                // Count units by type
-                                var unitCounts = new ObjectMap<UnitType, Integer>();
-                                for (int j = 0; j < team.units.size; j++) {
-                                    var unit = team.units.get(j);
-                                    if (unit.type != null && !isCoreUnit(unit.type)) {
-                                        unitCounts.put(unit.type, unitCounts.get(unit.type, 0) + 1);
-                                    }
-                                }
-                                
-                                // Sort unit types by tier (T5 down to T1) and then by count
-                                var unitTypes = new Seq<UnitType>();
-                                for (var type : unitCounts.keys()) {
-                                    unitTypes.add(type);
-                                }
-                                unitTypes.sort((a, b) -> {
-                                    int tierA = getUnitTier(a);
-                                    int tierB = getUnitTier(b);
-                                    if (tierA != tierB) {
-                                        return Integer.compare(tierB, tierA);
-                                    }
-                                    int countA = unitCounts.get(a);
-                                    int countB = unitCounts.get(b);
-                                    if (countA != countB) {
-                                        return Integer.compare(countB, countA);
-                                    }
-                                    return a.localizedName.compareTo(b.localizedName);
-                                });
-                                
-                                // Limit unit types to 14
-                                if (unitTypes.size > 14) {
-                                    unitTypes.truncate(14);
-                                }
-                                
-                                // Add unit icons as cells directly to teamRow
-                                for (int j = 0; j < unitTypes.size; j++) {
-                                    if (j > 0 && (j - 4) % 5 == 0) {
-                                        teamRow.row();
-                                    }
-                                    
-                                    var type = unitTypes.get(j);
-                                    
-                                    teamRow.table(ut -> {
-                                        ut.left().top();
-                                        ut.image(type.uiIcon).size(18f).scaling(Scaling.fit).tooltip(type.localizedName);
-                                        ut.label(() -> {
-                                            int count = 0;
-                                            for (int k = 0; k < team.units.size; k++) {
-                                                var u = team.units.get(k);
-                                                if (u.type == type) {
-                                                    count++;
-                                                }
-                                            }
-                                            return String.valueOf(count);
-                                        }).padLeft(2f).color(Color.white).style(Styles.outlineLabel);
-                                    }).padRight(6f);
-                                }
-                            }).growX().left().padTop(4f).row();
                         }
+                        
+                        if (unitCounts.isEmpty()) continue;
+
+                        // Header row: Team/Player name
+                        String teamLabel = team.players.size == 1
+                            ? Strings.stripColors(team.players.first().name)
+                            : team.team.localized();
+                        if (!regex.isEmpty()) {
+                            try {
+                                teamLabel = teamLabel.replaceAll(regex, "");
+                            } catch (Exception e) {}
+                        }
+                        
+                        teamLabel = teamLabel.trim();
+                        if (teamLabel.length() > 9) {
+                            teamLabel = teamLabel.substring(0, 9) + "...";
+                        }
+                        
+                        String finalTeamLabel = teamLabel;
+                        st.table(teamRow -> {
+                            teamRow.left().top();
+                            teamRow.defaults().left().top();
+                            
+                            teamRow.add(finalTeamLabel).color(team.team.color).style(Styles.outlineLabel).padRight(4f);
+                            
+                            // Sort unit types
+                            sortedUnitTypes.clear();
+                            unitCounts.keys().toSeq(sortedUnitTypes);
+                            sortedUnitTypes.sort(unitTypeComparator);
+                            
+                            // Limit unit types to 14
+                            if (sortedUnitTypes.size > 14) {
+                                sortedUnitTypes.truncate(14);
+                            }
+                            
+                            // Add unit icons as cells directly to teamRow
+                            for (int j = 0; j < sortedUnitTypes.size; j++) {
+                                if (j > 0 && (j - 4) % 5 == 0) {
+                                    teamRow.row();
+                                }
+                                
+                                var type = sortedUnitTypes.get(j);
+                                int count = unitCounts.get(type, 0);
+                                
+                                teamRow.table(ut -> {
+                                    ut.left().top();
+                                    ut.image(type.uiIcon).size(18f).scaling(Scaling.fit).tooltip(type.localizedName);
+                                    // Use static text cell instead of dynamic label provider
+                                    ut.add(String.valueOf(count)).padLeft(2f).color(Color.white).style(Styles.outlineLabel);
+                                }).padRight(6f);
+                            }
+                        }).growX().left().padTop(4f).row();
                     }
                 });
             }).marginTop(3).marginBottom(3).width(dsize * 5 + 4f).get();
@@ -771,7 +748,10 @@ public class HudFragment{
                 t.top().table(teams -> {
                     teams.left();
                     for(Team team : Team.baseTeams){
-                        ImageButton button = teams.button(Tex.whiteui, Styles.clearNoneTogglei, 33f, () -> Call.setPlayerTeamEditor(player, team))
+                        ImageButton button = teams.button(Tex.whiteui, Styles.clearNoneTogglei, 33f, () -> {
+                            Call.setPlayerTeamEditor(player, team);
+                            backupTimer = 120; // Force immediate rebuild of units list when team is selected
+                        })
                         .size(45f).margin(6f).get();
                         button.getImageCell().grow();
                         button.getStyle().imageUpColor = team.color;
