@@ -93,7 +93,7 @@ public class HudFragment{
     // List all units update throttling and settings caching
     private boolean lastEmptyTeams = Core.settings.getBool("listemptyteams", false);
     private String lastRegex = Core.settings.getString("stripprefixregex", "");
-    private int backupTimer = 120; // Start at 120 to build the table immediately on load
+    private long lastRebuildTime = 0; // Start at 0 to build the table immediately on load
 
     private static ObjectSet<String> favoriteBlocks = new ObjectSet<>();
     private static String lastFavorited = null;
@@ -601,12 +601,12 @@ public class HudFragment{
                     if (emptyTeams != lastEmptyTeams || !regex.equals(lastRegex)) {
                         lastEmptyTeams = emptyTeams;
                         lastRegex = regex;
-                        backupTimer = 120; // Force immediate rebuild
+                        lastRebuildTime = 0; // Force immediate rebuild
                     }
 
-                    // Rebuild every 120 frames (~2 seconds)
-                    if (backupTimer++ < 120) return;
-                    backupTimer = 0;
+                    // Rebuild every 3 seconds (3000ms)
+                    if (Time.millis() - lastRebuildTime < 3000) return;
+                    lastRebuildTime = Time.millis();
 
                     st.clear();
 
@@ -665,7 +665,7 @@ public class HudFragment{
                                 } else {
                                     disabled.add(team.team);
                                 }
-                                backupTimer = 120; // Force immediate rebuild on click
+                                lastRebuildTime = 0; // Force immediate rebuild on click
                             });
                         }
                     }).growX().row();
@@ -750,7 +750,7 @@ public class HudFragment{
                     for(Team team : Team.baseTeams){
                         ImageButton button = teams.button(Tex.whiteui, Styles.clearNoneTogglei, 33f, () -> {
                             Call.setPlayerTeamEditor(player, team);
-                            backupTimer = 120; // Force immediate rebuild of units list when team is selected
+                            lastRebuildTime = 0; // Force immediate rebuild of units list when team is selected
                         })
                         .size(45f).margin(6f).get();
                         button.getImageCell().grow();

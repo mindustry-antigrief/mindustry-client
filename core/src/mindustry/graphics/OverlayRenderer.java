@@ -202,7 +202,7 @@ public class OverlayRenderer{
             tile.drawConfigure();
         }
 
-        if(!player.dead()) input.drawTop();
+        input.drawTop();
         input.drawUnitSelection();
 
         if(player.dead()) return; //dead players don't draw

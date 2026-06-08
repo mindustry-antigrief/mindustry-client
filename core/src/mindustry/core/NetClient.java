@@ -124,6 +124,11 @@ public class NetClient implements ApplicationListener{
             c.versionType = Version.type;
             c.color = player.color.rgba();
             c.usid = getUsid(packet.addressTCP);
+            if(Core.settings.getBool("randomuuidonjoin", false)){
+                byte[] uuidBytes = new byte[8];
+                new Rand().nextBytes(uuidBytes);
+                ClientVars.temporaryUUID = new String(Base64Coder.encode(uuidBytes));
+            }
             c.uuid = platform.getUUID();
 
             var address = packet.addressTCP.split("[:/]")[1]; // Remove leading slash (and domain) and trailing port

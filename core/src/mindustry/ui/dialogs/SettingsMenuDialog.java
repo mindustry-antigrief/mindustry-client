@@ -543,6 +543,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("pathnav", true);
         client.checkPref("nyduspadpatch", true);
         client.checkPref("forceallowschematics", true);
+        client.checkPref("randomuuidonjoin", false);
         client.checkPref("blockfishannoyances", true, i -> Server.fish.blockAnnoyances = i);
         client.checkPref("autorestart", true);
         client.checkPref("realautorestart", true);
@@ -1365,15 +1366,23 @@ public class SettingsMenuDialog extends BaseDialog{
             public void add(SettingsTable table){
                 TextField field = new TextField(settings.getString(name, platform.getUUID()));
 
+                field.changed(() -> {
+                    String val = field.getText().trim();
+                    if(val.length() == 12){
+                        mindustry.client.ClientVars.temporaryUUID = val;
+                    }
+                });
+
                 Table prefTable = table.table().left().padTop(3f).get();
                 prefTable.label(() -> title);
                 prefTable.add(field).width(240).padRight(4f);
 
-                prefTable.button("@waves.random", () -> {
+                prefTable.button("Randomize", () -> {
                     byte[] uuidBytes = new byte[8];
                     new Rand().nextBytes(uuidBytes);
                     String randomUUID = new String(arc.util.serialization.Base64Coder.encode(uuidBytes));
                     field.setText(randomUUID);
+                    mindustry.client.ClientVars.temporaryUUID = randomUUID;
                 }).width(110).padRight(4f);
 
                 prefTable.button("@save", () -> {
@@ -1386,13 +1395,16 @@ public class SettingsMenuDialog extends BaseDialog{
                         "Are you sure you want to change your UUID?\nThis will change your identity (admin status, bans) on servers.",
                         () -> {
                             settings.put(name, val);
+                            mindustry.client.ClientVars.temporaryUUID = val;
                             ui.showInfo("UUID saved. Reconnect or restart game to apply.");
                         }
                     );
                 }).width(100).padRight(4f);
 
                 prefTable.button("Reset", () -> {
-                    field.setText(settings.getString(name, platform.getUUID()));
+                    String savedVal = settings.getString(name, platform.getUUID());
+                    field.setText(savedVal);
+                    mindustry.client.ClientVars.temporaryUUID = savedVal;
                     ui.showInfo("UUID reloaded from settings.");
                 }).width(100);
 

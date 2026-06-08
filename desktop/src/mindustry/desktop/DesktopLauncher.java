@@ -650,6 +650,9 @@ public class DesktopLauncher extends ClientLauncher{
 
     @Override
     public String getUUID(){
+        if(mindustry.client.ClientVars.temporaryUUID != null){
+            return mindustry.client.ClientVars.temporaryUUID;
+        }
         if(steam){
             try{
                 byte[] result = new byte[8];

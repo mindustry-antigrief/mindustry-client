@@ -108,6 +108,9 @@ public interface Platform{
 
     /** Must be a base64 string 8 bytes in length. */
     default String getUUID(){
+        if(mindustry.client.ClientVars.temporaryUUID != null){
+            return mindustry.client.ClientVars.temporaryUUID;
+        }
         String uuid = Core.settings.getString("uuid", "");
         if(uuid.isEmpty()){
             byte[] result = new byte[8];

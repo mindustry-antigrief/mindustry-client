@@ -82,6 +82,7 @@ public class DesktopInput extends InputHandler{
 
     private float buildPlanMouseOffsetX, buildPlanMouseOffsetY;
     private boolean changedCursor, pressedCommandRect;
+    private boolean schematicDeselectedThisFrame;
 
 
     // Client Vars
@@ -342,6 +343,7 @@ public class DesktopInput extends InputHandler{
     @Override
     public void update(){ // FINISHME v8: This has been cleaned up in v8. We should mirror those changes and ideally have an updateClient() or something for handling client keybinds.
         super.update();
+        schematicDeselectedThisFrame = false;
 
         if(Core.input.keyTap(Binding.playerList) && (scene.getKeyboardFocus() == null || scene.getKeyboardFocus().isDescendantOf(ui.listfrag.content) || scene.getKeyboardFocus().isDescendantOf(ui.minimapfrag.elem))){
             Core.settings.getBoolOnce("playerlist-spectate-moved", () ->
@@ -844,7 +846,8 @@ public class DesktopInput extends InputHandler{
         //zoom camera
         if((!Core.scene.hasScroll() || Core.input.keyDown(Binding.diagonalPlacement)) && !ui.chatfrag.shown() && !ui.consolefrag.shown() && Math.abs(Core.input.axisTap(Binding.zoom)) > 0
             && !Core.input.keyDown(Binding.rotatePlaced) && (Core.input.keyDown(Binding.diagonalPlacement) ||
-                !Binding.zoom.value.equals(Binding.rotate.value) || ((!player.isBuilder() || !isPlacing() || !block.rotate) && selectPlans.isEmpty()))){
+                !Binding.zoom.value.equals(Binding.rotate.value) || ((!player.isBuilder() || !isPlacing() || !block.rotate) && selectPlans.isEmpty()) || input.ctrl())
+            && (selectPlans.isEmpty() || !Binding.zoom.value.equals(Binding.rotate.value) || input.ctrl())){
             renderer.scaleCamera(Core.input.axisTap(Binding.zoom));
         }
 
@@ -872,6 +875,11 @@ public class DesktopInput extends InputHandler{
 
         if(Core.input.keyRelease(Binding.select) && commandRect){
             selectUnitsRect();
+        }
+
+        if(!locked){
+            int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
+            pollSchematicInput(rawCursorX, rawCursorY);
         }
 
         if(player.dead() || locked){ // FINISHME: Should we comment out the dead check?
@@ -953,6 +961,55 @@ public class DesktopInput extends InputHandler{
         }
     }
 
+    void pollSchematicInput(int rawCursorX, int rawCursorY){
+        if(Core.input.keyTap(Binding.schematicSelect) && !Core.scene.hasKeyboard() && mode != breaking){
+            schemX = rawCursorX;
+            schemY = rawCursorY;
+        }
+
+        if(!Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
+            if(Core.input.keyRelease(Binding.schematicSelect)){
+                lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY);
+                useSchematic(lastSchematic);
+                if(selectPlans.isEmpty()){
+                    lastSchematic = null;
+                }
+                schemX = -1;
+                schemY = -1;
+            }
+        }
+
+        if(!selectPlans.isEmpty()){
+            int shiftX = rawCursorX - schematicX, shiftY = rawCursorY - schematicY;
+
+            selectPlans.each(s -> {
+                s.x += shiftX;
+                s.y += shiftY;
+            });
+
+            schematicX += shiftX;
+            schematicY += shiftY;
+
+            if(Core.input.keyTap(Binding.schematicFlipX) && !Core.input.shift()){
+                flipPlans(selectPlans, true);
+            }
+
+            if(Core.input.keyTap(Binding.schematicFlipY)){
+                flipPlans(selectPlans, false);
+            }
+
+            if(!ui.chatfrag.shown() && Math.abs(Core.input.axisTap(Binding.rotate)) > 0 && !input.ctrl()){
+                rotatePlans(selectPlans, Mathf.sign(Core.input.axisTap(Binding.rotate)));
+            }
+
+            if(Core.input.keyTap(Binding.deselect) || Core.input.keyTap(Binding.breakBlock)){
+                selectPlans.clear();
+                lastSchematic = null;
+                schematicDeselectedThisFrame = true;
+            }
+        }
+    }
+
     //player input: for controlling the player unit (will crash if the unit is not present)
     void pollInputPlayer(){
         if(scene.hasField()) return;
@@ -966,18 +1023,6 @@ public class DesktopInput extends InputHandler{
         if(Core.settings.getBool("buildautopause") && isBuilding && !isBuildingIgnoreNetworking()){
             isBuilding = false;
             buildWasAutoPaused = true;
-        }
-
-        if(!selectPlans.isEmpty()){
-            int shiftX = rawCursorX - schematicX, shiftY = rawCursorY - schematicY;
-
-            selectPlans.each(s -> {
-                s.x += shiftX;
-                s.y += shiftY;
-            });
-
-            schematicX += shiftX;
-            schematicY += shiftY;
         }
 
         if(Core.input.keyTap(Binding.deselect) && !ui.minimapfrag.shown() && !isPlacing() && player.unit().plans.isEmpty() && !commandMode){
@@ -997,7 +1042,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if((Core.input.keyTap(Binding.schematicSelect) || Core.input.keyTap(Binding.rebuildSelect)) && !Core.scene.hasKeyboard() && mode != breaking){
+        if(Core.input.keyTap(Binding.rebuildSelect) && !Core.scene.hasKeyboard() && mode != breaking){
             schemX = rawCursorX;
             schemY = rawCursorY;
         }
@@ -1008,29 +1053,10 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
-            if(Core.input.keyRelease(Binding.schematicSelect)){
-                lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY);
-                useSchematic(lastSchematic);
-                if(selectPlans.isEmpty()){
-                    lastSchematic = null;
-                }
-                schemX = -1;
-                schemY = -1;
-            }else if(input.keyRelease(Binding.rebuildSelect)){
-
+            if(input.keyRelease(Binding.rebuildSelect)){
                 rebuildArea(schemX, schemY, rawCursorX, rawCursorY);
                 schemX = -1;
                 schemY = -1;
-            }
-        }
-
-        if(!selectPlans.isEmpty()){
-            if(Core.input.keyTap(Binding.schematicFlipX) && !input.shift()){ // Don't rotate when shift is held, if shift is held navigate instead.
-                flipPlans(selectPlans, true);
-            }
-
-            if(Core.input.keyTap(Binding.schematicFlipY)){
-                flipPlans(selectPlans, false);
             }
         }
 
@@ -1127,10 +1153,7 @@ public class DesktopInput extends InputHandler{
         }else if(Core.input.keyTap(Binding.deselect) && isPlacing()){
             block = null;
             mode = none;
-        }else if(Core.input.keyTap(Binding.deselect) && !selectPlans.isEmpty()){
-            selectPlans.clear();
-            lastSchematic = null;
-        }else if(Core.input.keyTap(Binding.breakBlock) && !Core.scene.hasMouse() && !commandMode){
+        }else if(Core.input.keyTap(Binding.breakBlock) && !Core.scene.hasMouse() && !commandMode && !schematicDeselectedThisFrame){
             //is recalculated because setting the mode to breaking removes potential multiblock cursor offset
             deleting = false;
             mode = Core.input.shift() ? freezing : Core.input.ctrl() ? dequeue : breaking;
@@ -1151,7 +1174,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(mode == placing && block != null){
-            if(!overrideLineRotation && !Core.input.keyDown(Binding.diagonalPlacement) && (selectX != cursorX || selectY != cursorY) && ((int)Core.input.axisTap(Binding.rotate) != 0)){
+            if(!overrideLineRotation && !Core.input.keyDown(Binding.diagonalPlacement) && (selectX != cursorX || selectY != cursorY) && ((int)Core.input.axisTap(Binding.rotate) != 0) && !input.ctrl()){
                 rotation = ((int)((Angles.angle(selectX, selectY, cursorX, cursorY) + 45) / 90f)) % 4;
                 overrideLineRotation = true;
             }
@@ -1233,7 +1256,7 @@ public class DesktopInput extends InputHandler{
             selectScale = 0f;
         }
 
-        if(!Core.input.keyDown(Binding.diagonalPlacement) && Math.abs((int)Core.input.axisTap(Binding.rotate)) > 0){
+        if(!Core.input.keyDown(Binding.diagonalPlacement) && Math.abs((int)Core.input.axisTap(Binding.rotate)) > 0 && !input.ctrl()){
             rotation = Mathf.mod(rotation + (int)Core.input.axisTap(Binding.rotate), 4);
 
             if(splan != null){
@@ -1242,8 +1265,6 @@ public class DesktopInput extends InputHandler{
 
             if(isPlacing() && mode == placing){
                 updateLine(selectX, selectY);
-            }else if(!selectPlans.isEmpty() && !ui.chatfrag.shown()){
-                rotatePlans(selectPlans, Mathf.sign(Core.input.axisTap(Binding.rotate)));
             }
         }
 
