@@ -570,6 +570,7 @@ public class HudFragment{
 
                 wavesMain.table(Tex.wavepane, st -> {
                     st.left();
+                    st.margin(5f, 6f, 5f, 6f);
                     st.update(() -> {
                         var present = new Seq<Teams.TeamData>();
                         Teams.TeamData playerTeamData = null;
@@ -726,14 +727,14 @@ public class HudFragment{
                                         return a.localizedName.compareTo(b.localizedName);
                                     });
                                     
-                                    // Limit unit types to 17
-                                    if (unitTypes.size > 17) {
-                                        unitTypes.truncate(17);
+                                    // Limit unit types to 14
+                                    if (unitTypes.size > 14) {
+                                        unitTypes.truncate(14);
                                     }
                                     
                                     // Add unit icons as cells directly to teamRow
                                     for (int j = 0; j < unitTypes.size; j++) {
-                                        if (j > 0 && (j - 5) % 6 == 0) {
+                                        if (j > 0 && (j - 4) % 5 == 0) {
                                             teamRow.row();
                                         }
                                         
