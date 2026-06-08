@@ -509,6 +509,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("powerinfo", true);
         client.checkPref("activemodesdisplay", true);
         client.checkPref("listallunits", false);
+        client.checkPref("listemptyteams", false);
         client.checkPref("useiconslogs", false);
         client.checkPref("colorizelogs", false);
         client.checkPref("showmassdriverdistance", false);
