@@ -35,6 +35,7 @@ import static mindustry.Vars.*;
 
 public class SchematicsDialog extends BaseDialog{
     private static final float tagh = 42f;
+    private static final float cardWidth = 208f, cardGap = 22f, sidePad = 20f;
     public SchematicInfoDialog info = new SchematicInfoDialog();
     private Schematic firstSchematic;
     private String search = "";
@@ -42,17 +43,52 @@ public class SchematicsDialog extends BaseDialog{
     private String descSearch = "";
     private TextField descSearchField;
     private Runnable rebuildPane = () -> {}, rebuildTags = () -> {};
-    private Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
-    private Seq<String> tags, selectedTags = new Seq<>();
+    private final Pattern ignoreSymbols = Pattern.compile("[`~!@#$%^&*()\\-_=+{}|;:'\",<.>/?]");
+    private final Seq<String> tags;
+    private final Seq<String> selectedTags = new Seq<>();
     private boolean checkedTags;
     private final ItemSeq reusableItemSeq = new ItemSeq();
     private ScrollPane pane;
+
+    private enum SortMode{
+        alphabetAsc("schematic.sort.alph.asc"),
+        alphabetDesc("schematic.sort.alph.desc"),
+        createdAsc("schematic.sort.created.asc"),
+        createdDesc("schematic.sort.created.desc"),
+        editedAsc("schematic.sort.updated.asc"),
+        editedDesc("schematic.sort.updated.desc");
+
+        final String bundleKey;
+        SortMode(String key){ this.bundleKey = key; }
+
+        public SortMode next(){
+            SortMode[] v = values();
+            return v[(ordinal() + 1) % v.length];
+        }
+
+        public SortMode prev(){
+            SortMode[] v = values();
+            return v[(ordinal() + v.length - 1) % v.length];
+        }
+
+        @Override
+        public String toString(){
+            return Core.bundle.get(bundleKey);
+        }
+    }
+
+    private SortMode sortMode = SortMode.alphabetAsc;
+    private final Seq<Schematic> sortedList = new Seq<>();
 
     public SchematicsDialog(){
         super("@schematics");
         Core.assets.load("sprites/schematic-background.png", Texture.class).loaded = t -> t.setWrap(TextureWrap.repeat);
 
         tags = Core.settings.getJson("schematic-tags", Seq.class, String.class, Seq::new);
+
+        try{
+            sortMode = SortMode.valueOf(Core.settings.getString("schematic-sort-mode", SortMode.alphabetAsc.name()));
+        }catch(IllegalArgumentException ignored){}
 
         shouldPause = true;
         addCloseButton();
@@ -71,13 +107,16 @@ public class SchematicsDialog extends BaseDialog{
 
         if(!Core.settings.getBool("schematicuicarryover")) search = "";
 
+        float sceneWidth = Core.scene != null && Core.scene.getWidth() > 0 ? Core.scene.getWidth() : Core.graphics.getWidth() / Scl.scl(1f);
+        int cols = Math.max((int)(sceneWidth / (cardWidth + cardGap)), 1);
+        float paneWidth = Math.min(cols * cardWidth + sidePad, sceneWidth - 40f);
+
         cont.top();
         cont.clear();
 
 
         cont.table(t -> {
             t.table(s -> {
-                s.setWidth(t.getWidth() / 2);
                 s.left();
                 s.image(Icon.zoom);
                 searchField = s.field(search, res -> {
@@ -95,7 +134,6 @@ public class SchematicsDialog extends BaseDialog{
                 });
             }).growX();
             t.table(s -> {
-                s.setWidth(t.getWidth() / 2);
                 s.left();
                 s.image(Icon.edit);
                 descSearchField = s.field(descSearch, res -> {
@@ -111,7 +149,15 @@ public class SchematicsDialog extends BaseDialog{
                 });
                 descSearchField.setMessageText("@client.schematic.searchdescription");
             }).growX().padLeft(4);
-        }).fillX().padBottom(4);
+
+            t.button(b -> {
+                b.label(() -> sortMode.toString()).get().setWrap(false);
+            }, Styles.togglet, () -> {
+                sortMode = Core.input.shift() ? sortMode.prev() : sortMode.next();
+                Core.settings.put("schematic-sort-mode", sortMode.name());
+                rebuildPane.run();
+            }).padLeft(4f).height(tagh);
+        }).width(paneWidth).padBottom(4);
         cont.row();
 
         cont.table(in -> {
@@ -140,12 +186,12 @@ public class SchematicsDialog extends BaseDialog{
             }).fillX().height(tagh).scrollY(false);
 
             in.button(Icon.pencilSmall, this::showAllTags).size(tagh).pad(2).tooltip("@schematic.edittags");
-        }).height(tagh).fillX();
+        }).height(tagh).width(paneWidth);
 
         cont.row();
 
         var pane = cont.pane(new Table(t -> {
-            t.top();
+            t.top().left();
 
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
@@ -161,8 +207,6 @@ public class SchematicsDialog extends BaseDialog{
             });
 
             rebuildPane = () -> {
-                int cols = Math.max((int)(Core.graphics.getWidth() / Scl.scl(230)), 1);
-
                 t.clear();
                 int i = 0;
                 String searchString = ignoreSymbols.matcher(search.toLowerCase()).replaceAll("");
@@ -170,7 +214,17 @@ public class SchematicsDialog extends BaseDialog{
 
                 firstSchematic = null;
 
-                for(Schematic s : schematics.all()){
+                sortedList.set(schematics.all());
+                sortedList.sort((a, b) -> switch (sortMode) {
+                    case alphabetAsc -> a.name().compareToIgnoreCase(b.name());
+                    case alphabetDesc -> b.name().compareToIgnoreCase(a.name());
+                    case createdAsc -> Long.compare(a.getCreatedAt(), b.getCreatedAt());
+                    case createdDesc -> Long.compare(b.getCreatedAt(), a.getCreatedAt());
+                    case editedAsc -> Long.compare(a.getModifiedAt(), b.getModifiedAt());
+                    case editedDesc -> Long.compare(b.getModifiedAt(), a.getModifiedAt());
+                });
+
+                for(Schematic s : sortedList){
                     //make sure *tags* fit
                     if(selectedTags.any() && !s.labels.containsAll(selectedTags)) continue;
                     //make sure search fits
@@ -260,6 +314,9 @@ public class SchematicsDialog extends BaseDialog{
                         t.add("@none").color(Color.lightGray);
                     }
                 }
+
+                t.row();
+                t.add().height(Core.scene.getHeight() * 0.8f);
             };
 
             rebuildPane.run();
@@ -289,7 +346,8 @@ public class SchematicsDialog extends BaseDialog{
                 Element e = this;
                 return x >= e.translation.x && x < width + e.translation.x && y >= e.translation.y && y < height + e.translation.y ? this : null;
             }
-        }).grow().scrollX(false).get();
+        }).growY().width(paneWidth).scrollX(false).get();
+        pane.setScrollbarsOnTop(true);
         if(Core.settings.getBool("schematicuicarryover") && this.pane != null){
             float scroll = this.pane.getVisualScrollY();
             pane.invalidate();

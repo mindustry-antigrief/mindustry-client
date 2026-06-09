@@ -4,6 +4,8 @@ import arc.files.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
+import java.nio.file.*;
+import java.nio.file.attribute.*;
 import mindustry.content.*;
 import mindustry.mod.Mods.*;
 import mindustry.type.*;
@@ -69,6 +71,32 @@ public class Schematic implements Publishable, Comparable<Schematic>{
 
     public String description(){
         return tags.get("description", "");
+    }
+
+    public long getCreatedAt(){
+        if(tags.containsKey("created")){
+            try{
+                return Long.parseLong(tags.get("created"));
+            }catch(NumberFormatException ignored){}
+        }
+        if(file != null){
+            try{
+                BasicFileAttributes attr = Files.readAttributes(file.file().toPath(), BasicFileAttributes.class);
+                return attr.creationTime().toMillis();
+            }catch(Exception ignored){
+                return file.lastModified();
+            }
+        }
+        return 0;
+    }
+
+    public long getModifiedAt(){
+        if(tags.containsKey("modified")){
+            try{
+                return Long.parseLong(tags.get("modified"));
+            }catch(NumberFormatException ignored){}
+        }
+        return file != null ? file.lastModified() : 0;
     }
 
     public void save(){

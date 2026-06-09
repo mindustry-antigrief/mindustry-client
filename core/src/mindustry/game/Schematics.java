@@ -128,6 +128,7 @@ public class Schematics implements Loadable{
         target.height = newSchematic.height;
         newSchematic.labels = target.labels;
         newSchematic.tags.putAll(target.tags);
+        newSchematic.tags.put("modified", String.valueOf(System.currentTimeMillis()));
         newSchematic.file = target.file;
 
         loadouts.each((block, list) -> list.remove(target));
@@ -170,6 +171,7 @@ public class Schematics implements Loadable{
     }
 
     public void saveChanges(Schematic s){
+        s.tags.put("modified", String.valueOf(System.currentTimeMillis()));
         if(s.file != null){
             try{
                 write(s, s.file, true);
@@ -364,6 +366,12 @@ public class Schematics implements Loadable{
 
     /** Adds a schematic to the list with the option to import tags. */
     public void add(Schematic schematic){
+        if(!schematic.tags.containsKey("created")){
+            schematic.tags.put("created", String.valueOf(System.currentTimeMillis()));
+        }
+        if(!schematic.tags.containsKey("modified")){
+            schematic.tags.put("modified", String.valueOf(System.currentTimeMillis()));
+        }
         all.add(schematic);
         try{
             Fi file = findFile(Strings.sanitizeFilename(schematic.name()));

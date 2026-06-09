@@ -1377,7 +1377,7 @@ public class SettingsMenuDialog extends BaseDialog{
                 prefTable.label(() -> title);
                 prefTable.add(field).width(240).padRight(4f);
 
-                prefTable.button("Randomize", () -> {
+                prefTable.button("@editor.randomize", () -> {
                     byte[] uuidBytes = new byte[8];
                     new Rand().nextBytes(uuidBytes);
                     String randomUUID = new String(arc.util.serialization.Base64Coder.encode(uuidBytes));
