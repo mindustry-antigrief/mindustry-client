@@ -484,8 +484,13 @@ public class Schematic implements Publishable, Comparable<Schematic>{
     private static Object jsonToConfig(Block block, JsonValue val){
         if(val == null || val.isNull()) return null;
         
+        if(block.configurations.containsKey(Point2.class)){
+            Object parsed = valToType(val, Point2.class);
+            if(parsed != null) return parsed;
+        }
+        
         for(Class<?> type : block.configurations.keys()){
-            if(type != void.class){
+            if(type != void.class && type != Point2.class){
                 Object parsed = valToType(val, type);
                 if(parsed != null){
                     return parsed;
