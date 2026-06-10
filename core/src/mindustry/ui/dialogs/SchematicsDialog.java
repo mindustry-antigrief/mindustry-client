@@ -94,6 +94,7 @@ public class SchematicsDialog extends BaseDialog{
         addCloseButton();
         buttons.button("@client.schematic.browser", Icon.host, SchematicBrowserDialog::showBrowser);
         buttons.button("@schematic.import", Icon.download, this::showImport);
+        buttons.button("@schematic.exportall", Icon.export, this::showExportAll);
         makeButtonOverlay();
         shown(this::setup);
         onResize(this::setup);
@@ -362,7 +363,9 @@ public class SchematicsDialog extends BaseDialog{
     }
 
     Interval timer = new Interval();
+    Interval jsonTimer = new Interval();
     String clipboard;
+    String jsonClipboard;
     public void showImport(){
         BaseDialog dialog = new BaseDialog("@editor.import");
         dialog.cont.pane(p -> {
@@ -374,20 +377,35 @@ public class SchematicsDialog extends BaseDialog{
                 t.button("@schematic.copy.import", Icon.copy, style, () -> {
                     dialog.hide();
                     try{
-                        Schematic s = Schematics.readBase64(clipboard);
+                        Schematic s = Schematics.readBase64(Core.app.getClipboardText());
                         s.removeSteamID();
                         schematics.add(s);
                         setup();
                         ui.showInfoFade("@schematic.saved");
                         checkTags(s);
                         showInfo(s);
-                    }catch(Throwable e){
+                    }catch(Exception e){
                         ui.showException(e);
                     }
                 }).marginLeft(12f).disabled(b -> {
                     if (timer.get(6)) { // Update 10x a second
                         clipboard = Core.app.getClipboardText();
                         return clipboard == null || !clipboard.startsWith(schematicBaseStart);
+                    }
+                    return b.isDisabled();
+                });
+                t.row();
+                t.button("@schematic.copy.importjson", Icon.copy, style, () -> {
+                    dialog.hide();
+                    try{
+                        importJsonSchematics(Schematic.readJsonList(Core.app.getClipboardText()));
+                    }catch(Exception e){
+                        ui.showException(e);
+                    }
+                }).marginLeft(12f).disabled(b -> {
+                    if (jsonTimer.get(6)) {
+                        jsonClipboard = Core.app.getClipboardText();
+                        return !isValidJsonStart(jsonClipboard);
                     }
                     return b.isDisabled();
                 });
@@ -402,6 +420,16 @@ public class SchematicsDialog extends BaseDialog{
                         setup();
                         showInfo(s);
                         checkTags(s);
+                    }catch(Exception e){
+                        ui.showException(e);
+                    }
+                })).marginLeft(12f);
+                t.row();
+                t.button("@schematic.importfilejson", Icon.download, style, () -> platform.showFileChooser(true, "json", file -> {
+                    dialog.hide();
+
+                    try{
+                        importJsonSchematics(Schematic.readJsonList(file.readString()));
                     }catch(Exception e){
                         ui.showException(e);
                     }
@@ -439,6 +467,17 @@ public class SchematicsDialog extends BaseDialog{
                     Core.app.setClipboardText(schematics.writeBase64(s, Core.settings.getBool("schematicmenuexporttags")));
                 }).marginLeft(12f);
                 t.row();
+                t.button("@schematic.copyjson", Icon.copy, style, () -> {
+                    dialog.hide();
+                    ui.showInfoFade("@copied");
+                    Core.app.setClipboardText(s.writeJson());
+                }).marginLeft(12f);
+                t.row();
+                t.button("@schematic.exportjson", Icon.export, style, () -> {
+                    dialog.hide();
+                    platform.export(s.name(), "json", file -> file.writeString(s.writeJson()));
+                }).marginLeft(12f);
+                t.row();
                 t.button("@schematic.exportfile", Icon.export, style, () -> {
                     dialog.hide();
                     platform.export(s.name(), schematicExtension, file -> Schematics.write(s, file));
@@ -456,6 +495,96 @@ public class SchematicsDialog extends BaseDialog{
 
         dialog.addCloseButton();
         dialog.show();
+    }
+
+    public void showExportAll(){
+        BaseDialog dialog = new BaseDialog("@schematic.exportall.title");
+        dialog.cont.pane(p -> {
+            p.margin(10f);
+            p.table(Tex.button, t -> {
+                TextButtonStyle style = Styles.flatt;
+                t.defaults().size(320f, 60f).left();
+                
+                t.button("@schematic.exportall.json", Icon.export, style, () -> {
+                    dialog.hide();
+                    platform.export("schematics", "json", file -> file.writeString(writeAllJson()));
+                }).marginLeft(12f);
+                t.row();
+                
+                t.button("@schematic.exportall.zip", Icon.export, style, () -> {
+                    dialog.hide();
+                    platform.export("schematics", "zip", file -> {
+                        try(java.util.zip.ZipOutputStream zout = new java.util.zip.ZipOutputStream(file.write(false))){
+                            Seq<Schematic> all = schematics.all();
+                            ObjectSet<String> addedNames = new ObjectSet<>();
+                            for(Schematic s : all){
+                                if(s.file == null || !s.file.exists()) continue;
+                                String baseName = s.name();
+                                baseName = baseName.replaceAll("[\\\\/:*?\"<>|]", "_");
+                                if(baseName.isEmpty() || baseName.equals(".") || baseName.equals("..")) baseName = "unnamed";
+                                
+                                String zipEntryName = baseName + "." + schematicExtension;
+                                int count = 1;
+                                while(addedNames.contains(zipEntryName)){
+                                    count++;
+                                    zipEntryName = baseName + "_" + count + "." + schematicExtension;
+                                }
+                                addedNames.add(zipEntryName);
+                                
+                                zout.putNextEntry(new java.util.zip.ZipEntry(zipEntryName));
+                                zout.write(s.file.readBytes());
+                                zout.closeEntry();
+                            }
+                        }
+                    });
+                }).marginLeft(12f);
+            });
+        });
+        dialog.addCloseButton();
+        dialog.show();
+    }
+
+    private static boolean isValidJsonStart(String text){
+        if(text == null) return false;
+        for(int i = 0; i < text.length(); i++){
+            char c = text.charAt(i);
+            if(!Character.isWhitespace(c)){
+                return c == '{' || c == '[';
+            }
+        }
+        return false;
+    }
+
+    private void importJsonSchematics(Seq<Schematic> list){
+        if(list.isEmpty()) return;
+        for(Schematic s : list){
+            s.removeSteamID();
+            schematics.add(s);
+            checkTags(s);
+        }
+        setup();
+        ui.showInfoFade("@schematic.saved");
+        if(list.size == 1){
+            showInfo(list.first());
+        }
+    }
+
+    private String writeAllJson(){
+        Seq<Schematic> all = schematics.all();
+        StringBuilder sb = new StringBuilder(all.size * 2048);
+        sb.append("[\n");
+        boolean first = true;
+        for(int i = 0; i < all.size; i++){
+            Schematic s = all.get(i);
+            if(s.file == null || !s.file.exists()) continue;
+            if(!first){
+                sb.append(",\n");
+            }
+            s.writeJson(sb);
+            first = false;
+        }
+        sb.append("\n]");
+        return sb.toString();
     }
 
     public void showEdit(Schematic s){

@@ -358,6 +358,17 @@ public class SchematicBrowserDialog extends BaseDialog {
                     Core.app.setClipboardText(schematics.writeBase64(s, Core.settings.getBool("schematicmenuexporttags")));
                 }).marginLeft(12f);
                 t.row();
+                t.button("@schematic.copyjson", Icon.copy, style, () -> {
+                    dialog.hide();
+                    ui.showInfoFade("@copied");
+                    Core.app.setClipboardText(s.writeJson());
+                }).marginLeft(12f);
+                t.row();
+                t.button("@schematic.exportjson", Icon.export, style, () -> {
+                    dialog.hide();
+                    platform.export(s.name(), "json", file -> file.writeString(s.writeJson()));
+                }).marginLeft(12f);
+                t.row();
                 t.button("@schematic.exportfile", Icon.export, style, () -> {
                     dialog.hide();
                     platform.export(s.name(), schematicExtension, file -> Schematics.write(s, file));
