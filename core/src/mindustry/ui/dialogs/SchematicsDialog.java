@@ -216,25 +216,37 @@ public class SchematicsDialog extends BaseDialog{
                 firstSchematic = null;
 
                 sortedList.set(schematics.all());
-                sortedList.sort((a, b) -> switch (sortMode) {
-                    case alphabetAsc -> a.name().compareToIgnoreCase(b.name());
-                    case alphabetDesc -> b.name().compareToIgnoreCase(a.name());
-                    case createdAsc -> Long.compare(a.getCreatedAt(), b.getCreatedAt());
-                    case createdDesc -> Long.compare(b.getCreatedAt(), a.getCreatedAt());
-                    case editedAsc -> Long.compare(a.getModifiedAt(), b.getModifiedAt());
-                    case editedDesc -> Long.compare(b.getModifiedAt(), a.getModifiedAt());
+
+                // Cache relevance scores to avoid O(N log N) recalculation during sorting
+                ObjectIntMap<Schematic> relevance = new ObjectIntMap<>();
+                if(!search.isEmpty()){
+                    for(Schematic s : sortedList){
+                        relevance.put(s, getRelevance(s, search, searchString));
+                    }
+                }
+
+                sortedList.sort((a, b) -> {
+                    if(!search.isEmpty()){
+                        int relA = relevance.get(a, 0);
+                        int relB = relevance.get(b, 0);
+                        if(relA != relB) return Integer.compare(relB, relA);
+                    }
+                    return switch (sortMode) {
+                        case alphabetAsc -> a.name().compareToIgnoreCase(b.name());
+                        case alphabetDesc -> b.name().compareToIgnoreCase(a.name());
+                        case createdAsc -> Long.compare(a.getCreatedAt(), b.getCreatedAt());
+                        case createdDesc -> Long.compare(b.getCreatedAt(), a.getCreatedAt());
+                        case editedAsc -> Long.compare(a.getModifiedAt(), b.getModifiedAt());
+                        case editedDesc -> Long.compare(b.getModifiedAt(), a.getModifiedAt());
+                    };
                 });
 
                 for(Schematic s : sortedList){
                     //make sure *tags* fit
                     if(selectedTags.any() && !s.labels.containsAll(selectedTags)) continue;
                     //make sure search fits
-                    // !(A && B)
-                    // else !(C || D)
-                    if((!search.isEmpty() || !descSearch.isEmpty()) &&
-                            (search.isEmpty() || !ignoreSymbols.matcher(s.name().toLowerCase()).replaceAll("").contains(searchString)) &&
-                            (descSearch.isEmpty() || !ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(descSearchString))
-                    ) continue;
+                    if(!search.isEmpty() && relevance.get(s, 0) == 0) continue;
+                    if(!descSearch.isEmpty() && !ignoreSymbols.matcher(s.description().toLowerCase()).replaceAll("").contains(descSearchString)) continue;
                     if(firstSchematic == null) firstSchematic = s;
 
                     Button[] sel = {null};
@@ -626,6 +638,50 @@ public class SchematicsDialog extends BaseDialog{
     }
 
 
+
+    private int getRelevance(Schematic s, String query, String strippedQuery) {
+        if(query.isEmpty()) return 1;
+
+        // Strip color formatting (e.g. [sky], [accent]) for accurate matching
+        String nameClean = Strings.stripColors(s.name());
+        String nameLower = nameClean.toLowerCase();
+        String queryLower = query.toLowerCase();
+
+        // 1. Starts with the exact query (case-insensitive)
+        if(nameLower.startsWith(queryLower)){
+            return 4;
+        }
+
+        String strippedName = null;
+
+        // 2. Starts with the stripped query (if not empty)
+        if(!strippedQuery.isEmpty()){
+            strippedName = ignoreSymbols.matcher(nameLower).replaceAll("");
+            if(strippedName.startsWith(strippedQuery)){
+                return 3;
+            }
+        }
+
+        // 3. Contains the exact query
+        if(nameLower.contains(queryLower)){
+            return 2;
+        }
+
+        // 4. Contains the stripped query
+        if(!strippedQuery.isEmpty()){
+            if(strippedName == null){
+                strippedName = ignoreSymbols.matcher(nameLower).replaceAll("");
+            }
+            if(strippedName.contains(strippedQuery)){
+                return 1;
+            }
+        }else{
+            // If stripped query is empty but the query itself is not, we match everything (original behavior)
+            return 1;
+        }
+
+        return 0;
+    }
 
     //adds all new tags to the global list of tags
     //alternatively, unknown tags could be discarded on import?
