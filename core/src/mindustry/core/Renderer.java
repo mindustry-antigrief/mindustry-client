@@ -162,7 +162,7 @@ public class Renderer implements ApplicationListener{
         }
 
         float dest = Mathf.clamp(baseTarget, minScale(), maxScale());
-        camerascale = Mathf.lerpDelta(camerascale, dest, 0.1f);
+        camerascale = Mathf.lerpDelta(camerascale, dest, Core.settings.getInt("zoomsmoothness", 35) / 100f);
         if(Mathf.equal(camerascale, dest, 0.001f)) camerascale = dest;
         unitLaserOpacity = settings.getInt("unitlaseropacity") / 100f;
         laserOpacity = settings.getInt("lasersopacity") / 100f;
@@ -508,7 +508,7 @@ public class Renderer implements ApplicationListener{
     }
 
     public void scaleCamera(float amount){
-        targetscale *= (amount / 4) + 1;
+        targetscale *= (amount / (100f / Core.settings.getInt("zoomsens", 45))) + 1;
         clampScale();
     }
 

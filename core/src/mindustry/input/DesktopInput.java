@@ -86,6 +86,10 @@ public class DesktopInput extends InputHandler{
 
 
     // Client Vars
+    private boolean draggingCamera = false;
+    private float prevDragMouseX = 0;
+    private float prevDragMouseY = 0;
+
     private long lastShiftZ;
     public static long lastPingCoordSendMillis = 0;
     /** Position where the player started drag-selecting. Overlaps with selectX/Y but is only used by client. */
@@ -98,6 +102,7 @@ public class DesktopInput extends InputHandler{
         super.reset();
         shouldShoot = false;
         deleting = false;
+        draggingCamera = false;
     }
 
     @Override
@@ -491,6 +496,35 @@ public class DesktopInput extends InputHandler{
                 panning = false;
                 spectating = null;
             }
+
+            if(input.keyDown(Binding.dragCamera)){
+                panning = true;
+                spectating = null;
+                logicCutscene = false;
+                if(state.gameOver && !state.rules.pvp) followGameEndPan = false;
+
+                if(!draggingCamera){
+                    draggingCamera = true;
+                    prevDragMouseX = Core.input.mouseX();
+                    prevDragMouseY = Core.input.mouseY();
+                }else{
+                    float curX = Core.input.mouseX();
+                    float curY = Core.input.mouseY();
+                    float dx = curX - prevDragMouseX;
+                    float dy = curY - prevDragMouseY;
+                    if(dx != 0 || dy != 0){
+                        float scaleX = Core.camera.width / Core.graphics.getWidth();
+                        float scaleY = Core.camera.height / Core.graphics.getHeight();
+                        Core.camera.position.add(-dx * scaleX, -dy * scaleY);
+                        prevDragMouseX = curX;
+                        prevDragMouseY = curY;
+                    }
+                }
+            }else{
+                draggingCamera = false;
+            }
+        }else{
+            draggingCamera = false;
         }
 
         // FINISHME(v147): Vanilla has some sort of detach keybind now, can we use that instead?
@@ -544,7 +578,7 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        shouldShoot = !locked;
+        shouldShoot = !locked && !draggingCamera;
         Tile cursor = tileAt(Core.input.mouseX(), Core.input.mouseY());
 
         if(!locked && block == null && !scene.hasField() && !scene.hasDialog() &&
@@ -841,6 +875,14 @@ public class DesktopInput extends InputHandler{
             panning = false;
             Spectate.INSTANCE.setPos(null); // FINISHME: Vanilla has a spectate feature now
             if(ui.listfrag.shown()) ui.listfrag.rebuild();
+
+            Team corePanTeam = state.won ? state.rules.waveTeam : player.team();
+            Position coreTarget = state.gameOver && !state.rules.pvp && corePanTeam.data().lastCore != null ? corePanTeam.data().lastCore : null;
+            Position panTarget = coreTarget != null && followGameEndPan ? coreTarget : spectating != null ? spectating : player;
+            if(panTarget != null && Core.settings.getBool("snapresetcamera", true)){
+                Core.camera.position.x = panTarget.getX();
+                Core.camera.position.y = panTarget.getY();
+            }
         }
 
         //zoom camera

@@ -457,6 +457,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);
         client.checkPref("returnonmove", false);
+        client.checkPref("snapresetcamera", true);
         client.checkPref("nostrafepenalty", false);
         client.checkPref("decreasedrift", false);
         client.checkPref("zerodrift", false);
@@ -465,6 +466,8 @@ public class SettingsMenuDialog extends BaseDialog{
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
+        client.sliderPref("zoomsens", 45, 10, 150, 5, s -> String.format("%.2fx", s / 10f));
+        client.sliderPref("zoomsmoothness", 35, 5, 100, 5, s -> s == 100 ? "Instant" : String.format("%.2fx", s / 100f));
         client.sliderPref("weatheropacity", 50, 0, 100, s -> s + "%");
         client.sliderPref("beamdrillopacity", 100, 0, 100, 1, s -> s + "%");
         client.sliderPref("junctionview", 0, -1, 1, 1, s -> { Junction.setBaseOffset(s); return s == -1 ? "@client.left" : s == 1 ? "@client.right" : "Do not show"; });
