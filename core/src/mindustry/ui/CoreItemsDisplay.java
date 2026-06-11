@@ -2,6 +2,7 @@ package mindustry.ui;
 
 import arc.*;
 import arc.func.*;
+import arc.graphics.Color;
 import arc.math.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -45,16 +46,21 @@ public class CoreItemsDisplay extends Table{
         }
 
         clicked(() -> {
+            CoreItemDisplayMode prev = mode;
             mode = mode.next();
             if(!trackItems && mode == CoreItemDisplayMode.inputOnly) inputItems.reset();
-            if(!trackItems && mode == CoreItemDisplayMode.all) totalItems.reset();
+            if(!trackItems && (mode == CoreItemDisplayMode.all || mode == CoreItemDisplayMode.rateColor)) {
+                if(prev != CoreItemDisplayMode.all && prev != CoreItemDisplayMode.rateColor) {
+                    totalItems.reset();
+                }
+            }
             rebuild();
         });
         update(() -> {
             core = Vars.player.team().core();
             if(core == null) return;
             if(trackItems || mode == CoreItemDisplayMode.inputOnly) inputItems.update();
-            if(trackItems || mode == CoreItemDisplayMode.all) totalItems.update(core.items);
+            if(trackItems || mode == CoreItemDisplayMode.all || mode == CoreItemDisplayMode.rateColor) totalItems.update(core.items);
 
             if(content.items().contains(item -> core != null && core.items.get(item) > 0 && !usedItems.getAndSet(item.id))){
                 rebuild();
@@ -77,6 +83,7 @@ public class CoreItemsDisplay extends Table{
                     case disabled -> colorFor(totalItems.getAverageChange(trackSteps, item)) + UI.formatAmount(core.items.get(item));
                     case inputOnly -> formatAmount(inputItems.getAverage(trackSteps, item));
                     case all -> formatAmount(totalItems.getAverageChange(trackSteps, item));
+                    case rateColor -> colorForRate(totalItems.getAverageChange(trackSteps, item)) + UI.formatAmount(core.items.get(item));
                 })).padRight(3).minWidth(52f).left().tooltip(tooltip);
                 //TODO properly update the tooltip
 
@@ -90,6 +97,20 @@ public class CoreItemsDisplay extends Table{
 
     public void addItem(Item item, int amount){
         if(amount > 0 && (trackItems || mode == CoreItemDisplayMode.inputOnly)) inputItems.add(item, amount);
+    }
+
+    private static final Color tempColor = new Color();
+
+    public static String colorForRate(float rate){
+        if(Float.isNaN(rate) || rate == 0f) return "";
+        float maxRate = 10f;
+        float factor = Mathf.clamp((float)Math.sqrt(Math.abs(rate) / maxRate));
+        if(rate > 0){
+            tempColor.set(1f - factor * 0.7f, 1f, 1f - factor * 0.7f, 1f);
+        }else{
+            tempColor.set(1f, 1f - factor * 0.7f, 1f - factor * 0.7f, 1f);
+        }
+        return "[#" + tempColor.toString() + "]";
     }
 
     public static String colorFor(float rate){
@@ -116,7 +137,8 @@ public class CoreItemsDisplay extends Table{
     public enum CoreItemDisplayMode{
         disabled,
         inputOnly,
-        all;
+        all,
+        rateColor;
         public CoreItemDisplayMode next(){
             return values()[(ordinal() + 1) % values().length];
         }
