@@ -794,6 +794,7 @@ public class DesktopInput extends InputHandler{
                 var u = player.unit();
                 var closest = player.bestCore();
                 if(CoreBlock.preferredCoreType == null ||
+                    (closest != null && closest.block == CoreBlock.preferredCoreType) ||
                     (!u.spawnedByCore &&
                     ((u.dockedType != null && u.dockedType.coreUnitDock) ||
                     (closest != null && ((CoreBlock)closest.block).unitType != null &&
