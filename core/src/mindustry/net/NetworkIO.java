@@ -72,8 +72,14 @@ public class NetworkIO{
             state.wave = stream.readInt();
             state.wavetime = stream.readFloat();
             state.tick = stream.readDouble();
-            GlobalVars.rand.seed0 = stream.readLong();
-            GlobalVars.rand.seed1 = stream.readLong();
+            long seed0 = stream.readLong();
+            long seed1 = stream.readLong();
+            if(Core.settings.getBool("randomizelogicseed", false) && !net.client()){
+                GlobalVars.rand.setSeed(new java.util.Random().nextLong());
+            }else{
+                GlobalVars.rand.seed0 = seed0;
+                GlobalVars.rand.seed1 = seed1;
+            }
 
             Reads read = new Reads(stream);
 

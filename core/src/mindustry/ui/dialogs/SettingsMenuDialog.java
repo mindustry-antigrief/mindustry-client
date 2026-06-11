@@ -569,6 +569,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("ignoremodminversion", false);
         client.checkPref("betterenemyblocktapping", false);
         client.checkPref("autoohno", false);
+        client.checkPref("randomizelogicseed", false);
         client.checkPref("client-experimentals", false);
 
         if (settings.getBool("client-experimentals") || OS.hasProp("policone")) {
