@@ -382,13 +382,13 @@ public class Blocks{
 
         sand = new Floor("sand-floor"){{
             itemDrop = Items.sand;
-            playerUnmineable = true;
+            playerUnmineable = false;
             attributes.set(Attribute.oil, 0.7f);
         }};
 
         darksand = new Floor("darksand"){{
             itemDrop = Items.sand;
-            playerUnmineable = true;
+            playerUnmineable = false;
             attributes.set(Attribute.oil, 1.5f);
         }};
 
