@@ -1,6 +1,9 @@
 package mindustry.ui.dialogs;
 
 import arc.*;
+import arc.func.*;
+import arc.input.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.util.*;
 import mindustry.core.GameState.*;
@@ -61,6 +64,39 @@ public class BaseDialog extends Dialog{
 
     public void addCloseListener(){
        closeOnBack();
+    }
+
+    public void addToggleListener(KeyBind bind, Boolp setting){
+        addListener(new InputListener(){
+            @Override
+            public boolean keyDown(InputEvent event, KeyCode key){
+                if(key == bind.value.key && (setting == null || setting.get())){
+                    if(Core.scene.hasField()){
+                        String name = key.name();
+                        if((name != null && name.length() == 1) ||
+                           key == KeyCode.space ||
+                           key == KeyCode.comma ||
+                           key == KeyCode.period ||
+                           key == KeyCode.minus ||
+                           key == KeyCode.equals ||
+                           key == KeyCode.slash ||
+                           key == KeyCode.backslash ||
+                           key == KeyCode.semicolon ||
+                           key == KeyCode.colon ||
+                           key == KeyCode.leftBracket ||
+                           key == KeyCode.rightBracket ||
+                           key == KeyCode.apostrophe ||
+                           key == KeyCode.backtick){
+                            return false;
+                        }
+                    }
+                    Core.scene.setKeyboardFocus(null);
+                    hide();
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     public void addCloseButton(float width){

@@ -438,7 +438,7 @@ public class HudFragment{
                     }).get();
                     flip.name = "flip";
 
-                    select.button(Icon.paste, style, ui.schematics::show)
+                    select.button(Icon.paste, style, ui::toggleSchematicMenu)
                     .name("schematics");
 
                     select.button(Icon.pause, style, () -> {
@@ -518,7 +518,7 @@ public class HudFragment{
                 public float getPrefHeight(){
                     return Scl.scl(123f);
                 }
-            }).name("waves/editor");
+            }).name("waves/editor").top().left();
 
             wavesMain.visible(() -> shown && !state.isEditor());
             wavesMain.top().left().name = "waves";

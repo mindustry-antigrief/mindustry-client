@@ -490,11 +490,14 @@ public class DesktopInput extends InputHandler{
                 spectating = null;
                 logicCutscene = false; // Cancel the cutscene
                 if(state.gameOver && !state.rules.pvp) followGameEndPan = false;
+
+                Spectate.INSTANCE.reset();
             }
 
             if(Core.settings.getBool("returnonmove") && ((!input.keyDown(Binding.freecamModifier) && (Math.abs(Core.input.axis(Binding.moveX)) > 0 || Math.abs(Core.input.axis(Binding.moveY)) > 0)) || input.keyDown(Binding.mouseMove))){
                 panning = false;
                 spectating = null;
+                Spectate.INSTANCE.reset();
             }
 
             if(input.keyDown(Binding.dragCamera)){
@@ -502,6 +505,8 @@ public class DesktopInput extends InputHandler{
                 spectating = null;
                 logicCutscene = false;
                 if(state.gameOver && !state.rules.pvp) followGameEndPan = false;
+
+                Spectate.INSTANCE.reset();
 
                 if(!draggingCamera){
                     draggingCamera = true;
@@ -533,9 +538,7 @@ public class DesktopInput extends InputHandler{
             panning = true;
             logicCutscene = false; // Cancel the cutscene
             if(state.gameOver && !state.rules.pvp) followGameEndPan = false;
-            boolean spectated = Spectate.INSTANCE.getPos() != null;
-            Spectate.INSTANCE.setPos(null);
-            if(spectated && ui.listfrag.shown()) ui.listfrag.rebuild();
+            Spectate.INSTANCE.reset();
             float speed = Time.delta;
             speed *= camera.width;
             speed /= 75f;
@@ -562,7 +565,12 @@ public class DesktopInput extends InputHandler{
                     panCam = true;
                 }
 
-                Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.moveX), Core.input.axis(Binding.moveY)).nor().scl(camSpeed));
+                float xa = Core.input.axis(Binding.moveX);
+                float ya = Core.input.axis(Binding.moveY);
+                if(xa != 0 || ya != 0){
+                    Core.camera.position.add(Tmp.v1.setZero().add(xa, ya).nor().scl(camSpeed));
+                    Spectate.INSTANCE.reset();
+                }
             }else if((!player.dead() || spectating != null) && !panning){
                 //TODO do not pan
                 Team corePanTeam = state.won ? state.rules.waveTeam : player.team();
@@ -575,6 +583,8 @@ public class DesktopInput extends InputHandler{
             if(panCam){
                 Core.camera.position.x += Mathf.clamp((Core.input.mouseX() - Core.graphics.getWidth() / 2f) * panScale, -1, 1) * camSpeed;
                 Core.camera.position.y += Mathf.clamp((Core.input.mouseY() - Core.graphics.getHeight() / 2f) * panScale, -1, 1) * camSpeed;
+
+                Spectate.INSTANCE.reset();
             }
         }
 
@@ -969,9 +979,7 @@ public class DesktopInput extends InputHandler{
     public void buildPlacementUI(Table table){
         table.left().margin(0f).defaults().size(48f).left();
 
-        table.button(Icon.paste, Styles.clearNonei, () -> {
-            ui.schematics.show();
-        }).tooltip("@schematics");
+        table.button(Icon.paste, Styles.clearNonei, ui::toggleSchematicMenu).tooltip("@schematics");
 
         table.button(Icon.book, Styles.clearNonei, () -> {
             ui.database.show();
@@ -1434,6 +1442,7 @@ public class DesktopInput extends InputHandler{
         if(!locked()){
             panning = true;
             camera.position.set(position);
+            Spectate.INSTANCE.reset();
         }
     }
 

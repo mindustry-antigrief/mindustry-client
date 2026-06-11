@@ -260,10 +260,10 @@ class ClientLogic {
                                     }
                                 }
 
-                                clustersMessage.add("[accent]T$maxTier[] [lightgray]at[] [accent](${cluster[0].x}, ${cluster[0].y})[]")
+                                clustersMessage.add("[accent]T$maxTier[] [gray]at[] [accent](${cluster[0].x}, ${cluster[0].y})[]")
                             }
 
-                            val finalMessage = "${other.name} [lightgray]is building[] ${clustersMessage.joinToString()}"
+                            val finalMessage = "[accent]${Strings.stripColors(other.name)}[] [gray]is building[] ${clustersMessage.joinToString()}"
                             ui.chatfrag.addMsg(finalMessage).findCoords()
                         }
                     }
@@ -351,6 +351,7 @@ class ClientLogic {
         Events.on(ConfigEvent::class.java) { event ->
             @Suppress("unchecked_cast")
             if (event.player != null && event.player != player && settings.getBool("powersplitwarnings") && event.tile is PowerNode.PowerNodeBuild) {
+                if (settings.getBool("powersplitmyteamonly") && event.player.team() != player.team()) return@on
                 val prev = Seq(event.previous as Array<Point2>)
                 val count = if (event.value is Int) { // FINISHME: Awful
                     if (prev.contains(Point2.unpack(event.value).sub(event.tile.tileX(), event.tile.tileY()))) 1 else 0

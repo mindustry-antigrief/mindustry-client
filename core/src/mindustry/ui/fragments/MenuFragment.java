@@ -289,7 +289,7 @@ public class MenuFragment{
                         new MenuButton("@client.certs.manage.title", Icon.lock, () -> new TLSKeyDialog().show())
                     ), // End of client section
                     new MenuButton("@database.button", Icon.menu,
-                        new MenuButton("@schematics", Icon.paste, ui.schematics::show),
+                        new MenuButton("@schematics", Icon.paste, ui::toggleSchematicMenu),
                         new MenuButton("@client.schematic.browser", Icon.host, SchematicBrowserDialog::showBrowser),
                         new MenuButton("@database", Icon.book, ui.database::show),
                         new MenuButton("@about.button", Icon.info, ui.about::show)

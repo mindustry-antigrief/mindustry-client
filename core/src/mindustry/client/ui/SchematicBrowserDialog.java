@@ -53,6 +53,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         runMigrations();
         shouldPause = true;
         addCloseButton();
+        addToggleListener(mindustry.input.Binding.schematicMenu, () -> Core.settings.getBool("toggleschematics", true));
         buttons.button("@schematics", Icon.copy, SchematicBrowserDialog::hideBrowser);
         buttons.button("@client.schematic.browser.repo", Icon.host, repositoriesDialog::show);
         buttons.button("@client.schematic.browser.fetch", Icon.refresh, () -> { unfetchedRepositories.addAll(loadedRepositories.keys()); fetch(repositoryLinks); });
@@ -859,4 +860,5 @@ public class SchematicBrowserDialog extends BaseDialog {
             }
         }
     }
+
 }

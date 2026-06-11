@@ -92,6 +92,7 @@ public class SchematicsDialog extends BaseDialog{
 
         shouldPause = true;
         addCloseButton();
+        addToggleListener(Binding.schematicMenu, () -> Core.settings.getBool("toggleschematics", true));
         buttons.button("@client.schematic.browser", Icon.host, SchematicBrowserDialog::showBrowser);
         buttons.button("@schematic.import", Icon.download, this::showImport);
         buttons.button("@schematic.exportall", Icon.export, this::showExportAll);
@@ -1205,4 +1206,5 @@ public class SchematicsDialog extends BaseDialog{
             show();
         }
     }
+
 }

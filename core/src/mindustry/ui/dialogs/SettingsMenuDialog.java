@@ -428,6 +428,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.sliderPref("slagsounddistance", 5, 0, 101, s -> s == 101 ? "Always" : s == 0 ? "Never" : Integer.toString(s));
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
+        client.checkPref("powersplitmyteamonly", false);
         client.checkPref("unitfactorywarnings", true);
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("removecorenukes", false);
@@ -463,6 +464,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("zerodrift", false);
         client.checkPref("fastrespawn", false);
         client.checkPref("nounitcollision", false);
+        client.checkPref("toggleschematics", true);
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");

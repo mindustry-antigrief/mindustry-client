@@ -13,9 +13,24 @@ object Spectate { // FINISHME v8: Remove this as vanilla now has a spectate feat
     var cursor = false
 
     fun update() {
-        val pos = pos ?: return
-        if (cursor && pos is Player) Tmp.v1.set(pos.mouseX, pos.mouseY) else Tmp.v1.set(pos)
+        val currentPos = pos ?: return
+        if (currentPos is Entityc && !currentPos.isAdded) {
+            reset()
+            return
+        }
+        if (cursor && currentPos is Player) Tmp.v1.set(currentPos.mouseX, currentPos.mouseY) else Tmp.v1.set(currentPos)
         Core.camera.position.lerpDelta(Tmp.v1, if (Core.settings.getBool("smoothcamera")) 0.08f else 1f)
+    }
+
+    fun reset(): Boolean {
+        if (pos != null) {
+            pos = null
+            if (Vars.ui.listfrag.shown()) {
+                Vars.ui.listfrag.rebuild()
+            }
+            return true
+        }
+        return false
     }
 
     @JvmOverloads
