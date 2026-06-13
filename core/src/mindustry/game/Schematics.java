@@ -305,7 +305,13 @@ public class Schematics implements Loadable{
         return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config))
             .removeAll(s -> (checkHidden && !s.block.isVisible() && !(
                 s.block instanceof CoreBlock || (s.block.buildVisibility == BuildVisibility.sandboxOnly && s.block.category != Category.defense /*Exclude walls*/)
-            )) || !s.block.unlockedNow()).sort(Structs.comparingInt(s -> -s.block.schematicPriority));
+            )) || !s.block.unlockedNow()).sort(Structs.comparingInt(s -> {
+                int priority = s.block.schematicPriority;
+                if(s.block instanceof NuclearReactor && Core.settings.getBool("reactorbuildlast", false)){
+                    priority = -20;
+                }
+                return -priority;
+            }));
     }
 
     /** @return all the valid loadouts for a specific core type. */

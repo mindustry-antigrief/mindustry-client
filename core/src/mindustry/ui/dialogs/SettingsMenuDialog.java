@@ -465,6 +465,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("fastrespawn", false);
         client.checkPref("nounitcollision", false);
         client.checkPref("toggleschematics", true);
+        client.checkPref("reactorbuildlast", false);
 
         client.category("graphics");
         client.sliderPref("minzoom", 0, 0, 100, s -> Strings.fixed(Mathf.pow(10, 0.0217f * s) / 100f, 2) + "x");
