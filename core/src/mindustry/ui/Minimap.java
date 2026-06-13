@@ -21,7 +21,7 @@ public class Minimap extends Table{
 
         add(new Element(){
             {
-                setSize(Scl.scl(140f));
+                setSize(getPrefWidth());
 
                 addListener(new ClickListener(KeyCode.mouseRight){
                     @Override
@@ -38,6 +38,16 @@ public class Minimap extends Table{
                         control.input.panCamera(Tmp.v1.set(scaledX, scaledY));
                     }
                 });
+            }
+
+            @Override
+            public float getPrefWidth(){
+                return Scl.scl(140f * Core.settings.getInt("minimapsize", 100) / 100f);
+            }
+
+            @Override
+            public float getPrefHeight(){
+                return Scl.scl(140f * Core.settings.getInt("minimapsize", 100) / 100f);
             }
 
             @Override
@@ -61,7 +71,7 @@ public class Minimap extends Table{
 
                 clipEnd();
             }
-        }).size(140f);
+        });
 
         margin(margin);
 

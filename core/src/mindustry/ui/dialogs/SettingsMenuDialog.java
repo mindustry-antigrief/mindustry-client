@@ -749,6 +749,12 @@ public class SettingsMenuDialog extends BaseDialog{
         graphics.checkPref("playerchat", true);
         graphics.checkPref("coreitems", !mobile);
         graphics.checkPref("minimap", !mobile);
+        graphics.sliderPref("minimapsize", 100, 100, 400, 10, s -> (s / 100f) + "x", s -> {
+            if(ui != null && ui.hudGroup != null){
+                var minimap = ui.hudGroup.find("minimap");
+                if(minimap != null) minimap.invalidateHierarchy();
+            }
+        });
         graphics.checkPref("smoothcamera", true);
         if(!mobile){
             graphics.checkPref("detach-camera", false);
