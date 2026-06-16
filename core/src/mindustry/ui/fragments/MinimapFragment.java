@@ -14,6 +14,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.gen.*;
+import mindustry.game.EventType.*;
 import mindustry.input.*;
 import mindustry.ui.*;
 
@@ -25,6 +26,20 @@ public class MinimapFragment{
     float panx, pany, zoom = 1f, lastZoom = -1;
     private float baseSize = Scl.scl(5f);
     public Element elem;
+
+    public MinimapFragment(){
+        Events.on(WorldLoadEvent.class, e -> {
+            if(Core.settings.getBool("savezoom", false)){
+                float relativeZoom = Core.settings.getFloat("savezoom.fullscreen", -1f);
+                if(relativeZoom >= 0f){
+                    float fitZoom = Math.min(Core.graphics.getWidth(), Core.graphics.getHeight()) / (baseSize * world.width());
+                    zoom = Mathf.clamp(relativeZoom * fitZoom, 0.25f, 10f);
+                }else{
+                    zoom = 1f;
+                }
+            }
+        });
+    }
 
     protected Rect getRectBounds(){
         float
@@ -82,6 +97,7 @@ public class MinimapFragment{
                 }
 
                 zoom = Mathf.clamp(distance / initialDistance * lastZoom, 0.25f, 10f);
+                saveZoomIfEnabled();
             }
 
             @Override
@@ -123,6 +139,7 @@ public class MinimapFragment{
             @Override
             public boolean scrolled(InputEvent event, float x, float y, float amountX, float amountY){
                 zoom = Mathf.clamp(zoom - amountY / 10f * zoom, 0.25f, 10f);
+                saveZoomIfEnabled();
                 return true;
             }
 
@@ -184,5 +201,13 @@ public class MinimapFragment{
         }
 
         shown = !shown;
+    }
+
+    /** Persists the current full-screen minimap zoom relative to fit-zoom, if save-zoom is enabled. */
+    private void saveZoomIfEnabled(){
+        if(!Core.settings.getBool("savezoom", false)) return;
+        float fitZoom = Math.min(Core.graphics.getWidth(), Core.graphics.getHeight()) / (baseSize * world.width());
+        float relativeZoom = zoom / fitZoom;
+        Core.settings.put("savezoom.fullscreen", relativeZoom);
     }
 }

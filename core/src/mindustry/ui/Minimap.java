@@ -110,6 +110,7 @@ public class Minimap extends Table{
                 if(mobile){
                     float max = Math.min(world.width(), world.height()) / 16f / 2f;
                     renderer.minimap.setZoom(1f + y / height * (max - 1f));
+                    renderer.minimap.saveZoomFraction();
                 }
             }
 

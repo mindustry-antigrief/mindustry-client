@@ -101,6 +101,7 @@ public class MinimapRenderer{
     public void zoomBy(float amount){
         zoom += amount;
         setZoom(zoom);
+        saveZoomFraction();
     }
 
     public void setZoom(float amount){
@@ -111,13 +112,31 @@ public class MinimapRenderer{
         return zoom;
     }
 
+    /** Persists the current HUD minimap zoom as a normalized fraction, if save-zoom is enabled. */
+    public void saveZoomFraction(){
+        if(!Core.settings.getBool("savezoom", false)) return;
+        float maxZoom = Math.max(1.0001f, Math.min(world.width(), world.height()) / 32f);
+        float fraction = Mathf.clamp((zoom - 1f) / (maxZoom - 1f));
+        Core.settings.put("savezoom.hud", fraction);
+    }
+
     public void reset(){
         updates.clear();
         if(pixmap != null){
             pixmap.dispose();
             texture.dispose();
         }
-        setZoom(4f);
+        if(Core.settings.getBool("savezoom", false)){
+            float fraction = Core.settings.getFloat("savezoom.hud", -1f);
+            if(fraction >= 0f){
+                float maxZoom = Math.max(1.0001f, Math.min(world.width(), world.height()) / 32f);
+                setZoom(1f + fraction * (maxZoom - 1f));
+            }else{
+                setZoom(4f);
+            }
+        }else{
+            setZoom(4f);
+        }
         pixmap = new Pixmap(world.width(), world.height());
         texture = new Texture(pixmap);
         region = new TextureRegion(texture);
