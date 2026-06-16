@@ -204,6 +204,7 @@ public class PlacementFragment{
         if(ui.chatfrag.shown() || ui.consolefrag.shown() || Core.scene.hasKeyboard()) return false;
 
         for(int i = 0; i < blockSelect.length; i++){
+            if(i < 10 && Core.input.shift() && !input.selectedUnits.isEmpty()) continue;
             if(Core.input.keyTap(blockSelect[i])){
                 if(i > 9){ //select block directionally
                     Seq<Block> blocks = getUnlockedByCategory(currentCategory);

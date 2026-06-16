@@ -653,6 +653,23 @@ public class DesktopInput extends InputHandler{
 
             for(int i = 0; i < controlGroupBindings.length; i++){
                 if(input.keyTap(controlGroupBindings[i])){
+                    if(input.shift() && !selectedUnits.isEmpty()){
+                        Seq<mindustry.type.UnitType> types = new Seq<>();
+                        for(Unit u : selectedUnits){
+                            if(!types.contains(u.type)){
+                                types.add(u.type);
+                            }
+                        }
+                        types.sort(t -> (float)t.id);
+
+                        if(i < types.size){
+                            mindustry.type.UnitType targetType = types.get(i);
+                            selectedUnits.removeAll(u -> u.type != targetType);
+                            commandBuildings.clear();
+                            Events.fire(Trigger.unitCommandChange);
+                        }
+                        continue;
+                    }
 
                     //create control group if it doesn't exist yet
                     if(controlGroups[i] == null) controlGroups[i] = new IntSeq();
