@@ -95,7 +95,6 @@ class ClientLogic {
             dispatchingBuildPlans = false
             hidingBlocks = false
             hidingUnits = false
-            if (state.rules.pvp && !isDeveloper()) ui.announce("@client.nopvp", 5f)
             if (!state.rules.schematicsAllowed && !syncing) ui.announce("@client.schematicsdisabled", 5f)
             overdrives.clear()
             massDrivers.clear()
