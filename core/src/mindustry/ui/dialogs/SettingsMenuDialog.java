@@ -429,7 +429,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("breakwarnings", true); // Warnings for removal of certain sandbox stuff (mostly sources)
         client.checkPref("powersplitwarnings", true); // FINISHME: Add a minimum building requirement and a setting for it
         client.checkPref("powersplitmyteamonly", false);
-        client.checkPref("unitfactorywarnings", true);
         client.checkPref("viruswarnings", true, b -> LExecutor.virusWarnings = b);
         client.checkPref("removecorenukes", false);
         client.checkPref("seer-enabled", false);
@@ -517,6 +516,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("activemodesdisplay", true);
         client.checkPref("listallunits", false);
         client.checkPref("listemptyteams", false);
+        client.checkPref("teamlistshowfirstplayer", false);
         client.checkPref("useiconslogs", false);
         client.checkPref("colorizelogs", false);
         client.checkPref("showmassdriverdistance", false);

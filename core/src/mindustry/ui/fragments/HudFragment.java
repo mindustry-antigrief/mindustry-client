@@ -92,6 +92,7 @@ public class HudFragment{
 
     // List all units update throttling and settings caching
     private boolean lastEmptyTeams = Core.settings.getBool("listemptyteams", false);
+    private boolean lastShowFirstPlayer = Core.settings.getBool("teamlistshowfirstplayer", false);
     private String lastRegex = Core.settings.getString("stripprefixregex", "");
     private long lastRebuildTime = 0; // Start at 0 to build the table immediately on load
 
@@ -595,11 +596,12 @@ public class HudFragment{
                 st.update(() -> {
                     if (!Core.settings.getBool("listallunits")) return;
 
-                    // Detect settings changes
                     boolean emptyTeams = Core.settings.getBool("listemptyteams", false);
+                    boolean showFirstPlayer = Core.settings.getBool("teamlistshowfirstplayer", false);
                     String regex = Core.settings.getString("stripprefixregex", "");
-                    if (emptyTeams != lastEmptyTeams || !regex.equals(lastRegex)) {
+                    if (emptyTeams != lastEmptyTeams || showFirstPlayer != lastShowFirstPlayer || !regex.equals(lastRegex)) {
                         lastEmptyTeams = emptyTeams;
+                        lastShowFirstPlayer = showFirstPlayer;
                         lastRegex = regex;
                         lastRebuildTime = 0; // Force immediate rebuild
                     }
@@ -649,7 +651,7 @@ public class HudFragment{
                                     img.color.a(img.color.a * 0.4f);
                                 }
                             }).tooltip(t -> {
-                                String tooltipName = team.players.size == 1
+                                String tooltipName = ((showFirstPlayer && team.players.size > 0) || team.players.size == 1)
                                     ? Strings.stripColors(team.players.first().name)
                                     : team.team.localized();
                                 if (!regex.isEmpty()) {
@@ -687,7 +689,7 @@ public class HudFragment{
                         if (unitCounts.isEmpty()) continue;
 
                         // Header row: Team/Player name
-                        String teamLabel = team.players.size == 1
+                        String teamLabel = ((showFirstPlayer && team.players.size > 0) || team.players.size == 1)
                             ? Strings.stripColors(team.players.first().name)
                             : team.team.localized();
                         if (!regex.isEmpty()) {
