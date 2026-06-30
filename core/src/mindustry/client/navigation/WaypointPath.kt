@@ -110,6 +110,9 @@ class WaypointPath<T : Waypoint> : Path {
         Draw.reset()
     }
 
+    @Synchronized
+    fun last() = waypoints.lastOrNull()
+
     override operator fun next(): Position? {
         return waypoints.first()
     }

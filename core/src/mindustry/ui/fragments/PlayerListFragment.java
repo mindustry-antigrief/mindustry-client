@@ -78,8 +78,8 @@ public class PlayerListFragment{
                     } else if (Core.input.ctrl()) {
                         playerName = playerClipboard = p -> "Groups.player.getByID(" + p.id + ")";
                     } else if (Core.input.alt()) {
-                        var idMapper = Server.current.playerIDCopy;
-                        if (idMapper != null) { // Server specific id support (i.e. io player codes and such)
+                        var idMapper = Server.current.getPlayerIDCopy();
+                        if (idMapper != null) { // Server specific id support (i.e., io player codes and such)
                             playerName = p -> p.coloredName() + "[accent] | " + idMapper.get(p);
                             playerClipboard = idMapper;
                         }

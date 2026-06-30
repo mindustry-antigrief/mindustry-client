@@ -90,7 +90,7 @@ object Navigation {
             tree.use {
                 clear()
                 for (ent in ents) {
-                    if (ent.entity.team() != Vars.player.team()) {
+                    if (ent.entity.team() !== Vars.player.team()) {
                         insert(ent)
                         obstacles.add(ent)
                     }
@@ -111,7 +111,7 @@ object Navigation {
             tree.use {
                 clear()
                 for (ent in ents) {
-                    if (ent.entity.team() == Vars.player.team()) {
+                    if (ent.entity.team() === Vars.player.team()) {
                         insert(ent)
                         allies.add(ent)
                     }

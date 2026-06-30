@@ -32,9 +32,6 @@ data class IntRectangle(val x: Int, val y: Int, val width: Int, val height: Int)
 }
 
 abstract class TileLog(override val cause: Interactor) : InteractionLog {
-    /** Allows getting details about this log from the server */
-    var id: Int = -1
-
     override var time: Instant = Instant.now()
 
     abstract fun apply(previous: TileState)
@@ -98,8 +95,7 @@ class TileRecord(val x: Int, val y: Int) {
         when {
             sequences == null -> {
                 sequences = mutableListOf()
-                state = TileState(tile)
-                state.time = joinTime
+                state = TileState(tile, joinTime)
                 sequences!!.add(TileLogSequence(state, 0))
             }
             sequences!!.last().logs.size > 100 -> {

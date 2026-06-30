@@ -473,6 +473,7 @@ public class UI implements ApplicationListener, Loadable{
     private float lastMinY = -1;
     /** Prevents popups from overlapping with block placement ui. Terrible but works */
     void updatePopup(){
+        if (popups.isEmpty()) return; // Don't bother running this code if there's no popups. FINISHME: Would be good to only run if there's items near the bottom right
         float[] minY = {Vars.ui.hudfrag.blockfrag.toggler.getChildren().get(0).getTop() + 4}; // Min y
         if(minY[0] == lastMinY) return;
         lastMinY = minY[0];

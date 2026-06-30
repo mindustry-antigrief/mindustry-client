@@ -9,9 +9,12 @@ import mindustry.client.*
 import mindustry.client.navigation.waypoints.*
 import mindustry.client.utils.*
 import mindustry.content.*
+import mindustry.entities.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.gen.Unit
 import mindustry.world.blocks.defense.*
+import mindustry.world.blocks.storage.*
 
 /** An abstract class for a navigation algorithm, i.e. A*.  */
 abstract class Navigator {
@@ -39,8 +42,7 @@ abstract class Navigator {
         start.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
         end.clamp(0f, 0f, world.unitWidth().toFloat(), world.unitHeight().toFloat())
 
-        @Suppress("RemoveRedundantQualifierName")
-        val unit: mindustry.gen.Unit? = player.unit()
+        val unit: Unit? = player.unit()
         val type = unit?.type ?: UnitTypes.gamma // FINISHME: Instead of defaulting to gamma, maybe pick the largest core unit on the map?
 
         val additionalRadius = (unit?.hitSize() ?: 16F) / 2 + tilesize // Default to about the size of a mega
@@ -97,10 +99,22 @@ abstract class Navigator {
                 unit.stack.amount == 0 &&
                 (unit as? Payloadc)?.hasPayload()?.not() ?: true // no payloads
             ) {
-                val bestCore = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst2(end) }))
-                if (player.dst2(bestCore) > buildingRange * buildingRange && player.dst2(end) > bestCore.dst2(end) && player.dst2(bestCore) > unit.speed() * unit.speed() * 24 * 24) { // don't try to move if we're already close to that core
+                var best: Position = player.bestCore()
+                if (unit.type.coreUnitDock && ClientVars.ratelimitRemaining > 2) { // Try to use a unit if it's closer FINISHME: If the player is a different unit, they can still teleport to a closer one of the same type.
+                    val u = Units.closest(player.team(), end.x, end.y, unit.type.speed * 60F * 5) { u -> u.playerControllable() && !u.isPlayer } // Anything within a few seconds of the target
+                    if (u != null && u.dst2(end) < best.dst2(end)) best = u
+                }
+                if (ClientVars.ratelimitRemaining > 1 && player.dst2(best) > buildingRange * buildingRange && player.dst2(end) > best.dst2(end) && player.dst2(best) > unit.speed() * unit.speed() * 24 * 24) { // don't try to move if we're already close to that core
                     lastTp = Time.millis() // Try again in 3s
-                    if (ClientVars.ratelimitRemaining > 1) Call.buildingControlSelect(player, bestCore)
+                    when (best) {
+                        is CoreBlock.CoreBuild -> Call.buildingControlSelect(player, best)
+                        is Unit -> { // Control the closest unit then immediately respawn
+                            Call.unitControl(player, best)
+                            Call.unitClear(player)
+                            control.input.recentRespawnTimer = 1f // Need to set these so that the game doesn't attempt to control another unit as if we died
+                            control.input.controlledType = null
+                        }
+                    }
                 }
             }
             if (Time.timeSinceMillis(lastTp) > 3000) lastTp = Time.millis() - 2900 // Didn't tp, try again in .1s

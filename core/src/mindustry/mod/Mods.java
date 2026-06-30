@@ -34,7 +34,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
-import static arc.Core.*;
 
 public class Mods implements Loadable{
     public static final String[] metaFiles = {"mod.json", "mod.hjson", "plugin.json", "plugin.hjson"};
@@ -698,30 +697,38 @@ public class Mods implements Loadable{
     }
 
     private void buildFiles(){
-        for(LoadedMod mod : orderedMods()){
-            boolean zipFolder = !mod.file.isDirectory() && mod.root.parent() != null;
-            String parentName = zipFolder ? mod.root.name() : null;
-            for(Fi file : mod.root.list()){
-                //ignore special folders like bundles or sprites
-                if(file.isDirectory() && !specialFolders.contains(file.name())){
-                    file.walk(f -> tree.addFile(mod.file.isDirectory() ? f.path().substring(1 + mod.file.path().length()) :
-                        zipFolder ? f.path().substring(parentName.length() + 1) : f.path(), f));
-                }
-            }
+        for(LoadedMod mod : orderedMods()) buildFiles(mod);
+        Events.fire(new FileTreeInitEvent());
 
-            //load up bundles.
-            Fi folder = mod.root.child("bundles");
-            if(folder.exists()){
-                for(Fi file : folder.list()){
-                    if(file.name().startsWith("bundle") && file.extension().equals("properties")){
-                        String name = file.nameWithoutExtension();
-                        bundles.get(name, Seq::new).add(file);
-                    }
+        loadBundles();
+    }
+
+    /** Foo's method to buildFiles() for a single mod. */
+    public void buildFiles(LoadedMod mod){
+        boolean zipFolder = !mod.file.isDirectory() && mod.root.parent() != null;
+        String parentName = zipFolder ? mod.root.name() : null;
+        for(Fi file : mod.root.list()){
+            //ignore special folders like bundles or sprites
+            if(file.isDirectory() && !specialFolders.contains(file.name())){
+                file.walk(f -> tree.addFile(mod.file.isDirectory() ? f.path().substring(1 + mod.file.path().length()) :
+                    zipFolder ? f.path().substring(parentName.length() + 1) : f.path(), f));
+            }
+        }
+
+        //load up bundles.
+        Fi folder = mod.root.child("bundles");
+        if(folder.exists()){
+            for(Fi file : folder.list()){
+                if(file.name().startsWith("bundle") && file.extension().equals("properties")){
+                    String name = file.nameWithoutExtension();
+                    bundles.get(name, Seq::new).add(file);
                 }
             }
         }
-        Events.fire(new FileTreeInitEvent());
+    }
 
+    /** Foo's method to load bundles after buildFiles() is called. Needed because we call it after building files for floodCompat as well. */
+    public void loadBundles(){
         //add new keys to each bundle
         I18NBundle bundle = Core.bundle;
         while(bundle != null){

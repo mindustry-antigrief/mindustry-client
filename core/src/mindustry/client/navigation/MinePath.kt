@@ -120,7 +120,7 @@ class MinePath @JvmOverloads constructor(
 
     @Synchronized
     override fun draw() {
-        if ((waypoints.waypoints.lastOrNull()?.dst(player) ?: 0F) > tilesize * 3) waypoints.draw()
+        if ((waypoints.last()?.dst(player) ?: 0F) > tilesize * 3) waypoints.draw()
     }
 
     override fun progress() = if (newGame && (control.input as? DesktopInput)?.moved == true) 1f else 0f

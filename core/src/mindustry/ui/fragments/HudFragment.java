@@ -1335,34 +1335,34 @@ public class HudFragment{
                 }
             });
 
-            float[] shieldFrac = {0};
+            float[] shield = {0}, shieldMax = {0};
+            t.addListener(new Tooltip(tooltip ->
+                tooltip.background(Styles.black6).margin(4f).label(() ->
+                    player.dead() ? Strings.format("@: N/A", Core.bundle.get("stat.health")) :
+                        shieldMax[0] > 0 ?
+                            Strings.format("@: (@ + @)/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), Mathf.round(shield[0], 0.1f), player.unit().maxHealth)
+                        : Strings.format("@: @/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), player.unit().maxHealth)
+                ).style(Styles.outlineLabel)
+            ));
             t.stack(
                 new Table(tt -> // Health
                     tt.add(new SideBar(() -> player.dead() ? 0f : player.unit().healthf(), () -> true, true))
-                    .tooltip(tooltip ->
-                        tooltip.background(Styles.black6).margin(4f)
-                        .label(() ->
-                            player.dead() ? Strings.format("@: N/A", Core.bundle.get("stat.health")) :
-                            player.unit().shield > 0 ?
-                                Strings.format("@: (@ + @)/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), Mathf.round(player.unit().shield, 0.1f), player.unit().maxHealth)
-                            : Strings.format("@: @/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), player.unit().maxHealth)
-                        ).style(Styles.outlineLabel)
-                    )
                     .width(bw).growY().padRight(pad)
                 ),
                 new Table(tt -> // Shield
-                    tt.add(new SideBar(() -> player.dead() ? 0 : shieldFrac[0], () -> true, true, 1/4f))
+                    tt.add(new SideBar(() -> player.dead() ? 0 : shield[0]/shieldMax[0], () -> true, true, 1/4f))
                     .width(bw).growY().padRight(pad).color(Pal.accent)
                     .visible(() -> {
                         if(player.dead()) return false;
-                        var ab = ArraysKt.firstOrNull(player.unit().abilities, a -> a instanceof ForceFieldAbility || a instanceof ShieldArcAbility);
+                        var ab = Structs.find(player.unit().abilities, a -> a instanceof ForceFieldAbility || a instanceof ShieldArcAbility);
                         if(ab instanceof ForceFieldAbility ff){
-                            shieldFrac[0] = player.unit().shield / ff.max;
-                            return ff.max > 0;
+                            shield[0] = player.unit().shield;
+                            shieldMax[0] = ff.max;
                         } else if(ab instanceof ShieldArcAbility sa){
-                            shieldFrac[0] = sa.data / sa.max;
-                            return sa.max > 0;
-                        } else return false;
+                            shield[0] = sa.data;
+                            shieldMax[0] = sa.max;
+                        } else shield[0] = shieldMax[0] = 0;
+                        return shieldMax[0] > 0;
                     })
                 )
             ).fillY();

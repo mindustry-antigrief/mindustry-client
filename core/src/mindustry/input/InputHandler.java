@@ -2679,7 +2679,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 Call.transferInventory(player, invBuild);
                 itemDepositCooldown = state.rules.itemDepositCooldown;
             }
-        }else{
+        }else if(invBuild == null || !invBuild.block.hasItems){
             Call.dropItem(player.angleTo(x, y));
         }
     }

@@ -3,6 +3,7 @@ package mindustry.desktop.steam;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
+import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import com.codedisaster.steamworks.*;
@@ -257,7 +258,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     /** Updates the ban list so that lobbies don't appear for banned players. The list will only be updated when a steam player is banned/unbanned. */
     void updateBans(String changed){
-        if(changed != null && !changed.startsWith("steam:")) return; //hacky way to ignore non-steam ids
+        if(changed != null && !changed.startsWith("steam:") || currentLobby == null) return; //hacky way to ignore non-steam ids
         smat.setLobbyData(currentLobby, "banned", netServer.admins.bannedIPs.select(ip -> ip.contains("steam:")).reduce(new StringBuilder(), (ip, str) -> str.append(ip.substring(6)).append(',')).toString()); //list of handles split by commas
     }
 
@@ -478,10 +479,16 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
     @Override
     public void onP2PSessionRequest(SteamID steamIDRemote){
-        Log.info("Connection request: @", steamIDRemote.getAccountID());
-        if(net.server()){
-            Log.info("Am server, accepting request from " + steamIDRemote.getAccountID());
-            snet.acceptP2PSessionWithUser(steamIDRemote);
+        int id = steamIDRemote.getAccountID();
+        Log.info("Connection request: @", id);
+        if(net.server() && currentLobby != null && currentServer == null){ // We are absolutely the host of a steam session
+            for(int member = 0 ; member < smat.getNumLobbyMembers(currentLobby); member++){ // Make sure they are in the lobby before they join.
+                if(id == smat.getLobbyMemberByIndex(currentLobby, member).getAccountID()){
+                    Log.info("Am server, accepting request from " + id);
+                    snet.acceptP2PSessionWithUser(steamIDRemote);
+                    break;
+                }
+            }
         }
     }
 

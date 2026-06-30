@@ -23,8 +23,8 @@ class Moderation {
         @JvmField var mutePlayer: Player? = null
         @JvmField var muteState: Boolean = false
         init {
-            Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins FINISHME: This is server specific code. Treat it as such.
-                if (Server.io() || Server.phoenix()) {
+            Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins FINISHME: This is server-specific code. Treat it as such.
+                if (Server.io() || Server.phoenix() || Server.corium()) {
                     val json = JsonReader().parse(it)
                     if (Core.settings.getBool("logplayerdata")) Log.debug(json)
 
@@ -49,15 +49,18 @@ class Moderation {
                         mutePlayer = null
                     }
 
-                    val rank = "rank".i() // Server specific rank. 0 is unranked.
-                    if (player == Vars.player) ClientVars.rank = rank // Set rank var accordingly
+                    val rank = "rank".i() // Server-specific rank. 0 is unranked.
+                    if (player == Vars.player) { // Set rank accordingly
+                        ClientVars.rank = rank
+                        Server.current.updateRank()
+                    }
                     else if (rank == 0) { // If they're unranked, check if they're new
                         val games = "games".i()
                         val buildings = "buildings".i()
                         val time = "playtime".i()
                         val name = "realname".s()
 
-                        if (games < 3 || buildings < 1000 || time < 60) { // Low stat player; show a warning FINISHME: Settings for these values
+                        if (games < 3 || buildings < 1000 || time < 60) { // Low-stat player; show a warning FINISHME: Settings for these values
                             fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
                             Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet](${player.serverID}) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
                                 .addButton(name) { Spectate.spectate(player) }
@@ -81,8 +84,7 @@ class Moderation {
 
             Events.on(EventType.ServerJoinEvent::class.java) {
                 rank = -1 // reset rank on server join
-                if (Server.io() || Server.phoenix()) Call.serverPacketReliable("playerdata_by_id", Vars.player.id.toString()) // Stat trace self to get rank info
-                Server.current.getStats(Vars.player)
+                Server.current.getStats(Vars.player, true) // Stat trace self to get rank info
             }
 
             /** We need to pull stats to get server id every time the world is reloaded as players are readded. This is janky but it's easier than the alternative of trying to maintain a cache on our end. */
@@ -96,7 +98,7 @@ class Moderation {
             if (player == null || player == Vars.player) return
 
             if (Core.settings.getBool("seer-enabled")) Seer.registerPlayer(player)
-            // If admin and enabled, trace every non admin
+            // If admin and enabled, trace every non-admin
             if (Core.settings.getBool("modenabled") && Server.current.adminui() && !player.admin) {
                 silentTrace++
                 Call.adminRequest(player, Packets.AdminAction.trace, null)
@@ -120,7 +122,7 @@ class Moderation {
     fun addInfo(player: Player, info: Administration.TraceInfo) {
         // FINISHME: Integrate these with join/leave messages
         if (Time.timeSinceMillis(lastJoinTime) > 10000 && player.trace == null) {
-            // Dont send in admin chat as it can get spammy
+            // Don't send in admin chat as it can get spammy
 //            if (info.timesJoined > 10 && info.timesKicked < 3) Vars.player.sendMessage("[accent]${player.name}[accent] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
 //            else sendMessage("/a [scarlet]${player.name}[scarlet] has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")
             Vars.player.sendMessage("[scarlet]${player.name} [scarlet]has joined ${info.timesJoined-1} times before, they have been kicked ${info.timesKicked} times")

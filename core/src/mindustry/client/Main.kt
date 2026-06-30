@@ -204,7 +204,7 @@ object Main : ApplicationListener {
 
     fun sign(content: String): String {
         if (content.startsWith("/") && !(content.startsWith("/t ") || content.startsWith("/a ")) ||
-            ((content == "y" || content == "n") && Server.darkdustry())) return content
+            ((content == "y" || content == "n") && Darkdustry())) return content
 
         val msgId = Random.nextBits(16).toShort()
         val contentWithId = content + InvisibleCharCoder.encode(msgId.toBytes())
@@ -336,13 +336,11 @@ object Main : ApplicationListener {
                 is MessageTransmission -> {
                     ClientVars.lastCertName = system.peer.expectedCert.readableName
                     Vars.ui.chatfrag.addMessage(transmission.content,
-                        "[white]" + keyStorage.aliasOrName(system.peer.expectedCert) + "[accent] -> [coral]" + (keyStorage.cert()?.readableName
-                            ?: "you"),
+                        keyStorage.aliasOrName(system.peer.expectedCert),
                         ClientVars.encrypted,
-                        "",
+                        "${Iconc.ok}[white]${keyStorage.aliasOrName(system.peer.expectedCert)}[accent] -> [coral] ${keyStorage.cert()?.readableName ?: "you"}",
                         transmission.content
-                    )
-                        .run{ prefix = "${Iconc.ok} $prefix " }
+                    ).run { prefix = "${Iconc.ok} $prefix " }
                 }
 
                 is CommandTransmission -> {

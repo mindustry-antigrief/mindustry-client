@@ -551,7 +551,7 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("nyduspadpatch", true);
         client.checkPref("forceallowschematics", true);
         client.checkPref("randomuuidonjoin", false);
-        client.checkPref("blockfishannoyances", true, i -> Server.fish.blockAnnoyances = i);
+        client.checkPref("blockfishannoyances", true, i -> Fish.blockAnnoyances = i);
         client.checkPref("autorestart", true);
         client.checkPref("realautorestart", true);
         client.checkPref("onjoinfixcode", true);
@@ -1056,7 +1056,7 @@ public class SettingsMenuDialog extends BaseDialog{
         @Override
         public Table row(){
             if (hasChildren() || !canRebuild || isRebuilding) return super.row();
-            // If we haven't yet seen a non setting, but they're trying to add a row, they're probably just adding it after the Reset to Defaults button which would be here normally. Trigger a rebuild so its there properly
+            // If we haven't yet seen a non setting, but they're trying to add a row, they're probfably just adding it after the Reset to Defaults button which would be here normally. Trigger a rebuild so its there properly
             Log.warn(bundle.format("client.settings.search.disabled.log.row", Threads.getTrace(1)));
             forceRebuild = true;
             rebuild();

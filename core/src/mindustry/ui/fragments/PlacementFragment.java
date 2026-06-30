@@ -477,9 +477,9 @@ public class PlacementFragment{
                         mainStack.clearChildren();
                         mainStack.addChild(control.input.commandMode ? commandTable : blockCatTable);
 
-                        //hacky, but forces command table to be same width as blocks
+                        //hacky, but forces command table to be same width as blocks. offset by the margins of the cells so that the sizing is exactly the same
                         if(control.input.commandMode){
-                            commandTable.getCells().peek().width(blockCatTable.getWidth() / Scl.scl(1f));
+                            commandTable.getCells().peek().width((blockCatTable.getWidth() - (4 * 2 + 5 * 2 + 3 * 2)) / Scl.scl(1f));
                         }
 
                         wasCommandMode = control.input.commandMode;

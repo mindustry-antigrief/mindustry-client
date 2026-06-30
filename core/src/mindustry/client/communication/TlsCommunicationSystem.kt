@@ -22,7 +22,7 @@ class TlsCommunicationSystem(
     private var keepaliveSendingTimer = 0
     private var keepaliveRecieveTimer = 0
 
-    private var listener = { transmission: Transmission, _: Int ->
+    private val listener = { transmission: Transmission, _: Int ->
         try {
             if (transmission is TLSDataTransmission && transmission.destination == cert.serialNumber && transmission.source == peer.expectedCert.serialNumber) {
                 peer.write(transmission.content)

@@ -688,8 +688,7 @@ public class LogicBlock extends Block{
                                     ui.chatfrag.messages.insert(0, attemMsg);
                                     attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                     attemMsg.format();
-                                    attemMsg.clearButtons(); // Update the clickable coord positions
-                                    NetClient.findCoords(attemMsg);
+                                    NetClient.findCoords(attemMsg.clearButtons()); // Update the clickable coord positions
                                 }
                             }
                             ClientVars.lastSentPos.set(tile.x, tile.y);

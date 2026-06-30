@@ -6,6 +6,7 @@ import arc.graphics.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
 import mindustry.Vars.*
+import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
 import mindustry.ui.fragments.ChatFragment.*
@@ -47,14 +48,14 @@ class SchematicTransmission : Transmission {
         )
 
         message.backgroundColor = Color.darkGray.cpy()
-        message.addButton(0, message.message.length) {
+        message.addButton(0, message.formattedMessage.stripColors().length) {
             //Parse the schematic
             this.schematic = Schematics.read(ByteArrayInputStream(bytes))
             val inSchematics = senderID == player.id || schematics.all().contains(schematic) // FINISHME: The communication ID might not be player id
             if (!inSchematics) {
                 // This is incredibly cursed, if anyone has a better way please suggest
                 // Basically we create a temporary file because the schematics code expects every schematic to be linked to a file
-                    // (in particular, a change in tags will immediately be written to file)
+                // (in particular, a change in tags will immediately be written to file)
                 // but sometimes we just want to not save the schematic in file, so we use a temp file
                 if (tempFile === null) {
                     tempFile = Fi.tempFile("clientcomm_msch")

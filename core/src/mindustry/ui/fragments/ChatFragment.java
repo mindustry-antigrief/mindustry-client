@@ -245,8 +245,7 @@ public class ChatFragment extends Table{
         Draw.rect("whiteui", x + w/2f, y + h/2f, w, h);
     }
 
-    private IntSeq litUp = new IntSeq();
-    public boolean hasLit = false;
+    public ClickableArea hoveredButton = null;
 
     @Override
     public void draw(){
@@ -268,7 +267,7 @@ public class ChatFragment extends Table{
 
         Draw.color(shadowColor, shadowColor.a * opacity);
 
-        hasLit = false;
+        hoveredButton = null;
         float theight = offsety + spacing + getMarginBottom() + scene.marginBottom;
         for(int i = scrollPos; i < messages.size && i < messagesShown + scrollPos && (i < fadetime || shown); i++){
             ChatMessage msg = messages.get(i);
@@ -301,59 +300,63 @@ public class ChatFragment extends Table{
 
             msg.start = theight - layout.height - 2;
             msg.height = layout.height + textspacing;
-            float mousey = input.mouseY();
-            float mousex = input.mouseX();
-            if (mousey > msg.start && mousey < msg.start + msg.height && msg.buttons != null) {
-                litUp.clear();
-                var co = Tmp.c1.set(Draw.getColor()); // Save current color for later
-                for (var g : font.getCache().getLayouts()) {
-                    for (var r : g.runs) {
-                        float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
-                        int j = 0;
-                        for (var c : r.glyphs) {
-                            int idx = r.textPositions.get(j++);
-                            float w = r.xAdvances.get(j);
-                            float liney = r.y + theight - font.getLineHeight() + 2;
+            float mouseX = input.mouseX(), mouseY = input.mouseY();
+
+            if (mouseY > msg.start && mouseY < msg.start + msg.height && mouseX < offsetx + textWidth + Scl.scl(4f) && msg.buttons != null && !msg.buttons.isEmpty()) {
+                if (font.getCache().getLayouts().size != 1) throw new RuntimeException("Wrong layouts: " + font.getCache().getLayouts()); // This should only ever be 1. If It's not something is very wrong.
+                int idx = 0;
+
+                findButton:
+                for (var r : font.getCache().getLayouts().get(0).runs) { // Find hovered button
+                    if (r.continuation) idx++; // Line wrap before this, add offset
+                    float lineY = r.y + theight - font.getLineHeight() + 2;
+                    float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
+                    for (int c = 0; c < r.glyphs.size; c++) {
+                        idx++;
+                        if (((char)r.glyphs.get(c).id) == '[') { // When we reach "[" we need to skip anything that would be considered a color code.
+                            StringBuilder remainingGlyphs = new StringBuilder(r.glyphs.size - c - 1);
+                            for (int ch = c + 1; ch < r.glyphs.size; ch++) remainingGlyphs.append((char)r.glyphs.get(ch).id);
+                            idx -= Strings.parseColorMarkupPublic(remainingGlyphs.toString(), 0, remainingGlyphs.length());
+                        }
+                        float w = r.xAdvances.get(c + 1);
+
+                        if (mouseX > x && mouseX <= x + w && mouseY > lineY && mouseY < lineY + font.getLineHeight()) { // The mouse is within this character
                             for (var area : msg.buttons) {
-                                if (idx >= area.start && idx < area.end) {
-                                    if (mousex > x && mousex <= x + w && mousey > liney && mousey < liney + font.getLineHeight()) {
-                                        hasLit = true;
-                                        litUp.add(area.start);
-                                        litUp.add(area.end);
-                                        if (Core.input.keyTap(Binding.select)) {
-                                            area.lambda.run();
-                                        }
-                                        if (control.input instanceof DesktopInput) {
-                                            Core.graphics.cursor(Graphics.Cursor.SystemCursor.hand);
-                                        }
-                                    }
+                                if (idx > area.start && idx <= area.end) { // The character is within the button ranges.
+                                    hoveredButton = area;
+
+                                    if (Core.input.keyTap(Binding.select)) area.clicked.run();
+                                    if (control.input instanceof DesktopInput) Core.graphics.cursor(Graphics.Cursor.SystemCursor.hand);
+                                    break findButton;
                                 }
                             }
-                            x += w;
                         }
+                        x += w;
                     }
                 }
 
-                Draw.color(hoverColor);
-                int[] litUpItems = litUp.items;
-                for (var g : font.getCache().getLayouts()) {
-                    for (var r : g.runs) {
+                highlightButton:
+                if (hoveredButton != null) { // Highlight hovered button...
+                    Draw.color(hoverColor);
+                    idx = 0;
+                    for (var r : font.getCache().getLayouts().get(0).runs) {
+                        if (r.continuation) idx++; // Skip on newline
+                        float lineY = r.y + theight - font.getLineHeight() + 2;
                         float x = r.x + r.xAdvances.get(0) + fontoffsetx + offsetx;
-                        int j = 0;
-                        for (var c : r.glyphs) {
-                            int idx = r.textPositions.get(j++);
-                            float w = r.xAdvances.get(j);
-                            float liney = r.y + theight - font.getLineHeight() + 2;
-                            for(int ii = 0; ii < litUp.size; ii += 2){
-                                if(litUpItems[ii] <= idx && idx < litUpItems[ii + 1]) {
-                                    rect(x, liney, w, font.getLineHeight());
-                                }
+                        for (int c = 0; c < r.glyphs.size; c++) {
+                            idx++;
+                            if (((char)r.glyphs.get(c).id) == '[') { // When we reach "[" we need to skip anything that would be considered a color code.
+                                StringBuilder remainingGlyphs = new StringBuilder(r.glyphs.size - c - 1);
+                                for (int ch = c + 1; ch < r.glyphs.size; ch++) remainingGlyphs.append((char)r.glyphs.get(ch).id);
+                                idx -= Strings.parseColorMarkupPublic(remainingGlyphs.toString(), 0, remainingGlyphs.length());
                             }
+                            float w = r.xAdvances.get(c + 1);
+                            if (idx > hoveredButton.start && idx <= hoveredButton.end) rect(x, lineY, w, font.getLineHeight()); // Highlight this character
                             x += w;
+                            if (idx > hoveredButton.end - 1) break highlightButton; // We are done highlighting this button
                         }
                     }
                 }
-                Draw.color(co); // Reset color
             }
             Draw.color(shadowColor, shadowColor.a * opacity);
 
@@ -649,12 +652,6 @@ public class ChatFragment extends Table{
         addMsg(message);
     }
 
-    /** @deprecated Kept for mod compatibility */
-    @Deprecated
-    public void addMessage(String ignored, String message){
-        addMessage(message, null, null, "", message);
-    }
-
     public void doFade(float seconds){
         fadetime += seconds/3; // Seconds/3 since this is scaled by 3 anyways fadetime -= Time.delta / 180f;
         fadetime = Math.min(fadetime, messagesShown);
@@ -662,12 +659,12 @@ public class ChatFragment extends Table{
 
     public static class ClickableArea {
         public int start, end;
-        public Runnable lambda;
+        public Runnable clicked;
 
-        public ClickableArea(int start, int end, Runnable lambda) {
+        public ClickableArea(int start, int end, Runnable clicked) {
             this.start = start;
             this.end = end;
-            this.lambda = lambda;
+            this.clicked = clicked;
         }
     }
 
@@ -708,21 +705,62 @@ public class ChatFragment extends Table{
             format(false);
         }
 
-        public ChatMessage addButton(int start, int end, Runnable lambda) {
-            if (start < 0 || end > formattedMessage.length() || start > end) {
-                Log.warn("Trying to add button to @ at indices @ to @; this is invalid!", formattedMessage, start, end);
+        public ChatMessage addButton(int start, int end, Runnable clicked) {
+            String stripped = Strings.stripColors(formattedMessage);
+            int len = stripped.length();
+
+            start -= newlineOffset(stripped, start);
+            end -= newlineOffset(stripped, end);
+
+            if (start < 0 || end > len || start > end) {
+                Log.warn("Trying to add button to @ at indices @ to @; this is invalid!", stripped, start, end);
                 return this;
             }
+
             if (buttons != null) {
-                buttons.add(new ClickableArea(start, end, lambda));
+                start += bracketOffset(formattedMessage, start);
+                end += bracketOffset(formattedMessage, end);
+                buttons.add(new ClickableArea(start, end, clicked));
                 buttons.shrink();
             }
+
             return this;
         }
 
-        public ChatMessage addButton(String text, Runnable lambda) {
-            int i = formattedMessage.indexOf(text);
-            return i < 0 ? this : addButton(i, i + text.length(), lambda);
+        public ChatMessage addButton(String text, Runnable clicked) {
+            var stripped = Strings.stripColors(text);
+            int i = Strings.stripColors(formattedMessage).indexOf(stripped);
+            return i < 0 ? this : addButton(i, i + stripped.length(), clicked);
+        }
+
+        /** Count how many newlines occur before the target. */
+        private int newlineOffset(String text, int target) { // FINISHME: Turn run.continuation into an int and just set it to -1 for \n wraps instead of parsing them here?
+            int newlines = 0, nonNewlines = 0;
+
+            for (int i = 0; i < text.length(); i++) {
+                if (nonNewlines == target) break; // Enough good characters
+
+                if (text.charAt(i) == '\n') newlines++; // Newline: increase offset
+                else nonNewlines++; // Normal character: increase normal character count
+            }
+            return newlines;
+        }
+
+        /** We have to work around "[[" by offsetting by 1 for each pair of them as they are transformed to "[" in the message. */
+        private int bracketOffset(String text, int end) {
+            int offset = 0;
+            end = Math.min(end, text.length()); // Make sure it's capped by text length
+
+            for (int i = 0; i < end; i++) {
+                if (text.charAt(i) == '[') {
+                    int first = i;
+
+                    while (i + 1 < end && text.charAt(i + 1) == '[') i++; // Count consecutive [
+                    int consecutiveBrackets = i - first + 1;
+                    if (consecutiveBrackets % 2 == 0) offset += consecutiveBrackets / 2; // Only add the offset if there's an even number of brackets; otherwise they are used in formatting.
+                }
+            }
+            return offset;
         }
 
         public ChatMessage clearButtons() {
@@ -731,16 +769,15 @@ public class ChatFragment extends Table{
         }
 
         private void format(boolean moveButtons) {
-            int initial = formattedMessage.length();
+            int initial = Strings.stripColors(formattedMessage).length();
             if(sender == null){ //no sender, this is a server message?
                 formattedMessage = prefix + (message == null ? "" : message);
             } else {
-                if (Server.darkdustry.b()) formattedMessage = prefix + message; // Hack to allow darkdustry translation as they don't change sender FINISHME: We need to rework this system badly as some servers change the messages significantly
-                else formattedMessage = prefix + "[coral][[[white]" + sender + "[coral]]:[white] " + unformatted;
+                formattedMessage = prefix + message;
             }
-            int shift = formattedMessage.length() - initial;
             if (moveButtons && buttons != null) {
-                for (var b : buttons) {
+                int shift = formattedMessage.length() - initial;
+                for (var b : buttons) { // FINISHME: Store original button texts, reformat message, adjust start, end as needed.
                     b.start += shift;
                     b.end += shift;
                 }
@@ -756,7 +793,7 @@ public class ChatFragment extends Table{
         normal(""),
         team("/t"),
         // set disableadminchatifsolo to true if you want to hide admin chat as a solo admin.
-        admin("/a", () -> (player.admin || Server.io.b() && ClientVars.rank >= 4) && (!settings.getBool("disableadminchatifsolo") || Groups.player.count(p -> p.admin) > 1)),
+        admin("/a", () -> (Server.current.adminui()) && (!settings.getBool("disableadminchatifsolo") || Groups.player.count(p -> p.admin) > 1)),
         staff("/s", () -> Server.fish.b() && settings.getBool("fish-staff", false)),
         client("!c");
 
