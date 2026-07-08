@@ -1,3 +1,5 @@
+package test;
+
 import arc.*;
 import arc.backend.headless.*;
 import arc.files.*;

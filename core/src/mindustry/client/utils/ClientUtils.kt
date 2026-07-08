@@ -13,6 +13,7 @@ import arc.math.geom.*
 import arc.scene.*
 import arc.scene.ui.*
 import arc.scene.ui.layout.*
+import arc.struct.*
 import arc.util.*
 import arc.util.serialization.*
 import mindustry.*
@@ -467,6 +468,8 @@ fun ChatMessage.findCoords(): ChatMessage = NetClient.findCoords(this)
 
 fun ChatMessage.findLinks(start: Int = 0): ChatMessage = NetClient.findLinks(this, start)
 
+fun ChatMessage.findPlayerName(playerSender: Player): ChatMessage = NetClient.findPlayerName(this, playerSender)
+
 fun findItem(arg: String): Item = content.items().min { b -> biasedLevenshtein(arg, b.localizedName) }
 
 fun findUnit(arg: String): UnitType = content.units().min(
@@ -610,3 +613,5 @@ private fun biasedLevenshteinLengthIndependent(x: String, y: String): Float {
     // contains
     return if (output == 0) 0.5f else output.toFloat() // Prefer startsWith
 }
+operator fun <K, V> ObjectMap.Entry<K, V>.component1(): K = this.key
+operator fun <K, V> ObjectMap.Entry<K, V>.component2(): V = this.value

@@ -46,12 +46,12 @@ allprojects{
         if(!project.hasProperty("assetUrl")) assetUrl = 'mindustry-antigrief/mindustry-client'
         if(!project.hasProperty("assetRef")) assetRef = 'v8'
         if(!project.hasProperty("versionModifier")) versionModifier = 'release'
-        if(!project.hasProperty("buildversion")) buildversion = '158.1'
+        if(!project.hasProperty("buildversion")) buildversion = '159.2'
         if(!project.hasProperty("clientVersion")) clientVersion = 'v1.0.0, Jan. 1, 1970'
         if(!project.hasProperty("versionType")) versionType = 'official'
         appName = 'Mindustry'
         steamworksVersion = '0b86023401880bb5e586bc404bedbaae9b1f1c94'
-        rhinoVersion = '54b75cbd1207ef1fd5cff517cbd188e763c85baa'
+        rhinoVersion = 'e74ac129d2bff72c1deb536d7d99a0dbb7046d2e'
 
         loadVersionProps = {
             return new Properties().with{p -> p.load(file('../core/assets/version.properties').newReader()); return p }
@@ -85,7 +85,8 @@ allprojects{
         }
 
         hasSprites = {
-            return new File(rootDir, "core/assets/sprites/sprites.aatls").exists()
+            def file = new File(rootDir, "core/build/last_pack_version")
+            return new File(rootDir, "core/assets/sprites/sprites.aatls").exists() && file.exists() && file.text == versionNumber
         }
 
         getModifierString = {
@@ -201,7 +202,7 @@ allprojects{
     }
 
     tasks.withType(JavaCompile){
-        targetCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_17
         sourceCompatibility = JavaVersion.VERSION_17
         options.encoding = "UTF-8"
         options.compilerArgs += ["-Xmaxerrs", "5000", "-Xlint:deprecation"]
@@ -220,10 +221,34 @@ allprojects{
     }
 }
 
-//compile with java 8 compatibility for everything except the annotations and tests
-configure(subprojects - project(":annotations")){
-    tasks.withType(JavaCompile).configureEach {
-        options.compilerArgs.addAll(['--release', '8'])
+configure(project(":annotations")){
+    tasks.withType(JavaCompile){
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        options.fork = true
+
+        options.compilerArgs.addAll([
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+            "--add-exports", "java.base/sun.reflect.annotation=ALL-UNNAMED"
+        ])
+    }
+}
+
+//compile with java 8 compatibility for everything except the annotation project
+configure(subprojects - project(":annotations") - project(":tests")){
+    tasks.withType(JavaCompile){
+        options.compilerArgs.addAll(['--release', '17'])
     }
 
     tasks.withType(Javadoc).configureEach {
@@ -256,7 +281,6 @@ project(":desktop"){
 //        implementation "com.github.mindustry-antigrief:steamworks4j:1.10.0-SNAPSHOT" // Local steamworks4j
 
         implementation arcModule("backends:backend-sdl")
-        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 }
 
@@ -266,8 +290,8 @@ project(":core"){
 
     kapt{
         javacOptions{
-            option("-source", "16")
-            option("-target", "1.8")
+            option("-source", "17")
+            option("-target", "17")
         }
     }
 
@@ -331,17 +355,27 @@ project(":core"){
         from sourceSets.main.allSource
     }
 
-    task assetsJar(type: Jar, dependsOn: ":tools:pack"){
+    task assetsJar(type: Jar){
+        dependsOn ":tools:pack"
         archiveClassifier = 'assets'
-        from files("assets"){
-            exclude "config", "cache", "music", "sounds", "sprites/fallback"
+
+        into('assets'){
+            from 'assets'
+            exclude 'config', 'cache', 'music', 'sounds', 'sprites/fallback'
+        }
+
+        into('assets-raw/sprites'){
+            from 'assets-raw/sprites_out'
+            include '**/*.png'
         }
     }
 
     task musicJar(type: Jar){
         archiveClassifier = 'music'
-        from files("assets"){
-            include "music/*", "sounds/*"
+
+        into('assets'){
+            from 'assets'
+            include '**/*.ogg', '**/*.mp3'
         }
     }
 
@@ -357,13 +391,13 @@ project(":core"){
         keepJavacAnnotationProcessors = true
         javacOptions{
             option("-source", "17")
-            option("-target", "8")
+            option("-target", "17")
         }
     }
 
     kotlin.compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
-        freeCompilerArgs.add("-Xjdk-release=1.8")
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xjdk-release=17")
     }
 
     tasks.withType(KaptWithoutKotlincTask.class).configureEach {
@@ -404,7 +438,7 @@ project(":core"){
         implementation 'commons-net:commons-net:3.8.0'
         implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
 
-        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
+        implementation 'org.jline:jline:4.0.0'
         compileOnly project(":annotations")
         if (!project.hasProperty("noKapt")) kapt project(":annotations")
     }
@@ -445,7 +479,7 @@ project(":server"){
     dependencies{
         implementation project(":core")
         implementation arcModule("backends:backend-headless")
-        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
+        implementation 'org.jline:jline:4.0.0'
     }
 }
 
@@ -494,8 +528,8 @@ project(":tools"){
     apply plugin: "kotlin"
 
     kotlin.compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
-        freeCompilerArgs.add("-Xjdk-release=1.8")
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xjdk-release=17")
     }
 
     dependencies{
@@ -510,7 +544,6 @@ project(":tools"){
         implementation files("../bouncycastle/bctls-jdk15on.jar")
         implementation files("../bouncycastle/bcutil-jdk15on.jar")
         implementation("com.google.guava:guava:33.3.1-jre")
-        annotationProcessor 'com.github.Anuken:jabel:0.9.0'
     }
 }
 
@@ -518,8 +551,8 @@ configure(project(":annotations")){
     apply plugin: "kotlin"
 
     tasks.withType(JavaCompile){
-        targetCompatibility = 8
-        sourceCompatibility = 8
+        targetCompatibility = 17
+        sourceCompatibility = 17
     }
 
     dependencies{

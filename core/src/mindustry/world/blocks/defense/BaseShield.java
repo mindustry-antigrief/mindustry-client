@@ -68,6 +68,7 @@ public class BaseShield extends Block{
 
         baseShields.add(this);
         if(baseShields.size > 2) baseShields.shrink(); // Modded shields will grow the seq, we may as well just keep it as small as we can
+        canPickup = true;
     }
 
     @Override

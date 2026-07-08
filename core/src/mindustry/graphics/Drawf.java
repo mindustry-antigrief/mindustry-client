@@ -382,12 +382,14 @@ public class Drawf{
     }
 
     public static void liquid(TextureRegion region, float x, float y, float alpha, Color color, float rotation){
+        if(alpha < 1f/255f) return;
         Draw.color(color, alpha * color.a);
         Draw.rect(region, x, y, rotation);
         Draw.color();
     }
 
     public static void liquid(TextureRegion region, float x, float y, float alpha, Color color){
+        if(alpha < 1f/255f) return;
         Draw.color(color, alpha * color.a);
         Draw.rect(region, x, y);
         Draw.color();
@@ -517,16 +519,27 @@ public class Drawf{
     }
 
     public static void laser(TextureRegion line, TextureRegion start, TextureRegion end, float x, float y, float x2, float y2, float scale, boolean light){
-        float scl = scale * Draw.scl;
-        float scl2 = 8 * scl, rot = Mathf.angle(x2 - x, y2 - y);
-        float vx = Mathf.cosDeg(rot) * scl2, vy = Mathf.sinDeg(rot) * scl2;
+        laser(line, start, end, x, y, x2, y2, scale, light, true);
+    }
 
-        if(start != null) Draw.rect(start, x, y, start.width * scl, start.height * scl, rot + 180);
-        if(end != null) Draw.rect(end, x2, y2, end.width * scl, end.height * scl, rot);
+    public static void laser(TextureRegion line, TextureRegion start, TextureRegion end, float x, float y, float x2, float y2, float scale, boolean light, boolean useLod){
+        float scl = 8f * scale * Draw.scl, rot = Mathf.angle(x2 - x, y2 - y);
+        float vx = Mathf.cosDeg(rot) * scl, vy = Mathf.sinDeg(rot) * scl;
+        float lod = useLod ? (start.width * scale * start.scl() < 10f ? Lod.alpha1 : Lod.alpha2) : 1f;
+        float a = Draw.getColorAlpha();
 
-        Lines.stroke(12f * scale);
-        Lines.line(line, x + vx, y + vy, x2 - vx, y2 - vy, false);
-        Lines.stroke(1f);
+        if(a >= 1f/255f){
+            if(lod > 0.0001f){
+                Draw.alpha(lod * a);
+                Draw.rect(start, x, y, start.width * scale * start.scl(), start.height * scale * start.scl(), rot + 180);
+                Draw.rect(end, x2, y2, end.width * scale * end.scl(), end.height * scale * end.scl(), rot);
+                Draw.alpha(a);
+            }
+
+            Lines.stroke(12f * scale);
+            Lines.line(line, x + vx, y + vy, x2 - vx, y2 - vy, false);
+            Lines.stroke(1f);
+        }
 
         if(light) light(x, y, x2, y2);
     }

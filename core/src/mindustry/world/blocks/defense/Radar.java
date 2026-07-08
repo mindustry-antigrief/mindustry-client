@@ -68,10 +68,7 @@ public class Radar extends Block{
             super.add();
             Core.app.post(() -> {
                 if(team == Team.blue && CustomMode.flood.b()){
-                    turretEnt = new TurretPathfindingEntity(
-                        this,
-                        () -> true ? range() : 0f, true, true, () -> true
-                    );
+                    turretEnt = new TurretPathfindingEntity(this, this::range, true, true, () -> true);
                     Navigation.addEnt(turretEnt);
                 }
             });

@@ -85,6 +85,8 @@ public class CoreBlock extends StorageBlock{
         canOverdrive = false;
         commandable = true;
         envEnabled |= Env.space;
+        drawCached = false;
+        drawDynamic = true;
 
         //support everything
         replaceable = false;

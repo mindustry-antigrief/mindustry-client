@@ -11,6 +11,7 @@ import mindustry.gen.*;
 import mindustry.world.*;
 import mindustry.world.blocks.power.*;
 import org.junit.jupiter.api.*;
+import test.*;
 
 import static mindustry.Vars.*;
 
@@ -25,6 +26,7 @@ public class PowerTestFixture{
     @BeforeAll
     static void initializeDependencies(){
         headless = true;
+        ApplicationTests.launchApplication(false);
         Core.files = new MockFiles();
         Groups.init();
 

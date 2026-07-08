@@ -476,9 +476,9 @@ public class PlacementFragment{
                         mainStack.clearChildren();
                         mainStack.addChild(control.input.commandMode ? commandTable : blockCatTable);
 
-                        //hacky, but forces command table to be same width as blocks
+                        //hacky, but forces command table to be same width as blocks. offset by the margins of the cells so that the sizing is exactly the same
                         if(control.input.commandMode){
-                            commandTable.getCells().peek().width(blockCatTable.getWidth() / Scl.scl(1f));
+                            commandTable.getCells().peek().width((blockCatTable.getWidth() - (4 * 2 + 5 * 2 + 3 * 2)) / Scl.scl(1f));
                         }
 
                         wasCommandMode = control.input.commandMode;
@@ -519,9 +519,12 @@ public class PlacementFragment{
                         var stancesOut = new Seq<UnitStance>();
 
                         UnitCommand[] hoveredCommand = {null};
-                        int[] counts = new int[content.units().size];
+                        int[][] countBox = new int[1][0];
 
                         rebuildCommand = () -> {
+                            if(countBox[0].length != content.units().size) countBox[0] = new int[content.units().size];
+                            int[] counts = countBox[0];
+
                             u.clearChildren();
                             var units = control.input.selectedUnits;
                             if(units.size > 0){
@@ -655,6 +658,8 @@ public class PlacementFragment{
 
                         u.update(() -> {
                             {
+                                if(countBox[0].length != content.units().size) countBox[0] = new int[content.units().size];
+                                int[] counts = countBox[0];
                                 activeCommands.clear();
                                 activeStances.clear();
                                 availableCommands.clear();
@@ -835,9 +840,9 @@ public class PlacementFragment{
 
         //check tile being hovered over
         Tile hoverTile = world.tileWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
-        if(hoverTile != null){
+        if(hoverTile != null && hoverTile.inMapArea()){
             //if the tile has a building, display it
-            if(hoverTile.build != null && hoverTile.build.displayable() /*&& !hoverTile.build.inFogTo(player.team())*/){
+            if(hoverTile.build != null && hoverTile.build.displayable() /*&& !hoverTile.build.inFogTo(player.team()) && hoverTile.build.inMapArea()*/){
                 return nextFlowBuild = hoverTile.build;
             }
 

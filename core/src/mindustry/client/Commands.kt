@@ -207,7 +207,7 @@ fun setupCommands() {
     }
 
     register("js <code...>", Core.bundle.get("client.command.js.description")) { args, player: Player ->
-        val out = mods.scripts.runConsole(args[0])
+        val out = mods.scripts.runConsole(ui.consolefrag.injectConsoleVariables() + args[0])
         player.sendMessage("[accent]$out")
         Log.debug(out)
     }
@@ -390,9 +390,9 @@ fun setupCommands() {
             comms.send(MessageTransmission(msg))
             ui.chatfrag.addMessage(
                 msg,
-                "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}",
+                Main.keyStorage.cert()?.readableName ?: "you",
                 encrypted,
-                "",
+                "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}",
                 msg
             )
             lastCertName = cert.readableName
@@ -442,8 +442,7 @@ fun setupCommands() {
             ?.retainAll { it.controller() is LogicAI }
             ?.groupBy { (it.controller() as LogicAI).controller }
             ?.forEach { (build, units) ->
-                val txt = "x${units.size} [accent](${build.tileX()}, ${build.tileY()})"
-                val msg = ui.chatfrag.addMessage(txt, null, null, "", txt)
+                val msg = ui.chatfrag.addMsg("x${units.size} [accent](${build.tileX()}, ${build.tileY()})")
                 NetClient.findCoords(msg)
             }
     }
@@ -723,11 +722,11 @@ fun setupCommands() {
         mutedPlayers.clear()
     }
 
-    register("ohno", "client.command.autoohno.description".bundle()) { _, player -> // FINISHME: This is great and all but it would be nice to run this automatically every minute or so
-        if (!Server.fish()) return@register
+    // FINISHME: Server specific commands would be nice.
+    register("ohno", "client.command.autoohno.description".bundle()) { _, player ->
+        if (!Fish()) return@register
         player.sendMessage("client.command.autoohno.running".bundle())
-        Server.ohnoTask?.cancel()
-        Server.ohnoTask = Server.ohno()
+        Fish.ohno(true)
     }
 
     // Special commands

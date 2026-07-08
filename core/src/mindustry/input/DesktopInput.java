@@ -464,8 +464,14 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!scene.hasField() && !scene.hasDialog()){
-            if(input.keyTap(Binding.debugHitboxes)){
-                drawDebugHitboxes = !drawDebugHitboxes;
+            if(input.keyTap(Binding.debugHitboxes)) Core.settings.toggle("drawhitboxes");
+
+            if(input.keyTap(Binding.teleportCursor) && (state.rules.editor || state.rules.infiniteResources)){
+                if(player.dead()){
+                    camera.position.set(input.mouseWorld());
+                }else{
+                    player.unit().set(input.mouseWorld());
+                }
             }
 
             if(input.keyTap(Binding.detachCamera)){
@@ -791,20 +797,20 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyTap(Binding.respawn) && !scene.hasDialog()){
                 controlledType = null;
                 recentRespawnTimer = 1f;
+                droppingItem = false;
                 var u = player.unit();
-                var closest = player.bestCore();
-                if(CoreBlock.preferredCoreType == null ||
-                    (!u.spawnedByCore &&
-                    ((u.dockedType != null && u.dockedType.coreUnitDock) ||
-                    (closest != null && ((CoreBlock)closest.block).unitType != null &&
-                        ((CoreBlock)closest.block).unitType.coreUnitDock))
+                var best = player.bestCore();
+                if(CoreBlock.preferredCoreType == null || // No preferred type
+                    (!u.spawnedByCore && // Player is a non core unit
+                        ((u.dockedType != null && u.dockedType.coreUnitDock) || // Player has a core unit docked currently
+                        (best != null && ((CoreBlock)best.block).unitType != null && ((CoreBlock)best.block).unitType.coreUnitDock)) // Best core spawns a dockable unit FINISHME: Why? This is still going to trigger a full respawn
                     )
                 ){
                     // Use original spawning mechanism for docking units
                     Call.unitClear(player);
                 } else {
                     // Send a packet that supports respawning at a specific block
-                    Call.buildingControlSelect(player, closest);
+                    Call.buildingControlSelect(player, best);
                 }
             }
         }
@@ -870,7 +876,7 @@ public class DesktopInput extends InputHandler{
         }
 
         if(player.dead() || locked){ // FINISHME: Should we comment out the dead check?
-            cursorType = ui.chatfrag.hasLit ? SystemCursor.hand : SystemCursor.arrow;
+            cursorType = ui.chatfrag.hoveredButton != null ? SystemCursor.hand : SystemCursor.arrow;
             if(!locked){
                 pollInputNoPlayer();
             }
@@ -1246,7 +1252,7 @@ public class DesktopInput extends InputHandler{
 
         cursorType = SystemCursor.arrow;
 
-        if(ui.chatfrag.hasLit){ // Sciffed fpp's addition to ensure clickable chat takes priority
+        if(ui.chatfrag.hoveredButton != null){ // Scuffed foo's addition to ensure clickable chat takes priority
             cursorType = SystemCursor.hand;
         }else if(cursor != null){
             if(cursor.build != null && cursor.build.interactable(player.team())){

@@ -34,12 +34,15 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static mindustry.Vars.*;
-import static arc.Core.*;
 
 public class Mods implements Loadable{
     public static final String[] metaFiles = {"mod.json", "mod.hjson", "plugin.json", "plugin.hjson"};
     //it would be nice to parse semver and have syntax like "<1.0.5" here, but mods clearly don't use semver and it's an inconsistent mess
-    private static final ObjectSet<String> blacklistedMods = ObjectSet.with("ui-lib", "braindustry", "schema", "scheme-size:1.0.5", "scheme-size:1.0.4", "scheme-size:1.0.3", "scheme-size:1.0.1", "scheme-size:1.0.0", "scheme-size:1.1.0", "scheme-size:1.0.4.1");
+    private static final ObjectSet<String> blacklistedMods = ObjectSet.with(
+    "ui-lib", "braindustry", "schema", "scheme-size:1.0.5", "scheme-size:1.0.4", "scheme-size:1.0.3", "scheme-size:1.0.1", "scheme-size:1.0.0", "scheme-size:1.1.0", "scheme-size:1.0.4.1",
+    //new patch API as of build 159 breaks older versions of the patch editor
+    "patch-editor:1.10.1", "patch-editor:1.10.0", "patch-editor:1.9.5", "patch-editor:1.9.4", "patch-editor:1.9.3"
+    );
 
     private Json json = new Json();
     private @Nullable Scripts scripts;
@@ -429,7 +432,7 @@ public class Mods implements Loadable{
 
                 @Override
                 public AtlasRegion find(String name){
-                    var base = packer.get(name);
+                    var base = packer.getPacked(name);
 
                     if(base != null){
                         var reg = new AtlasRegion(shadow.find(name).texture, base.x, base.y, base.width, base.height);
@@ -453,15 +456,15 @@ public class Mods implements Loadable{
 
                 @Override
                 public boolean has(String s){
-                    return shadow.has(s) || packer.get(s) != null;
+                    return shadow.has(s) || packer.getPacked(s) != null;
                 }
 
                 //return the *actual* pixmap regions, not the disposed ones.
                 @Override
                 public PixmapRegion getPixmap(AtlasRegion region){
-                    PixmapRegion out = packer.get(region.name);
+                    PixmapRegion out = packer.getPacked(region.name);
                     //this should not happen in normal situations
-                    if(out == null) return packer.get("error");
+                    if(out == null) return packer.getPacked("error");
                     return out;
                 }
             };
@@ -698,30 +701,38 @@ public class Mods implements Loadable{
     }
 
     private void buildFiles(){
-        for(LoadedMod mod : orderedMods()){
-            boolean zipFolder = !mod.file.isDirectory() && mod.root.parent() != null;
-            String parentName = zipFolder ? mod.root.name() : null;
-            for(Fi file : mod.root.list()){
-                //ignore special folders like bundles or sprites
-                if(file.isDirectory() && !specialFolders.contains(file.name())){
-                    file.walk(f -> tree.addFile(mod.file.isDirectory() ? f.path().substring(1 + mod.file.path().length()) :
-                        zipFolder ? f.path().substring(parentName.length() + 1) : f.path(), f));
-                }
-            }
+        for(LoadedMod mod : orderedMods()) buildFiles(mod);
+        Events.fire(new FileTreeInitEvent());
 
-            //load up bundles.
-            Fi folder = mod.root.child("bundles");
-            if(folder.exists()){
-                for(Fi file : folder.list()){
-                    if(file.name().startsWith("bundle") && file.extension().equals("properties")){
-                        String name = file.nameWithoutExtension();
-                        bundles.get(name, Seq::new).add(file);
-                    }
+        loadBundles();
+    }
+
+    /** Foo's method to buildFiles() for a single mod. */
+    public void buildFiles(LoadedMod mod){
+        boolean zipFolder = !mod.file.isDirectory() && mod.root.parent() != null;
+        String parentName = zipFolder ? mod.root.name() : null;
+        for(Fi file : mod.root.list()){
+            //ignore special folders like bundles or sprites
+            if(file.isDirectory() && !specialFolders.contains(file.name())){
+                file.walk(f -> tree.addFile(mod.file.isDirectory() ? f.path().substring(1 + mod.file.path().length()) :
+                    zipFolder ? f.path().substring(parentName.length() + 1) : f.path(), f));
+            }
+        }
+
+        //load up bundles.
+        Fi folder = mod.root.child("bundles");
+        if(folder.exists()){
+            for(Fi file : folder.list()){
+                if(file.name().startsWith("bundle") && file.extension().equals("properties")){
+                    String name = file.nameWithoutExtension();
+                    bundles.get(name, Seq::new).add(file);
                 }
             }
         }
-        Events.fire(new FileTreeInitEvent());
+    }
 
+    /** Foo's method to load bundles after buildFiles() is called. Needed because we call it after building files for floodCompat as well. */
+    public void loadBundles(){
         //add new keys to each bundle
         I18NBundle bundle = Core.bundle;
         while(bundle != null){
@@ -1393,7 +1404,7 @@ public class Mods implements Loadable{
         /** Whether this mod is currently being auto updated. */
         public boolean isAutoUpdating;
 
-        private static final boolean iconLoadingOptimization = Core.settings.getBool("modiconloadingoptimization");
+        private static final boolean iconLoadingOptimization = Core.settings != null ? Core.settings.getBool("modiconloadingoptimization") : false;
         private static final ObjectSet<String> iconDeferralUnsupported = ObjectSet.with("mi2-utilities-java", "olupis");
 
         public LoadedMod(Fi file, Fi root, Mod main, ClassLoader loader, ModMeta meta){

@@ -30,6 +30,8 @@ import mindustry.world.blocks.payloads.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
+import java.util.*;
+
 import static mindustry.Vars.*;
 
 public class UnitFactory extends UnitBlock{
@@ -106,6 +108,12 @@ public class UnitFactory extends UnitBlock{
         }
 
         consumeBuilder.each(c -> c.multiplier = b -> state.rules.unitCost(b.team));
+    }
+
+    @Override
+    public void checkContentArrayCapacity(int items, int liquids){
+        super.checkContentArrayCapacity(items, liquids);
+        if(capacities.length != items) capacities = Arrays.copyOf(capacities, items);
     }
 
     @Override
@@ -450,7 +458,7 @@ public class UnitFactory extends UnitBlock{
 
         @Override
         public BlockStatus status(){
-            if(!team.activateUnitFactories()) return BlockStatus.inactive;
+            if(!team.activateUnitFactories()) return BlockStatus.inactiveUnitFactory;
             return super.status();
         }
 

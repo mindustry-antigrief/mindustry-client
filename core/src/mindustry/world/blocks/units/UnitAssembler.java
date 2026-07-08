@@ -8,6 +8,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.struct.EnumSet;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
@@ -33,6 +34,8 @@ import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.units.UnitAssemblerModule.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
+
+import java.util.*;
 
 import static mindustry.Vars.*;
 
@@ -167,8 +170,9 @@ public class UnitAssembler extends PayloadBlock{
 
     @Override
     public void afterPatch(){
-        initCapacities();
         super.afterPatch();
+
+        initCapacities();
     }
 
     public void initCapacities(){
@@ -190,6 +194,12 @@ public class UnitAssembler extends PayloadBlock{
                 }
             }
         }
+    }
+
+    @Override
+    public void checkContentArrayCapacity(int items, int liquids){
+        super.checkContentArrayCapacity(items, liquids);
+        if(capacities.length != items) capacities = Arrays.copyOf(capacities, items);
     }
 
     @Override
@@ -387,6 +397,7 @@ public class UnitAssembler extends PayloadBlock{
 
         @Override
         public void drawSelect(){
+            super.drawSelect();
             for(var module : modules){
                 Drawf.selected(module, Pal.accent);
             }
@@ -689,7 +700,7 @@ public class UnitAssembler extends PayloadBlock{
 
         @Override
         public BlockStatus status(){
-            if(!team.activateUnitFactories()) return BlockStatus.inactive;
+            if(!team.activateUnitFactories()) return BlockStatus.inactiveUnitFactory;
             return super.status();
         }
 
@@ -697,6 +708,13 @@ public class UnitAssembler extends PayloadBlock{
         public double sense(LAccess sensor){
             if(sensor == LAccess.progress) return progress;
             return super.sense(sensor);
+        }
+
+        @Override
+        public boolean acceptUnitPayload(Unit unit){
+            var plan = plan();
+            return plan.requirements.contains(b -> b.item == unit.type() &&
+                blocks.get(unit.type()) < Mathf.round(b.amount * state.rules.unitCost(team)));
         }
 
         @Override

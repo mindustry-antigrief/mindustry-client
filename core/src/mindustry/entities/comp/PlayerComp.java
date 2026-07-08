@@ -135,14 +135,14 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         var cores = team.cores();
         //if someone screws up the map and adds an invalid core, prioritize the core that's supported
         //if there's only one core, there are no other options
-        if(self() != Vars.player){
+        if(!isLocal()){
             return cores.min(b -> cores.size == 1 || ((CoreBlock)b.block).unitType.supportsEnv(state.rules.env), Structs.comps(Structs.comparingInt(c -> -c.block.size), Structs.comparingFloat(c -> c.dst2(x, y))));
         } else {
             return cores.min(
                 b -> cores.size == 1 || ((CoreBlock)b.block).unitType.supportsEnv(state.rules.env),
                 Structs.comps(
-                    Structs.comparingBool(c -> (CoreBlock)c.block != ((CoreBlock)c.block).preferredCoreType),
-                    Structs.comps(Structs.comparingInt(c -> -c.block.size), Structs.comparingFloat(c -> c.dst(x, y)))
+                    Structs.comparingBool(c -> c.block != CoreBlock.preferredCoreType),
+                    Structs.comps(Structs.comparingInt(c -> -c.block.size), Structs.comparingFloat(c -> c.dst2(x, y)))
                 )
             );
         }

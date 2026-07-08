@@ -21,6 +21,7 @@ import static mindustry.Vars.*;
 
 /** A small section of a planet. */
 public class Sector{
+    static final String[] threats = {"low", "medium", "high", "extreme", "eradication"};
     private static final Seq<Sector> tmpSeq1 = new Seq<>();
 
     public final SectorRect rect;
@@ -100,8 +101,7 @@ public class Sector{
     /** Displays threat as a formatted string. */
     public String displayThreat(){
         float step = 0.25f;
-        String[] threats = {"low", "medium", "high", "extreme", "eradication"};
-        String threatName = threats[Math.min((int)(threat / step), threats.length - 1)];
+        String threatName = preset != null && Mathf.equal(preset.difficulty, SectorDifficulty.unreasonable) ? "unreasonable" : threats[Math.min((int)(threat / step), threats.length - 1)];
         String color = threatName.equals("eradication") ? "ff00ff" : Tmp.c1.set(Color.white).lerp(Color.scarlet, Mathf.round(threat, step)).toString();
         return "[#" + color + "]" + Core.bundle.get("threat." + threatName);
     }

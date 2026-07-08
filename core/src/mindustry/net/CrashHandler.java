@@ -46,7 +46,7 @@ public class CrashHandler{
         + "Cores: " + OS.cores + "\n"
         + (cause == null ? "" : "Likely Cause: " + cause.meta.displayName + " (" + cause.name + " v" + cause.meta.version + ")\n")
         + (enabledMods == null ? "<no mod init>" : "Mods: " + (enabledMods.isEmpty() ? "none" : enabledMods.toString(", ", mod -> mod.name + ":" + mod.meta.version)))
-        + (state != null && state.patcher != null && state.patcher.patches != null && state.patcher.patches.size > 0 ? "\nPatches: \n" + state.patcher.patches.toString("\n---\n", p -> p.patch) + "\n" : "")
+        + (state != null && state.data != null && state.data.getPatches().size > 0 ? "\nPatches: \n" + state.data.getPatches().toString("\n---\n", p -> p.patch) + "\n" : "")
         + "\n\n") + error + "```";
     }
 

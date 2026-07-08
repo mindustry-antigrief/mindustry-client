@@ -14,6 +14,7 @@ import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.audio.*;
 import mindustry.client.*;
 import mindustry.client.communication.*;
 import mindustry.client.ui.*;
@@ -25,7 +26,6 @@ import mindustry.game.EventType.*;
 import mindustry.game.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
 import mindustry.io.*;
 import mindustry.io.TypeIO.*;
 import mindustry.logic.*;
@@ -52,8 +52,8 @@ public class NetClient implements ApplicationListener{
         planSyncTime = Timekeeper.ofSeconds(0.5f),
         pingTime = Timekeeper.ofSeconds(1f);
     private static final Reads dataReads = new Reads(null);
-    private static final Pattern wholeCoordPattern = Pattern.compile("[^]\\s]*?(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)[^\\[\\s]*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
-    private static final Pattern coordPattern = Pattern.compile("(\\d+)(?:\\[[^]]*])*(?:\\s|,)+(?:\\[[^]]*])*(\\d+)"); // Same as above, but without the surrounding text and https://regexr.com
+    private static final Pattern wholeCoordPattern = Pattern.compile("[^]\\s]*?(-?\\d+)(?:\\[[^]]*])*[\\s,]+(?:\\[[^]]*])*(-?\\d+)[^\\[\\s]*"); // This regex is a mess, it captures the coords into $1 and $2 while $0 contains all surrounding text as well. https://regex101.com is the superior regex tester
+    private static final Pattern coordPattern = Pattern.compile("(-?\\d+)(?:\\[[^]]*])*[\\s,]+(?:\\[[^]]*])*(-?\\d+)"); // Same as above, but without the surrounding text and https://regexr.com
     private static final Pattern linkPattern = Pattern.compile("(https?://)?[-a-zA-Z0-9@:%._\\\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b[-a-zA-Z0-9()@:%_\\\\+.~#?&/=]*");
     private static final JsonValue tmpJsonMap = new JsonValue(ValueType.object);
 
@@ -104,7 +104,7 @@ public class NetClient implements ApplicationListener{
             }
 
             ui.loadfrag.hide();
-            ui.loadfrag.show("@connecting.data");
+            ui.loadfrag.show("@connecting.establish");
 
             ui.loadfrag.setButton(() -> {
                 ui.loadfrag.hide();
@@ -177,10 +177,52 @@ public class NetClient implements ApplicationListener{
         });
 
         net.handleClient(WorldStream.class, data -> {
-            Log.info("Received world data: @ bytes.", data.stream.available());
+            Log.info("Received world data: @", Strings.formatByteCount(data.stream.available()));
             NetworkIO.loadWorld(new InflaterInputStream(data.stream));
 
             finishConnecting();
+        });
+
+        net.handleClient(AssetRequirementStream.class, data -> {
+            Seq<String> required = NetworkIO.readRequiredAssets(new InflaterInputStream(data.stream));
+            ShortSeq missing = new ShortSeq();
+            for(int i = 0; i < required.size; i++){
+                if(!assetCache.has(required.get(i))){
+                    missing.add((short)i);
+                }
+            }
+            Log.info("Requesting @ asset(s) from the server.", missing.size);
+            Call.requestAssets(missing.toArray());
+        });
+
+        net.handleClient(StreamBegin.class, data -> {
+            boolean isWorld = data.type == Net.packetIdWorldStream, isAssets = data.type == Net.packetIdAssetStream;
+
+            if(isWorld || isAssets){
+                ui.loadfrag.showProgressBar();
+                ui.loadfrag.setProgress(0f);
+                ui.loadfrag.snapProgress();
+                ui.loadfrag.setText(Core.bundle.format(isWorld ? "receiving.world" : "receiving.assets", Strings.formatByteCount(data.total)));
+            }
+
+            if(isAssets){
+                //make this new thread block as it loads the assets
+                Threads.daemon(() -> {
+                    Log.info("Receiving asset data: @", Strings.formatByteCount(data.total));
+
+                    try{
+                        NetworkIO.loadAssets(data.incrementalStream);
+
+                        //after receiving assets, tell the server that the client is ready to handle the world
+                        Core.app.post(Call::requestWorld);
+                    }catch(Exception e){
+                        Core.app.post(() -> {
+                            ui.showException("@receiving.assets.fail", e);
+                            disconnectQuietly();
+                        });
+                    }
+                });
+            }
         });
     }
 
@@ -230,6 +272,15 @@ public class NetClient implements ApplicationListener{
         clientPacketReliable(type, contents);
     }
 
+    @Remote(variants = Variant.both)
+    public static void playMusic(String musicName, boolean interrupt){
+        if(musicName == null || headless) return;
+
+        //play null = stop music
+        Music music = SoundControl.findMusic(musicName);
+        control.sound.playMusic(music, interrupt);
+    }
+
     @Remote(variants = Variant.both, unreliable = true, called = Loc.server)
     public static void sound(Sound sound, float volume, float pitch, float pan){
         if(sound == null || headless) return;
@@ -265,11 +316,11 @@ public class NetClient implements ApplicationListener{
     }
 
     @Remote(targets = Loc.server, variants = Variant.both)
-    public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){
+    public static void sendMessage(String message, @Nullable String unformatted, @Nullable Player playersender){ // FINISHME: This logic can be cleaned up more by merging the if statements and reordering certain stuff
         // message is the full formatted message from the server, including the sender
         // unformatted is the message content itself, i.e. "gg", null for server messages
         // playersender is exactly what you think it is, null for server messages
-        if(Server.current.handleMessage(message, unformatted, playersender)) return;
+        if(Server.current.blockMessage(message, unformatted, playersender)) return;
 
         Events.fire(new PlayerChatEvent(playersender, unformatted != null ? unformatted : message != null ? message : "")); // Foo addition, why is this not a vanilla thing?
 
@@ -291,36 +342,25 @@ public class NetClient implements ApplicationListener{
 
             // highlight coords and set as the last position
             unformatted = processCoords(unformatted, true);
-            message = processCoords(message, unformatted != null);
+            message = processCoords(message, unformatted == null);
 
             ChatFragment.ChatMessage output;
 
             if (playersender != null) {
-                if (ClientVars.mutedPlayers.contains( p -> p.getSecond() == playersender.id || (p.getFirst() != null && playersender.name.equals(p.getFirst().name)))) {
+                if (ClientVars.mutedPlayers.contains(p -> p.getSecond() == playersender.id || (p.getFirst() != null && playersender.name.equals(p.getFirst().name)))) {
                     return; // Just ignore them
                 }
-                // from a player
-                if (message != null) { // The Korea server breaks the rules of this method and has a null message
-                    // if it's an admin or team message, incorporate that into the prefix because the original formatting will be discarded
-                    if (message.startsWith("[#" + playersender.team().color.toString() + "]<T>")) {
-                        prefix += "[#" + playersender.team().color.toString() + "]<T> ";
-                    } else if (message.startsWith("[#" + Pal.adminChat.toString() + "]<A>")) {
-                        prefix += "[#" + Pal.adminChat.toString() + "]<A> ";
-                    }
-                }
 
-                // I don't think this even works
-//                var unformatted2 = unformatted == null ? StringsKt.removePrefix(message, "[" + playersender.coloredName() + "]: ") : unformatted;
                 output = ui.chatfrag.addMessage(message, playersender.coloredName(), background, prefix, unformatted);
-                output.addButton(output.formattedMessage.indexOf(playersender.coloredName()), playersender.coloredName().length() + 16 + output.prefix.length(), () -> Spectate.INSTANCE.spectate(playersender));
+                findPlayerName(output, playersender);
             } else {
                 // server message, unformatted is ignored
-                output = ui.chatfrag.addMessage(message, null, null, "", "");
-                Server.current.handleVoteButtons(output);
+                output = ui.chatfrag.addMsg(message);
+                Server.current.handleButtons(output);
             }
 
             findCoords(output);
-            findLinks(output, playersender == null ? 0 : playersender.coloredName().length() + 16 + output.prefix.length());
+            findLinks(output, playersender == null ? 0 : Math.min(Strings.stripColors(output.formattedMessage).indexOf(playersender.plainName()), 0) + playersender.plainName().length());
 
             Sounds.uiChat.play();
         }
@@ -337,13 +377,12 @@ public class NetClient implements ApplicationListener{
     //equivalent to above method but there's no sender and no console log
     @Remote(called = Loc.server, targets = Loc.server)
     public static void sendMessage(String message){
-        if(Server.current.handleMessage(message, message, null)) return;
+        if(Server.current.blockMessage(message, message, null)) return;
         if(Vars.ui == null) return;
 
-        if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
-        if (!message.contains("has connected") && !message.contains("has disconnected")) Log.debug("Tell the owner of this server to send messages properly");
+        if (Core.settings.getBool("logmsgstoconsole") && net.client()) Log.infoTag("Chat (Server)", Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(message)));
         message = processCoords(message, true);
-        var output = Vars.ui.chatfrag.addMessage(message, null, null, "", message);
+        var output = Vars.ui.chatfrag.addMsg(message);
 
         findCoords(output);
         findLinks(output, 0);
@@ -354,11 +393,13 @@ public class NetClient implements ApplicationListener{
             output.message = output.message + '\n' + yes + "  " + no;
             output.format();
 
+            output.addButton(yes, () -> Call.sendChatMessage("/vote y"));
+            output.addButton(no, () -> Call.sendChatMessage("/vote n"));
+
             Func2<Player, Boolean, String> getName = (p, strip) -> strip ? p.plainName() : p.name();
             for (int j = 0; j < 2; ++j) {
                 boolean strip = j == 1;
-                Seq<Player> names = Groups.player.array.select(p -> msg.contains(getName.get(p, strip)))
-                        .sort(p -> -getName.get(p, strip).length());
+                Seq<Player> names = Groups.player.array.select(p -> msg.contains(getName.get(p, strip))).sort(p -> -getName.get(p, strip).length());
                 if (names.size >= 2) {
                     for (int i = 0; i < 2; ++i) {
                         Player p = names.get(i);
@@ -367,12 +408,9 @@ public class NetClient implements ApplicationListener{
                     break;
                 }
             }
-
-            output.addButton(yes, () -> Call.sendChatMessage("/vote y"));
-            output.addButton(no, () -> Call.sendChatMessage("/vote n"));
         }
 
-        Server.current.handleVoteButtons(output);
+        Server.current.handleButtons(output);
 
         Sounds.uiChat.play();
     }
@@ -406,14 +444,14 @@ public class NetClient implements ApplicationListener{
 
     /** Finds coordinates in a message and makes them clickable */
     public static ChatFragment.ChatMessage findCoords(ChatFragment.ChatMessage msg) {
-        findCoords(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage))
+        findCoords(Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage)))
             .each(c -> msg.addButton(c.start, c.end, () -> Spectate.INSTANCE.spectate(c.pos)));
         return msg;
     }
 
     /** Finds links in a message and makes them clickable */
     public static ChatFragment.ChatMessage findLinks(ChatFragment.ChatMessage msg, int start) {
-        Matcher matcher = linkPattern.matcher(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage));
+        Matcher matcher = linkPattern.matcher(Strings.stripColors(InvisibleCharCoder.INSTANCE.strip(msg.formattedMessage)));
         while (matcher.find()) {
             var res = matcher.toMatchResult();
             if(res.start() < start) continue; // .find(start) is cursed
@@ -425,6 +463,11 @@ public class NetClient implements ApplicationListener{
                 } else Menus.openURI(url);
             });
         }
+        return msg;
+    }
+
+    public static ChatFragment.ChatMessage findPlayerName(ChatFragment.ChatMessage msg, Player playerSender){
+        msg.addButton(playerSender.plainName(), () -> Spectate.INSTANCE.spectate(playerSender)); // FINISHME: Maybe we should only check for this in the first few characters of the message?
         return msg;
     }
 
@@ -448,7 +491,7 @@ public class NetClient implements ApplicationListener{
         //detect and kick for foul play
         if(player != null && player.con != null && !player.con.chatRate.allow(2000, Config.chatSpamLimit.num())){
             player.con.kick(KickReason.kick);
-            netServer.admins.blacklistDos(player.con.address);
+            player.con.blacklist();
             return;
         }
 
@@ -502,7 +545,7 @@ public class NetClient implements ApplicationListener{
 
     @Remote(called = Loc.client, variants = Variant.one)
     public static void connect(String ip, int port){
-        if(!steam && ip.startsWith("steam:")) return;
+        if(!steam && (ip.startsWith("steam:") || ip.startsWith("steamserver:"))) return;
         Log.info("Server sending us to @:@", ip, port);
         netClient.disconnectQuietly();
         logic.reset();
@@ -609,7 +652,7 @@ public class NetClient implements ApplicationListener{
 
         net.setClientLoaded(false);
 
-        ui.loadfrag.show("@connecting.data");
+        ui.loadfrag.show("@connecting.establish");
 
         ui.loadfrag.setButton(() -> {
             ui.loadfrag.hide();
@@ -679,7 +722,7 @@ public class NetClient implements ApplicationListener{
         }
     }
 
-    @Remote(variants = Variant.one, priority = PacketPriority.low, unreliable = true)
+    @Remote(variants = Variant.both, priority = PacketPriority.low, unreliable = true)
     public static void entitySnapshot(short amount, byte[] data){
         try{
             netClient.lastSnapshotTimestamp = Time.millis();
@@ -733,7 +776,7 @@ public class NetClient implements ApplicationListener{
         }
     }
 
-    @Remote(variants = Variant.one, priority = PacketPriority.low, unreliable = true)
+    @Remote(priority = PacketPriority.low, unreliable = true)
     public static void stateSnapshot(float waveTime, int wave, int enemies, boolean paused, boolean gameOver, int timeData, byte tps, long rand0, long rand1, byte[] coreData){
         try{
             if(wave > state.wave){

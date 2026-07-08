@@ -9,6 +9,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.power.PowerGenerator.*;
 import mindustry.world.blocks.power.*;
 import org.junit.jupiter.api.*;
+import test.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.*;

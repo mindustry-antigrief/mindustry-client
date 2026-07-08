@@ -1,3 +1,5 @@
+package test;
+
 import arc.util.*;
 import mindustry.*;
 import mindustry.gen.*;

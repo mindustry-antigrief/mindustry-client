@@ -1,6 +1,8 @@
 package mindustry.client.antigrief
 
 import arc.*
+import arc.struct.*
+import arc.util.*
 import arc.util.io.*
 import mindustry.*
 import mindustry.client.*
@@ -12,25 +14,51 @@ import mindustry.io.*
 import mindustry.world.*
 import java.io.*
 import java.time.*
-import kotlin.experimental.*
 
 /** Plugin integration for tile logs */
 object NetworkTileLogs {
     private val inp = ReusableByteInStream()
     private val reads = Reads(DataInputStream(inp))
-    private var pendingTiles: ByteArray? = null
+    private var upToDateTiles: Bits? = null
+    private var lastBatchStart: Int = 0
 
     fun init() {
         Events.on(EventType.ServerJoinEvent::class.java) { // Enable logging with the specified version if supported
-            if (!Server.current.ghost) Call.serverPacketReliable("fooTileLogs", "1")
+            if (!Server.current.ghost) Call.serverPacketReliable("fooTileLogs", "1") // FINISHME: Only certain servers should have this at all
         }
 
-        Events.on(EventType.ResetEvent::class.java) { // Clear pendingTiles on join
-            if (!ClientVars.syncing) pendingTiles = null
+        Events.on(EventType.ResetEvent::class.java) { // Clear upToDateTiles on leave
+            if (!ClientVars.syncing) upToDateTiles = null
         }
 
-        Vars.netClient.addBinaryPacketHandler("fooTileLogs") {
-            pendingTiles = it
+        Vars.netClient.addBinaryPacketHandler("fooTileLogs") { batch -> // Incoming batch: 1 = has logs. Up-to-date tiles: 1 = no logs pending.
+            if (upToDateTiles == null) {
+                upToDateTiles = Bits(Vars.world.tiles.size())
+                lastBatchStart = 0
+            }
+
+            val upToDateTiles = upToDateTiles!!
+            val size = Vars.world.tiles.size()
+
+            for (i in batch.indices) { // Iterate bytes
+                val byte = batch[i].toInt() and 0xFF
+                val byteStart = lastBatchStart + (i shl 3) // i * 8
+
+                if (byte == 0xFF) continue // Opt: All bits 1; all tiles have logs. Don't do any work.
+
+                if (byte == 0) { // Opt: All bits 0; no tiles have logs. Set all to 1
+                    upToDateTiles.set(byteStart, minOf(byteStart + 8, size))
+                    continue
+                }
+
+                for (bit in 0..7) { // Mixed bits
+                    val hasLogs = (byte and (1 shl bit)) != 0
+                    if (!hasLogs && byteStart + bit < size) upToDateTiles.set(byteStart + bit)
+                }
+            }
+
+            lastBatchStart += batch.size * 8
+            Log.debug("Received network logs until $lastBatchStart")
         }
 
         Vars.netClient.addBinaryPacketHandler("fooTileLog") {
@@ -63,18 +91,15 @@ object NetworkTileLogs {
 
     /** Mark this tile as having received logs */
     fun receiveTileLogs(packed: Int) {
-        val byte = packed shr 3
-        val pending = pendingTiles ?: return
-        if (byte >= pending.size) return // Ignore out of bounds tile
-        pending[byte] = (pending[byte] and (1 shl (packed and 0x07)).inv().toByte())
+        val upToDate = upToDateTiles ?: return
+        if (packed >= upToDate.numBits()) return // Ignore out of bounds tile
+        upToDate.set(packed)
     }
 
     /** Check if tile is waiting for logs */
     fun logsPending(t: Tile): Boolean {
+        val upToDate = upToDateTiles ?: return false
         val packed = t.array()
-        val byte = packed shr 3
-        val pending = pendingTiles ?: return false
-        if (byte >= pending.size) return false
-        return (pending[byte].toInt() and (1 shl (packed and 0x07))) != 0
+        return !upToDate[packed]
     }
 }

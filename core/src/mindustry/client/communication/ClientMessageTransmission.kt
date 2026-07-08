@@ -22,6 +22,7 @@ class ClientMessageTransmission : Transmission {
     val sender: String  // not serialized
     private var originalSender: String? = null // not serialized
     private val senderID: Int  // not serialized
+    private var playerSender: Player
     val message: String
     val certSN: ByteArray?
     val signature: ByteArray?
@@ -39,7 +40,8 @@ class ClientMessageTransmission : Transmission {
         val res = verify()
         validity = res.second
         val certName = res.first?.run { Main.keyStorage.aliasOrName(this) }
-        val name = Groups.player.getByID(senderID).name
+        playerSender = Groups.player.getByID(senderID)
+        val name = playerSender.name
         if (certName != null) {
             sender = certName
             if (Core.settings.getBool("showclientmsgsendername")) originalSender = name
@@ -54,6 +56,7 @@ class ClientMessageTransmission : Transmission {
             if (Core.settings.getBool("showclientmsgsendername")) originalSender = Vars.player.name
         } else sender = Vars.player.name
         senderID = Vars.player.id
+        playerSender = Vars.player
         timestamp = Main.ntp.instant()
         this.message = limit
         this.certSN = Main.keyStorage.cert()?.serialNumber?.toByteArray()
@@ -105,7 +108,8 @@ class ClientMessageTransmission : Transmission {
         }
         val prefix = "[accent]<[white]F[]>[] ${when (validity) { VALID -> Iconc.ok; INVALID -> Iconc.cancel; UNKNOWN_CERT -> "" }} ".replace("  ", " ") // No double spaces. Cursed
         val newMsg = NetClient.processCoords(message, true)
-        Vars.ui.chatfrag.addMessage(newMsg, sender.run { if (originalSender != null) this.plus(" (${originalSender}[white])") else this }, background, prefix, newMsg).findCoords().findLinks()
+        val fullSender = sender.run { if (originalSender != null) this.plus(" (${originalSender}[white])") else this }
+        Vars.ui.chatfrag.addMessage(newMsg, fullSender, background, "$prefix$fullSender [white]", newMsg).findCoords().findLinks().findPlayerName(playerSender)
     }
 
     override fun toString(): String {

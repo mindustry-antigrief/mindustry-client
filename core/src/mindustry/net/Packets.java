@@ -2,12 +2,14 @@ package mindustry.net;
 
 import arc.*;
 import arc.struct.*;
+import arc.util.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
 import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.io.*;
 
+import java.io.*;
 import java.util.zip.*;
 
 /** Class for storing all packets. */
@@ -76,6 +78,18 @@ public class Packets{
 
     }
 
+    public static class AssetRequirementStream extends Streamable{
+
+    }
+
+    public static class AssetStream extends Streamable{
+
+        @Override
+        public boolean incremental(){
+            return true;
+        }
+    }
+
     /** Marks the beginning of a stream. */
     public static class StreamBegin extends Packet{
         private static int lastid;
@@ -83,6 +97,9 @@ public class Packets{
         public int id = lastid++;
         public int total;
         public byte type;
+
+        //only used when handling on the client (not sent)
+        public @Nullable transient InputStream incrementalStream;
 
         @Override
         public boolean allow(boolean server){

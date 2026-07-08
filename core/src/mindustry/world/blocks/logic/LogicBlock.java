@@ -67,6 +67,8 @@ public class LogicBlock extends Block{
         group = BlockGroup.logic;
         schematicPriority = 5;
         ignoreResizeConfig = true;
+        drawCached = true;
+        drawDynamic = false;
 
         //universal, no real requirements
         envEnabled = Env.any;
@@ -286,6 +288,7 @@ public class LogicBlock extends Block{
         public LExecutor executor = new LExecutor();
         public float accumulator = 0;
         public Seq<LogicLink> links = new Seq<>();
+        public @Nullable ObjectIntMap<String> linkMap;
         public boolean checkedDuplicates = false;
         public boolean isVirus = false;
         //dynamic only for privileged processors
@@ -391,6 +394,7 @@ public class LogicBlock extends Block{
         }
 
         public void updateCode(String str, boolean keep, Cons<LAssembler> assemble){
+            linkMap = null;
             if(str != null){
                 code = str;
                 isVirus = false;
@@ -543,6 +547,7 @@ public class LogicBlock extends Block{
                     var cur = world.build(l.x, l.y);
 
                     boolean valid = validLink(cur);
+                    Block lastBlock = (l.lastBuild == null ? null : l.lastBuild.block);
                     if(l.lastBuild == null) l.lastBuild = cur;
                     if(valid != l.valid || l.lastBuild != cur){
                         l.lastBuild = cur;
@@ -552,10 +557,12 @@ public class LogicBlock extends Block{
                         l.trySet(executor, null); //always clear old variable, it may get a new name
 
                         if(valid){
-                            //this prevents conflicts
-                            l.name = "";
-                            //finds a new matching name after toggling
-                            l.name = findLinkName(cur.block);
+
+                            if(lastBlock != null && cur.block != lastBlock){
+                                l.logicVar = null; //name was reassigned because block type changed, the old cached logic var is no longer relevant
+                                l.name = "";
+                                l.name = findLinkName(cur.block);
+                            }
 
                             //remove redundant links
                             links.removeAll(o -> {
@@ -604,6 +611,8 @@ public class LogicBlock extends Block{
         }
 
         public void updateLinks(){
+            if(linksVar == null) return;
+
             int valids = links.count(l -> l.valid);
             executor.links = new Building[valids];
             executor.linkIds.clear();
@@ -630,12 +639,31 @@ public class LogicBlock extends Block{
             if(position.isobj && position.objval instanceof String varName){
                 LVar ret = executor.optionalVar(varName);
                 if(ret == null){
-                    output.setnum(Double.NaN);
+                    output.setobj(optionalLink(varName));
                     return;
                 }
                 if(output.constant) return;
                 output.set(ret);
+            }else{
+                int index = position.numi();
+                output.setobj(index >= 0 && index < executor.links.length ? executor.links[index] : null);
             }
+        }
+
+        public @Nullable Building optionalLink(String name){
+            if(name == null || name.isEmpty()) return null;
+            // Quick check the name can even be a link to avoid building/using the map needlessly
+            char ch = name.charAt(name.length() - 1);
+            if(ch < '0' || ch > '9') return null;
+
+            if(linkMap == null){
+                linkMap = new ObjectIntMap<>();
+                for(int i = 0; i < links.size; i++){
+                    linkMap.put(links.get(i).name, i);
+                }
+            }
+            int index = linkMap.get(name, -1);
+            return index >= 0 && index < links.size && links.get(index).valid ? links.get(index).lastBuild : null;
         }
 
         @Override
@@ -688,8 +716,7 @@ public class LogicBlock extends Block{
                                     ui.chatfrag.messages.insert(0, attemMsg);
                                     attemMsg.prefix = "[accent](x" + ++attemCount + ") ";
                                     attemMsg.format();
-                                    attemMsg.clearButtons(); // Update the clickable coord positions
-                                    NetClient.findCoords(attemMsg);
+                                    NetClient.findCoords(attemMsg.clearButtons()); // Update the clickable coord positions
                                 }
                             }
                             ClientVars.lastSentPos.set(tile.x, tile.y);
@@ -844,12 +871,12 @@ public class LogicBlock extends Block{
                         TextButtonStyle style = Styles.flatt;
                         t.defaults().size(280f, 60f).left();
 
-                        t.button("@schematic.copy", Icon.copy, style, () -> {
+                        t.button("@copy.clipboard", Icon.copy, style, () -> {
                             dialog.hide();
                             Core.app.setClipboardText(code);
                         }).marginLeft(12f);
                         t.row();
-                        t.button("@schematic.copy.import", Icon.download, style, () -> {
+                        t.button("@load.clipboard", Icon.download, style, () -> {
                             dialog.hide();
                             importFromClipboard();
                         }).marginLeft(12f);
@@ -872,7 +899,7 @@ public class LogicBlock extends Block{
                 if(forceEditor) state.rules.editor = true;
                 byte[] bytes = compress(code, relativeConnections());
                 if(bytes.length > maxCompressedLen){
-                    ui.showErrorMessage(Core.bundle.format("logic.error.toolong", maxByteLen, bytes.length));
+                    ui.showErrorMessage(Core.bundle.format("logic.error.toolong", maxCompressedLen, bytes.length));
                 }else{
                     configure(bytes);
                     state.rules.editor = prev;

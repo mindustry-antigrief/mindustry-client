@@ -40,6 +40,8 @@ public class Junction extends Block{
         group = BlockGroup.transportation;
         unloadable = false;
         noUpdateDisabled = true;
+        drawCached = true;
+        drawDynamic = false;
     }
 
     public static void setBaseOffset(int mode){ // -1 left, 0 disable, 1 right

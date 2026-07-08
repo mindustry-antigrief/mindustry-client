@@ -29,6 +29,8 @@ import mindustry.world.blocks.payloads.*;
 import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
+import java.util.*;
+
 import static mindustry.Vars.*;
 
 public class Reconstructor extends UnitBlock{
@@ -152,6 +154,12 @@ public class Reconstructor extends UnitBlock{
         consumeBuilder.each(c -> c.multiplier = b -> state.rules.unitCost(b.team));
     }
 
+    @Override
+    public void checkContentArrayCapacity(int items, int liquids){
+        super.checkContentArrayCapacity(items, liquids);
+        if(capacities.length != items) capacities = Arrays.copyOf(capacities, items);
+    }
+
     public void addUpgrade(UnitType from, UnitType to){
         upgrades.add(new UnitType[]{from, to});
     }
@@ -262,7 +270,7 @@ public class Reconstructor extends UnitBlock{
 
         @Override
         public BlockStatus status(){
-            if(!team.activateUnitFactories()) return BlockStatus.inactive;
+            if(!team.activateUnitFactories()) return BlockStatus.inactiveUnitFactory;
             return super.status();
         }
 

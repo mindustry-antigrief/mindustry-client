@@ -92,7 +92,7 @@ object TileRecords {
         }
 
         Events.on(EventType.BlockDestroyEvent::class.java) {
-            if (it.tile.team() != Vars.player.team()) return@on // Couldn't care less about enemies, especially in flood
+            if (it.tile.team() !== Vars.player.team()) return@on // Couldn't care less about enemies, especially in flood
             it.tile.getLinkedTiles { tile ->
                 val cb = tile.build as? ConstructBlock.ConstructBuild
                 addLog(tile, TileDestroyedLog(cb?.current ?: cb?.previous ?: tile.block() ?: Blocks.air)) // FINISHME: Is this ever actually null?

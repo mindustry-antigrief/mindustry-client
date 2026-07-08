@@ -653,6 +653,7 @@ public class JoinDialog extends BaseDialog{
     /* Connection is wrapped in a ping so that host is guaranteed to not be null when joining a server (unless it's a steam server FINISHME: Add a default host?) */
     private void doConnect(Host host, String ip, int port) {
         if (Core.settings.getBool("allowjoinany") && host != null && host.version != -1) ClientVars.spoofedBuild = host.version;
+        ui.editor.hide();
         logic.reset();
         net.reset();
         Vars.netClient.beginConnecting();
@@ -788,7 +789,7 @@ public class JoinDialog extends BaseDialog{
             }
             servers.add(new ServerGroup(name, addresses, prioritized));
         });
-        servers.sort(s -> s.name == null ? Integer.MAX_VALUE : s.name.hashCode());
+        servers.shuffle();
         return servers;
     }
 

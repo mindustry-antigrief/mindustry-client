@@ -235,7 +235,7 @@ public abstract class BaseProcessor extends AbstractProcessor{
 
     @Override
     public SourceVersion getSupportedSourceVersion(){
-        return SourceVersion.RELEASE_8;
+        return SourceVersion.RELEASE_17;
     }
 
     public void process(RoundEnvironment env) throws Exception{
