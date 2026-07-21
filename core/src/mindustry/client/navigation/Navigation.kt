@@ -201,23 +201,23 @@ object Navigation {
 
     @JvmStatic val isFollowing get() = currentlyFollowing != null && !isPaused
 
-    @JvmStatic
-    fun navigateTo(pos: Position?) = pos?.apply { navigateTo(x, y) }
+    @JvmStatic @JvmOverloads
+    fun navigateTo(pos: Position?, ignoreObstacles: Boolean = false) = pos?.apply { navigateTo(x, y, ignoreObstacles) }
 
-    @JvmStatic
-    fun navigateTo(drawX: Float, drawY: Float) {
-        Path.goTo(drawX, drawY, 0f, 0f) {
+    @JvmStatic @JvmOverloads
+    fun navigateTo(drawX: Float, drawY: Float, ignoreObstacles: Boolean = false) {
+        Path.goTo(drawX, drawY, 0f, 0f, ignoreObstacles) {
             Core.app.post {
                 if (Core.settings.getBool("assumeunstrict")) return@post
                 follow(it)
-                navigateToInternal(drawX, drawY)
+                navigateToInternal(drawX, drawY, ignoreObstacles)
             }
         }
     }
 
-    private fun navigateToInternal(drawX: Float, drawY: Float) {
-        Path.goTo(drawX, drawY, 0f, 0f) {
-            if (currentlyFollowing == it && Core.settings.getBool("pathnav")) clientThread.post { navigateToInternal(drawX, drawY) }
+    private fun navigateToInternal(drawX: Float, drawY: Float, ignoreObstacles: Boolean = false) {
+        Path.goTo(drawX, drawY, 0f, 0f, ignoreObstacles) {
+            if (currentlyFollowing == it && Core.settings.getBool("pathnav")) clientThread.post { navigateToInternal(drawX, drawY, ignoreObstacles) }
         }
     }
 

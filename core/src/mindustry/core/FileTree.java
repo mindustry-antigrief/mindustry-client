@@ -174,7 +174,7 @@ public class FileTree implements FileHandleResolver{
         req.submit(writeDownloadedAudio);
     }
 
-    private static @Nullable String getAudioPath(String name){
+    public static @Nullable String getAudioPath(String name){
         Fi ogg = Vars.tree.get(name + ".ogg"), mp3 = Vars.tree.get(name + ".mp3");
         if(ogg.exists()) return name + ".ogg";
         if(mp3.exists()) return name + ".mp3";

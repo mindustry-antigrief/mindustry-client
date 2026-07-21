@@ -494,7 +494,7 @@ fun restartGame(){
     if(!Core.settings.getBool("autorestart", true)){
         return
     }
-    if(!Core.settings.getBool("realautorestart", true)){
+    if(!Core.settings.getBool("realautorestart", !OS.hasProp("running-under-external-launcher"))){
         Log.info("Exiting to reload game.")
         Core.app.exit()
         return

@@ -32,6 +32,7 @@ sealed class Server(
     @JvmField val mute: Cmd = Cmd("/mute", -1),
     @JvmField val unmute: Cmd = Cmd("/unmute", -1),
     @JvmField val ghost: Boolean = false,
+    val networkTileLogs: Boolean = false,
     private val votekickString: String = "Type[orange] /vote <y/n>[] to agree.",
 ) {
     /** Converts a player to a copyable server-specific player identifier. Alt-click in the tab list will copy to clipboard. */
@@ -100,13 +101,12 @@ sealed class Server(
         @JvmField val nydus = Nydus
         @JvmField val cn = CN
         @JvmField val io = IO
-        @JvmField val phoenix = Phoenix
         @JvmField val korea = Korea
         @JvmField val fish = Fish
         @JvmField val darkdustry = Darkdustry
         @JvmField val corium = Corium
 
-        private val servers = listOf(other, nydus, cn, io, phoenix, korea, fish, darkdustry, corium)
+        private val servers = listOf(other, nydus, cn, io, korea, fish, darkdustry, corium)
 
         open class Cmd(val str: String, private val rank: Int = 0) { // 0 = anyone, -1 = disabled
             val enabled = rank != -1
@@ -274,16 +274,6 @@ object IO : Server(
     override fun getStats(player: Player, force: Boolean) = if (Core.settings.getBool("autostats") || force) Call.serverPacketReliable("playerdata_by_id", player.id.toString()) else Unit
 }
 
-object Phoenix : Server(
-    groupName = "Phoenix Network",
-    whisper = Companion.Cmd("/w"),
-    rtv = Companion.Cmd("/rtv"),
-    freeze = Companion.Cmd("/freeze", 9),
-    votekickString = "Type [cyan]/vote y"
-) {
-    override fun getStats(player: Player, force: Boolean) = if (Core.settings.getBool("autostats") || force) Call.serverPacketReliable("playerdata_by_id", player.id.toString()) else Unit
-}
-
 object Korea : Server(groupName = "Korea", ghost = true)
 
 object Fish : Server(
@@ -346,7 +336,8 @@ object Corium : Server(
     freeze = Companion.Cmd("/freeze", 5),
     thaw = Companion.Cmd("/thaw", 5),
     mute = Companion.Cmd("/mute", 5),
-    unmute = Companion.Cmd("/unmute", 5)
+    unmute = Companion.Cmd("/unmute", 5),
+    networkTileLogs = true
 ) { // FINISHME: Implement everything else specific to corium
     init {
         netClient.addPacketHandler("playerCode") {

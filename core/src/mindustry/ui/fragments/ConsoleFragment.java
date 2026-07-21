@@ -40,10 +40,11 @@ public class ConsoleFragment extends Table{
         font = Fonts.def;
 
         visible(() -> {
-            if(input.keyTap(Binding.console) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null) && !ui.chatfrag.shown()){
+            if(input.keyTap(Binding.console) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || !(scene.getKeyboardFocus() instanceof TextField)) && !ui.chatfrag.shown()){
                 shown = !shown;
                 if(shown) {
                     open = false;
+                    toFront();
                     toggle();
                 } else if(!shown){
                     hide();
@@ -57,7 +58,7 @@ public class ConsoleFragment extends Table{
         });
 
         update(() -> {
-            if(input.keyTap(Binding.chat) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || scene.getKeyboardFocus() == null)){
+            if(input.keyTap(Binding.chat) && settings.getBool("console") && (scene.getKeyboardFocus() == chatfield || !(scene.getKeyboardFocus() instanceof TextField))){
                 toggle();
             }
 

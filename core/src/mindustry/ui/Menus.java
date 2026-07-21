@@ -43,7 +43,7 @@ public class Menus{
         if(options == null) options = new String[0][0];
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
         if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
-            options[0][0].contains("Yes") && options[0][1].contains("No") && Server.phoenix.b()) return; // phoenix network is annoying
+            options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b()) return; // cn is equally annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
         if(Server.io.b() && CustomMode.flood.b() && Core.settings.getBool("blockiotutorial", false) && (title.contains("Oh well...") || title.contains("Welcome!") || title.contains("Tutorial") || title.contains("Content") || title.contains("Others") || title.contains("Gamemodes") || title.contains("Stats"))) return; // .io tutorial popup
@@ -147,12 +147,12 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
-        if((Server.io.b() || Server.phoenix.b()) && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
+        if(Server.io.b() && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
 
         // Does this even do anything
         if(Server.io.b() && (message.contains("tutorial") || message.contains("Tutorial") || message.contains("Hey there") || message.contains("Welcome")) && Core.settings.getBool("blockiotutorial", false)) return;
 
-        if(Server.cn.b()) { 
+        if(Server.cn.b()) {
             if (message.contains("You have been logged in successfully")) {
                 // This popup is annoying
                 Vars.player.sendMessage(Core.bundle.get("client.command.login.success"));

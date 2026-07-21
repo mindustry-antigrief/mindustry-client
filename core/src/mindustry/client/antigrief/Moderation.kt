@@ -24,7 +24,7 @@ class Moderation {
         @JvmField var muteState: Boolean = false
         init {
             Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins FINISHME: This is server-specific code. Treat it as such.
-                if (Server.io() || Server.phoenix() || Server.corium()) {
+                if (Server.io() || Server.corium()) {
                     val json = JsonReader().parse(it)
                     if (Core.settings.getBool("logplayerdata")) Log.debug(json)
 

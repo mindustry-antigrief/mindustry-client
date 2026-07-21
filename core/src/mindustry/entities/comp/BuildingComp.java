@@ -2285,6 +2285,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             wasVisible = true;
             renderer.blocks.updateShadow(self());
             renderer.minimap.update(tile);
+            if(block.drawCached) recache();
         }
     }
 

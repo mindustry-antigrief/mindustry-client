@@ -41,6 +41,12 @@ function extend(/*Base, ..., def*/){
     return instance
 }
 
+importPackage(Packages.java.lang)
+const Arrays = Packages.java.util.Arrays
+//commonly used inner classes that are moved out so JS mods can be more compatible with v8 and v9
+const TextureFilter = Packages.arc.graphics.Texture.TextureFilter
+const TextureWrap = Packages.arc.graphics.Texture.TextureWrap
+
 //Below utility functions by BalaM314
 
 function makeUnit(unit, x, y, team){
@@ -59,4 +65,3 @@ function targetedBuilding(){
 }
 
 //more coming soon
-

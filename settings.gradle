@@ -34,6 +34,10 @@ if(hasProperty("localRhino") || localProperties.getOrDefault("localRhino", "fals
     includeBuild("../rhino")
 }
 
+if(hasProperty("localSteamworks") || localProperties.getOrDefault("localSteamworks", "false") == "true"){
+    includeBuild("../steamworks4j")
+}
+
 if(!hasProperty("noLocalArc")){
     if(new File(rootDir.parent, 'Arc').exists()){
         // Make sure that A is capitalized on windows as this will break gradle with a cryptic error otherwise

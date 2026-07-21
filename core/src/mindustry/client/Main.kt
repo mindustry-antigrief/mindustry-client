@@ -341,7 +341,7 @@ object Main : ApplicationListener {
                     Vars.ui.chatfrag.addMessage(transmission.content,
                         keyStorage.aliasOrName(system.peer.expectedCert),
                         ClientVars.encrypted,
-                        "${Iconc.ok}[white]${keyStorage.aliasOrName(system.peer.expectedCert)}[accent] -> [coral] ${keyStorage.cert()?.readableName ?: "you"}",
+                        "[green]${Iconc.ok} [coral][[[white]${keyStorage.aliasOrName(system.peer.expectedCert)}[accent] -> [white]${keyStorage.cert()?.readableName ?: "you"}[coral]]:[white] ",
                         transmission.content
                     ).run { prefix = "${Iconc.ok} $prefix " }
                 }

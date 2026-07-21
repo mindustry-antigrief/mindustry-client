@@ -1,5 +1,7 @@
 package mindustry.client.navigation
 
+import arc.*
+import arc.graphics.*
 import arc.math.*
 import arc.math.geom.*
 import arc.struct.*
@@ -169,6 +171,20 @@ object AStarNavigatorOptimised : Navigator() {
                 val prev = curr.cameFrom?: continue
                 val next = curr.goesTo?: continue
                 if (collinear(prev, curr, next)) continue
+                
+                var nearWall = false
+                var nearStart = false
+                for (j in Geometry.d4x.indices) {
+                    val x = curr.x + Geometry.d4x[j]
+                    val y = curr.y + Geometry.d4y[j]
+                    val cell = cell(x, y)
+                    if (Structs.inBounds(x, y, tileWidth, tileHeight) && cell.blocked) nearWall = true;
+                    else if (cell == start) nearStart = true
+                }
+                //Don't relax nodes that are right next to the start AND next to a wall
+                //Hacky fix for getting stuck on corners
+                if(nearWall && nearStart) continue
+
                 val cost = spaces[pathIndices[prev]] + spaces[i]
                 val newCost = lineOfSight(prev.x, prev.y, next.x, next.y)
                 if (newCost <= cost) {

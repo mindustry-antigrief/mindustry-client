@@ -99,7 +99,7 @@ abstract class Navigator {
                 unit.stack.amount == 0 &&
                 (unit as? Payloadc)?.hasPayload()?.not() ?: true // no payloads
             ) {
-                var best: Position = player.bestCore()
+                var best: Position = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst2(end) }))
                 if (unit.type.coreUnitDock && ClientVars.ratelimitRemaining > 2) { // Try to use a unit if it's closer FINISHME: If the player is a different unit, they can still teleport to a closer one of the same type.
                     val u = Units.closest(player.team(), end.x, end.y, unit.type.speed * 60F * 5) { u -> u.playerControllable() && !u.isPlayer } // Anything within a few seconds of the target
                     if (u != null && u.dst2(end) < best.dst2(end)) best = u

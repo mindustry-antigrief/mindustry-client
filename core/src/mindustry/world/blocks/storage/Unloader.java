@@ -48,8 +48,9 @@ public class Unloader extends Block{
         noUpdateDisabled = true;
         clearOnDoubleTap = true;
         unloadable = false;
-        drawCached = true;
-        drawDynamic = false;
+        //Disabled for the drawUnloaderItems setting
+        // drawCached = true;
+        // drawDynamic = false;
 
         config(Item.class, (UnloaderBuild tile, Item item) -> tile.sortItem = item);
         configClear((UnloaderBuild tile) -> tile.sortItem = null);

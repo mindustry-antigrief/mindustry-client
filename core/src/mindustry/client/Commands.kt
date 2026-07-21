@@ -392,7 +392,7 @@ fun setupCommands() {
                 msg,
                 Main.keyStorage.cert()?.readableName ?: "you",
                 encrypted,
-                "[coral]${Main.keyStorage.cert()?.readableName ?: "you"} [white]-> ${Main.keyStorage.aliasOrName(cert)}",
+                "[coral][[[white]${Main.keyStorage.cert()?.readableName ?: "you"} [accent]-> [white]${Main.keyStorage.aliasOrName(cert)}[coral]][white]: ",
                 msg
             )
             lastCertName = cert.readableName

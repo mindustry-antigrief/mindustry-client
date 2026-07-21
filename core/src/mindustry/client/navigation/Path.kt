@@ -35,7 +35,7 @@ abstract class Path {
         }
 
         @JvmOverloads @JvmStatic @Synchronized
-        fun goTo(destX: Float, destY: Float, dist: Float = 0F, aStarDist: Float = 0F, cons: Cons<WaypointPath<PositionWaypoint>>? = null): WaypointPath<PositionWaypoint> {
+        fun goTo(destX: Float, destY: Float, dist: Float = 0F, aStarDist: Float = 0F, ignoreObstacles: Boolean = false, cons: Cons<WaypointPath<PositionWaypoint>>? = null): WaypointPath<PositionWaypoint> {
             if (Core.settings.getBool("pathnav") && !Core.settings.getBool("assumeunstrict") && (aStarDist == 0F || Vars.player.dst(destX, destY) > aStarDist)) {
                 if (!targetPos.within(destX, destY, 1f)) job.cancel(true)
                 targetPos.set(destX, destY)
@@ -50,7 +50,7 @@ abstract class Path {
 //                                v1.set(point)
 //                            }
 //                        }
-                        val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), Navigation.getEnts())
+                        val path = Navigation.navigator.navigate(v1, v2.set(destX, destY), if (ignoreObstacles) Seq.with() else Navigation.getEnts())
                         Pools.freeAll(filter, true)
                         filter.clear()
                         if(unit != null) v1.set(unit) //not sure why this is being called again? -BalaM314, Feb 13 2026

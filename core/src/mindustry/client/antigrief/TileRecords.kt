@@ -31,9 +31,12 @@ object TileRecords {
 
             ClientVars.lastServerStartTime = startTime
             ClientVars.lastServerName = Vars.state.map.name()
-            if (!ClientVars.syncing && !sameMap) {
-                records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
-                joinTime = Instant.now()
+            if (!ClientVars.syncing) {
+                if (!sameMap) {
+                    records = Array(Vars.world.width()) { x -> Array(Vars.world.height()) { y -> TileRecord(x, y) } }
+                    joinTime = Instant.now()
+                }
+                NetworkTileLogs.onWorldLoad(sameMap)
             }
         }
 
@@ -45,7 +48,9 @@ object TileRecords {
             } else { // FINISHME: slightly very inefficient?
                 it.tile.getLinkedTilesAs(it.newBlock) { tile ->
                     val log = TilePlacedLog(it.unit.toInteractor(), it.newBlock, it.rotation, null, tile == it.tile)
-                    addLog(tile, log)
+                    addLog(tile, log)?.apply {
+                        team = it.team
+                    }
                 }
             }
         }

@@ -70,7 +70,7 @@ public class PointDefenseTurret extends ReloadTurret{
                 target = null;
             }
 
-            if(coolant != null){
+            if(coolant != null && reloadCounter < reload){
                 updateCooling();
             }
 
