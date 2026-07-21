@@ -515,7 +515,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.textPref("gamejointext", "");
         client.textPref("gamewintext", "");
         client.textPref("gamelosetext", "");
-        client.checkPref("forcestevetutorial", true);
         client.checkPref("blockiotutorial", false);
         client.checkPref("blockiopopups", false);
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);

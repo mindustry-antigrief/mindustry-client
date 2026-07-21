@@ -67,6 +67,18 @@ class Moderation {
                                 .addButton(player.serverID) { Call.sendChatMessage("/stats ${player.id}") }
                         }
                     }
+                } else if (Server.cn()) {
+                    val json = JsonReader().parse(it)
+                    if (Core.settings.getBool("logplayerdata")) Log.debug(json)
+
+                    fun String.s() = json.getString(this, "unknown")
+                    fun String.b() = json.getBoolean(this)
+                    fun String.i() = json.getInt(this, Int.MAX_VALUE)
+
+                    if ("currentID".i() == Vars.player.id) {
+                        rank = "rank".i()
+                        Server.current.updateRank()
+                    }
                 }
             }
 

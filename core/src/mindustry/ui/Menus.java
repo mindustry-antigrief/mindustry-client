@@ -42,12 +42,10 @@ public class Menus{
         if(message == null) message = "";
         if(options == null) options = new String[0][0];
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
-        if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
-            options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b()) return; // cn is equally annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
+        // Is there a better way to do this? Admins can be annoying when trolling
         if(Server.io.b() && CustomMode.flood.b() && Core.settings.getBool("blockiotutorial", false) && (title.contains("Oh well...") || title.contains("Welcome!") || title.contains("Tutorial") || title.contains("Content") || title.contains("Others") || title.contains("Gamemodes") || title.contains("Stats"))) return; // .io tutorial popup
-        if(Server.io.b() && Core.settings.getBool("blockiopopups", false)) return;
         Log.debug("Displaying menu @ with title: @", menuId, title);
         ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
     }
@@ -57,8 +55,6 @@ public class Menus{
         if(title == null) title = "";
         if(message == null) message = "";
         if(options == null) options = new String[0][0];
-        // if(title.equals("Hello there") && Server.cn.b()) return; // Cn join popup
-        // I will replace this with auto-optout when the plugin updates, we want ppl to read the rules >:(
 
         Log.debug("Displaying followup menu @ with title: @", menuId, title);
         ui.showFollowUpMenu(menuId, title, message, options, (option) -> Call.menuChoose(player, menuId, option));
@@ -89,24 +85,12 @@ public class Menus{
         if(title == null) title = "";
         if(message == null) message = "";
         if(def == null) def = "";
-        String newTitle = title;
-
-        if(Core.settings.getString("cnpw", null) != null && Server.cn.b() && retryCount == 0) {
-            if(Strings.stripColors(newTitle).equals("Login (1/2)") && textLength == 64) {
-                Call.textInputResult(player, textInputId, Core.settings.getString("cnpw").split(" ")[0]);
-                return;
-            } else if(Strings.stripColors(newTitle).equals("Login (2/2)") && textLength == 64) {
-                Call.textInputResult(player, textInputId, Core.settings.getString("cnpw").split(" ")[1]);
-                return;
-            }
-        }
 
         ui.showTextInput(title, message, textLength, def, numeric, allowEmpty, (text) -> {
             Call.textInputResult(player, textInputId, text);
         }, () -> {
             Call.textInputResult(player, textInputId, null);
         });
-        retryCount = 0; // Reset the retry count
     }
 
     @Remote(targets = Loc.both, called = Loc.both)
@@ -152,23 +136,16 @@ public class Menus{
         // Does this even do anything
         if(Server.io.b() && (message.contains("tutorial") || message.contains("Tutorial") || message.contains("Hey there") || message.contains("Welcome")) && Core.settings.getBool("blockiotutorial", false)) return;
 
+        // These menus are stupid
         if(Server.cn.b()) {
             if (message.contains("You have been logged in successfully")) {
                 // This popup is annoying
                 Vars.player.sendMessage(Core.bundle.get("client.command.login.success"));
-                retryCount = 0;
                 return;
             } else if (message.contains("You are already logged in")) {
                 // For the login command
                 Vars.player.sendMessage(Core.bundle.get("client.command.login.alreadylogged"));
-                retryCount = 0;
                 return;
-            } else if (message.contains("Invalid username or password")) {
-                if(retryCount >= 2) {
-                    // Send this menu only once, may get more depending on user ping
-                    Vars.player.sendMessage(Core.bundle.get("client.command.login.incorrect"));
-                    return;
-                } else retryCount++;
             }
         }
 

@@ -10,18 +10,10 @@
 # Foo's Client
  * Funky woe client
 
-# JasonP01 Features
- # Commands
- * {p}login - Login to a server, use !help login for more details
- * {p}team - switchs your team to any valid team ID or name, requires vanilla admin in servers
- * {p}afk - Toggles AFK mode, if supplied with any argument will put you in buildmine mode. If you are admin in CN you will be put into an emanate
- * \n
-
- # Qol & Misc - Client settings
+// Explaining some settings exist is better than none
+# Qol & Misc - Client settings
  * Auto Excavate Vote - Automatically votes for CN's excavates based on the option you selected in settings, forces votes if you are staff instead
- * Block IO popups - Blocks all IO popups or only flood tutorial popups
- * Force S T E V E tutorial - Forces the player S T E V E to view the io tutorial if you are IO staff
- * Admin UI - Staff on CN will still view the admin ui if they have previously had it, requires you to be logged in to work correctly, useful for undercover mode
+ * Block IO popups - Blocks IO flood tutorial popup(s)
  * Pan To Core - Disables the pan to core after gameover behaviour so you are no longer forced to spectate dead cores on gameover
  * DDNS Name Verifyer - Replaces all illegal characters in your player name so you can join the DDNS servers with a fancy name without changing it constantly
  * Playerchat toggle - Toggles typing indicator on servers so you can hide that you have the chat open
@@ -104,6 +96,8 @@
  * {p}unmute <player> - Same as {p}mute
  * {p}clearmutes - Clears the list of muted players
  * {p}admin [option] - open admin settings ('settings') or leave logs ('leaves')
+ * {p}login - Login to a server, use !help login for more details
+ * {p}team - Switchs your team to any valid team ID or name, requires vanilla admin in servers
  // * {p}hh - Switches between all io servers and does /novote aka pet point farmer
  // * {p}rebuild <timestart> <timerange> <radius> - Searches through tile log history and rebuilds buildings from the specified time range and radius. (Bye bye griefers)
  // * {p}undo <player> [range] - Undoes player buildings and configurations.

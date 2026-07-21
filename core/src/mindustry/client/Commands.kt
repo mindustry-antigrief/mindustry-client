@@ -755,7 +755,7 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
             var team: Int? = null
             val arg = if (args.isEmpty()) "" else args[0]
             for (fteam in Team.baseTeams) {
-                if (arg.lowercase() == fteam.name.lowercase()) {
+                if (arg.equals(fteam.name, ignoreCase = true)) {
                     team = fteam.id
                     break
                 }
@@ -763,8 +763,8 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
             if (team == null) team = team ?: arg.toInt()
 
             if (!net.client()) player.team(Team.get(team))
-            // Awful, but i dont want to filter it to just me
-            else if (player.admin || Server.cn()) Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
+            else if (player.admin || (Server.cn() && rank > 1))
+                Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
 
         } catch (e: NumberFormatException) {
             player.sendMessage(Core.bundle.get("client.command.team.invalidTeam"))
@@ -775,16 +775,7 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
     // FINISHME: Still as bad as before, but i dont want to make "secure" storage
     // Only works in CN, can change if other servers have a /login command
     register("login [username] [password]", Core.bundle.get("client.command.login.description")) { args, player ->
-        Menus.resetRetryCount()
-        if (args.size == 0) {
-            if (Core.settings.getString("cnpw", null) == null) {
-                player.sendMessage(Core.bundle.get("client.command.login.nopw"))
-                return@register
-            } else {
-                Call.sendChatMessage("/login")
-                return@register
-            }
-        }
+        if (args.size == 0)  Server.current.handleLogin()
 
         if (args.size < 2) {
             player.sendMessage(Core.bundle.get("client.command.login.badargs"))
@@ -798,30 +789,6 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
         }
         Core.settings.put("cnpw", args[0] + " " + args[1])
         player.sendMessage(Core.bundle.get("client.command.login.added"))
-    }
-
-    // This is fucking terrible
-    register("afk [interactive]", Core.bundle.get("client.command.afk.description")) { args, player ->
-        commandScope.launch {
-            val interactive: Boolean = if (args.isEmpty()) false else true
-            if (Server.cn()) {
-                if (player.admin) {
-                    player.sendMessage("If you are not ADMIN rank you will just be in buildmine mode, or derelict team")
-                    Call.sendChatMessage("/spawn emanate 1 ${state.rules.defaultTeam.toString()} --silent")
-                    delay(1000) // Wait for the unit to spawn
-                    ui.unitPicker.pickUnit(findUnit("emanate"))
-                    if (!interactive) Call.adminRequest(player, AdminAction.switchTeam, Team.derelict)
-                    else follow(BuildMinePath())
-                    player.sendMessage("You are now afk${if (interactive) " and following the buildmine path" else "."}")
-                } else if (interactive) follow(BuildMinePath()) else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
-            } else {
-                if (interactive) {
-                    player.sendMessage("You are now afk. (Why use this ?)")
-                    follow(BuildMinePath())
-                } else player.sendMessage("This does nothing for you. Just say you are afk in chat or have another argument with this command (!afk true)")
-            }
-        }
-
     }
 
     // Symbol replacements
