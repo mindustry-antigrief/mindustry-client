@@ -133,7 +133,7 @@ public class MenuFragment{
                             becontrol.showUpdateDialog();
                         }
                     }, "mindustry-antigrief/mindustry-client-v7-builds");
-                }).size(200, 60).padRight(10).tooltip("V7 Client Version is not supported. Please contact .json01 on discord to speed up multiple version handling").disabled(true); // I dont support 2 versions yet
+                }).size(200, 60).padRight(10);
 
                 // "Switch to (un)stable" button
                 c.button("", Icon.refresh, () -> {
