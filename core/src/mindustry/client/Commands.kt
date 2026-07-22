@@ -775,8 +775,10 @@ register("team [id/name]", Core.bundle.get("client.command.team.description")) {
     // FINISHME: Still as bad as before, but i dont want to make "secure" storage
     // Only works in CN, can change if other servers have a /login command
     register("login [username] [password]", Core.bundle.get("client.command.login.description")) { args, player ->
-        if (args.size == 0)  Server.current.handleLogin()
-
+        if (args.size == 0) {
+            Server.current.handleLogin()
+            return@register
+        }
         if (args.size < 2) {
             player.sendMessage(Core.bundle.get("client.command.login.badargs"))
             return@register

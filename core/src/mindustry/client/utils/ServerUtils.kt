@@ -24,6 +24,8 @@ import mindustry.ui.fragments.ChatFragment.*
 import java.lang.reflect.*
 import kotlin.properties.*
 import kotlin.random.*
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 sealed class Server(
     private val groupName: String? = null,
@@ -164,7 +166,6 @@ sealed class Server(
             }
 
             // Anything below for server specific packet handlers - More abhorentness :)
-            // TODO: Rework into generic vote handler
             netClient.addPacketHandler("vote") {
                 try {
                     val json = JsonReader().parse(it)
@@ -188,9 +189,35 @@ object Nydus : Server(groupName = "nydus") {
     override fun isJoinedServer(group: List<String>?, host: Host?) = host?.name?.contains("nydus") == true
 }
 
-object CN : Server(groupName = "Chaotic Neutral", rtv = Companion.Cmd("/rtv")) {
-    // TODO: Implement freeze button on tab menu... i really need it :'(
+object CN : Server(
+    groupName = "Chaotic Neutral",
+    rtv = Companion.Cmd("/rtv"),
+    freeze = Companion.Cmd("/freeze", 3),
+    mute = Companion.Cmd("/mute", 3),
+) {
+    // TODO: Make the moderation handlers use Moderation.kt
     override fun adminui() = player.admin || ClientVars.rank >= 2
+
+    // Support for CN Testing port 50016 (Non BE Testing)
+    override fun isJoinedServer(group: List<String>?, host: Host?) = super.isJoinedServer(group, host) || (host?.address == "5.196.91.230" && host.port == 50016)
+
+    override fun handleFreeze(p: Player) {
+        Call.serverPacketReliable("foosModeration", Jval.newObject().apply {
+            put("targetID", p.id)
+            put("type", "freeze")
+            put("reason", "Moderator Freeze")
+            put("duration", 10.minutes.inWholeMilliseconds)
+        }.toString())
+    }
+
+    override fun handleMute(p: Player) {
+        Call.serverPacketReliable("foosModeration", Jval.newObject().apply {
+            put("targetID", p.id)
+            put("type", "mute")
+            put("reason", "Moderator Mute")
+            put("duration", 1.hours.inWholeMilliseconds)
+        }.toString())
+    }
 
     override fun handleVote(voteType: String, data: String) {
         // TODO: votekick auto handler?
