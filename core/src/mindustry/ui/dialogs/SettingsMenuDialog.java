@@ -516,7 +516,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.textPref("gamewintext", "");
         client.textPref("gamelosetext", "");
         client.checkPref("blockiotutorial", false);
-        client.checkPref("blockiopopups", false);
         client.checkPref("autoupdate", true, i -> becontrol.checkUpdates = i);
         client.checkPref("discordrpc", true, i -> platform.toggleDiscord(i));
         client.checkPref("pathnav", true);
