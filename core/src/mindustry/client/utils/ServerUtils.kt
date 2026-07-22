@@ -180,9 +180,6 @@ sealed class Server(
     }
 }
 
-
-
-
 object Other : Server()
 
 object Nydus : Server(groupName = "nydus") {
