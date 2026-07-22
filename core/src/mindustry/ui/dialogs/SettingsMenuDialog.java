@@ -413,7 +413,6 @@ public class SettingsMenuDialog extends BaseDialog{
         client.checkPref("removecorenukes", false);
         client.checkPref("seer-enabled", false);
 
-
         client.category("chat");
         client.checkPref("clearchatonleave", true);
         client.checkPref("logmsgstoconsole", true);
