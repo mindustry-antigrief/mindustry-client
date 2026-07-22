@@ -33,31 +33,32 @@ jobs:
           #format: "[${{env.SLUG}}], MMM. D, YYYY [Unstable]" # Pulls the tag name and current date to produce clientVersion > v1.0.0, Jan. 1, 1970
 
       - name: Run Tests
-        run: ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=JasonP01/foos -PassetUrl=JasonP01/foos -PassetRef=${{ env.SLUG }} -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
+        run: ./gradlew tests:cleanTest tools:pack tests:test desktop:dist -PupdateUrl=mindustry-antigrief/mindustry-client-v8-builds -PassetUrl=mindustry-antigrief/mindustry-client -PassetRef=${{ env.SLUG }} -PclientVersion="${{ steps.time.outputs.formattedTime }}" --parallel
 
       - name: Create Release
-        if: ${{ github.repository == 'JasonP01/foos' && github.ref == 'refs/heads/v8' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v8' }}
         id: create_release_v8
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           body: |
-            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/JasonP01/foos/commit/${{ github.sha }})
+            Foo's Client Unstable ${{ github.run_number }} [(${{ env.SLUG }})](https://github.com/mindustry-antigrief/mindustry-client/commit/${{ github.sha }})
             Steam installation instructions [here](../../../mindustry-client/tree/v8#steam)
             **Commit Message:**
             *${{ github.event.head_commit.message }}*
-          commitish: v8
+          commitish: main
           tag_name: ${{ github.run_number }}
           release_name: ${{ steps.time.outputs.formattedTime }}
+          repo: mindustry-client-v8-builds
           draft: false
           prerelease: false
 
       - name: Upload Release Asset
-        if: ${{ github.repository == 'JasonP01/foos' && github.ref == 'refs/heads/v8' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v8' }}
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release_v8.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
@@ -71,14 +72,14 @@ jobs:
           distribution: temurin
 
       - name: Add Audio To Jar
-        if: ${{ github.repository == 'JasonP01/foos' && github.ref == 'refs/heads/v8' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v8' }}
         run: jar uf desktop/build/libs/Mindustry.jar -C core/assets sounds -C core/assets music
 
       - name: Upload Release Asset With Audio
-        if: ${{ github.repository == 'JasonP01/foos' && github.ref == 'refs/heads/v8' }}
+        if: ${{ github.repository == 'mindustry-antigrief/mindustry-client' && github.ref == 'refs/heads/v8' }}
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.create_release_v8.outputs.upload_url }}
           asset_path: desktop/build/libs/Mindustry.jar
@@ -86,8 +87,19 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Artifact (No release was made)
-        if: ${{ github.repository == 'JasonP01/foos' && github.ref == 'refs/heads/v8' }}
+        if: ${{ !(github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v8' || github.event_name == 'workflow_dispatch')) }}
         uses: actions/upload-artifact@v4
         with:
           name: Desktop JAR (zipped)
           path: desktop/build/libs/Mindustry.jar
+
+      - name: Upload Test Results To Pages
+        if: ${{ !cancelled() && github.repository == 'mindustry-antigrief/mindustry-client' && (github.ref == 'refs/heads/v8' || github.event_name == 'workflow_dispatch') }}
+        uses: JamesIves/github-pages-deploy-action@4.0.0
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          repository-name: ${{ github.repository }}-v8-builds
+          branch: gh-pages # The branch the action should deploy to.
+          folder: tests/build/reports/tests/test
+          silent: true
+          single-commit: true
