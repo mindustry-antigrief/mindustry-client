@@ -304,8 +304,7 @@ object Main : ApplicationListener {
 
     private fun sendBuildPlans(num: Int = 500) {
         var count = 0
-        val unit = Vars.player.unit()
-        if (unit == null) return
+        val unit = Vars.player.unit() ?: return
         val toSend = unit.plans.toList().takeLastWhile { !BuildPlanCommunicationSystem.isNetworking(it) && count++ < num }.toTypedArray()
         if (toSend.isEmpty()) return
         isSendingPlans = true
