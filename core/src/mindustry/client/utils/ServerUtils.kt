@@ -240,15 +240,21 @@ object CN : Server(
 
     override fun handleLogin() {
         // Worlds most secure account information - REALLY need a better thing than this
-        val info = Core.settings.getString("cnpw", "UNKNOWN")
-        if (info == "UNKNOWN") return
-        val username = info.split(" ")[0]
-        val password = info.split(" ")[1]
-        val json = Jval.newObject().apply {
-            put("username", username)
-            put("password", password)
+        try {
+            val info = Core.settings.getString("cnpw", "UNKNOWN")
+            if (info == "UNKNOWN") return
+            val username = info.split(" ")[0]
+            val password = info.split(" ")[1]
+            val json = Jval.newObject().apply {
+                put("username", username)
+                put("password", password)
+            }
+            Call.serverPacketReliable("login", json.toString())
+        } catch (e: IndexOutOfBoundsException) {
+            // TODO: Shitty string, make it better
+            Log.err("Login Password setting indexing corrupted: ", e)
+            player.sendMessage("Your username or password is corrupted, change your password")
         }
-        Call.serverPacketReliable("login", json.toString())
     }
 
     init {
