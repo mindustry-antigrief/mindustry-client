@@ -7,8 +7,6 @@
 # Installer
 Install `mindustry-antigrief/client-installer` through the mod browser in the vanilla game and allow the game to restart, upon restarting you will be prompted with an install popup, choose a version and it will install itself.
 
-If you wish to install this fork's version change your "update repo" in client settings to "JasonP01/foos" and update your game
-
 ## [Changelog](./core/assets/changelog)
 ## [Development/Unstable Builds](../../../mindustry-client-v8-builds)
 ## Steam

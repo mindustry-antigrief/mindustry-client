@@ -16,7 +16,6 @@ import static mindustry.Vars.*;
 public class Menus{
     private static final Seq<MenuListener> menuListeners = new Seq<>();
     private static final Seq<TextInputListener> textInputListeners = new Seq<>();
-    private static int retryCount = 0;
 
     /** Register a *global* menu listener. If no option is chosen, the option is returned as -1. */
     public static int registerMenu(MenuListener listener){
@@ -28,10 +27,6 @@ public class Menus{
     public static int registerTextInput(TextInputListener listener){
         textInputListeners.add(listener);
         return textInputListeners.size - 1;
-    }
-
-    public static void resetRetryCount(){
-        retryCount = 0;
     }
 
     //do not invoke any of the methods below directly, use Call
