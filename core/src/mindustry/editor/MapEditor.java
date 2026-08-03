@@ -29,6 +29,7 @@ public class MapEditor{
     private boolean loading;
 
     public float brushSize = 1;
+    public int brushSizeIndex = 0;
     public int rotation;
     public Block drawBlock = Blocks.stone;
     public Team drawTeam = Team.sharded;
@@ -112,6 +113,7 @@ public class MapEditor{
     private void reset(){
         clearOp();
         brushSize = 1;
+        brushSizeIndex = 0;
         drawBlock = Blocks.stone;
         tags = new StringMap();
     }

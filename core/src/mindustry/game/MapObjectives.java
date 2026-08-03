@@ -749,7 +749,7 @@ public class MapObjectives implements Iterable<MapObjective>, Eachable<MapObject
         /** Whether to scale marker corresponding to player's zoom level. */
         public boolean autoscale = false;
         /** On which z-sorting layer is marker drawn. */
-        protected float drawLayer = Layer.overlayUI;
+        public float drawLayer = Layer.overlayUI;
 
         public void draw(float scaleFactor){}
 

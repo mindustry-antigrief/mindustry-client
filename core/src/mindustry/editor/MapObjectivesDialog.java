@@ -97,7 +97,7 @@ public class MapObjectivesDialog extends BaseDialog{
             cont.field(Float.toString(get.get() / mult), str -> set.get(Strings.parseFloat(str) * mult))
                 .growX().fillY()
                 .valid(Strings::canParseFloat)
-                .get().setFilter(TextFieldFilter.floatsOnly);
+                .get().setFilter((f, c) -> Character.isDigit(c) || ((!f.getText().contains(".")) && c == '.') || (!f.getText().contains("-") && c == '-'));
         });
 
         setProvider(UnlockableContent.class, (type, cons) -> cons.get(Blocks.coreShard));

@@ -85,7 +85,7 @@ public class ImpactReactor extends PowerGenerator{
             Drawf.dashCircle(req.drawx(), req.drawy(), floodNullifierRange, Color.orange);
             indexer.eachBlock(null, req.drawx(), req.drawy(), floodNullifierRange, b -> b instanceof CoreBlock.CoreBuild, b -> Drawf.selected(b, Color.orange));
         }
-        if (settings.getBool("showreactors")) {
+        if (settings.getBool("showreactors") && state.rules.reactorExplosions) {
             Drawf.dashCircle(req.drawx(), req.drawy(), explosionRadius * tilesize, Color.coral);
         }
     }

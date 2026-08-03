@@ -94,7 +94,7 @@ public enum EditorTool{
             });
         }
     },
-    fill(KeyCode.g, "replaceall", "fillteams", "fillerase", "fillcliffs", "fillunderliquid"){
+    fill(KeyCode.g, "replaceall", "fillteams", "fillerase", "fillcliffs", "fillunderliquid", "fillotherlayer", "fillcliffsfloor"){
         {
             edit = true;
         }
@@ -115,35 +115,55 @@ public enum EditorTool{
             }
 
             //mode 0 or standard, fill everything with the floor/tile or replace it
-            if(mode == 0 || mode == -1){
+            if(mode == 0 || mode == -1 || mode == 5){
                 //can't fill parts or multiblocks
                 if(tile.block().isMultiblock()){
                     return;
                 }
 
+                boolean invertMatch = mode == 5;
+
                 Boolf<Tile> tester;
                 Cons<Tile> setter;
 
                 if(editor.drawBlock.isOverlay()){
-                    Block dest = tile.overlay();
-                    if(dest == editor.drawBlock) return;
-                    tester = t -> t.overlay() == dest && (t.floor().hasSurface() || !t.floor().needsSurface);
+                    if(tile.overlay() == editor.drawBlock) return;
                     setter = t -> t.setOverlay(editor.drawBlock);
                 }else if(editor.drawBlock.isFloor()){
-                    Block dest = tile.floor();
-                    if(dest == editor.drawBlock) return;
-                    tester = t -> t.floor() == dest;
+                    if(tile.floor() == editor.drawBlock) return;
                     setter = t -> {
                         t.setFloor(editor.drawBlock.asFloor());
                         if(!(t.overlay() instanceof OverlayFloor) && !t.floor().supportsOverlay){
                             t.setOverlay(Blocks.air);
                         }
                     };
-                }else{
-                    Block dest = tile.block();
-                    if(dest == editor.drawBlock) return;
-                    tester = t -> t.block() == dest;
+                }else{ //block
+                    if(tile.block() == editor.drawBlock) return;
                     setter = t -> t.setBlock(editor.drawBlock, editor.drawTeam);
+                }
+
+                if(invertMatch){
+                    if(editor.drawBlock.isOverlay()){
+                        Block dest = tile.floor();
+                        tester = t -> t.floor() == dest && t.overlay() != editor.drawBlock;
+                    }else if(editor.drawBlock.isFloor()){
+                        Block dest = tile.block();
+                        tester = t -> t.block() == dest && t.floor() != editor.drawBlock;
+                    }else{ //block
+                        Block dest = tile.floor();
+                        tester = t -> t.floor() == dest && t.block() != editor.drawBlock;
+                    }
+                } else {
+                    if(editor.drawBlock.isOverlay()){
+                        Block dest = tile.overlay();
+                        tester = t -> t.overlay() == dest && (t.floor().hasSurface() || !t.floor().needsSurface);
+                    }else if(editor.drawBlock.isFloor()){
+                        Block dest = tile.floor();
+                        tester = t -> t.floor() == dest;
+                    }else{ //block
+                        Block dest = tile.block();
+                        tester = t -> t.block() == dest;
+                    }
                 }
 
                 var oldSetter = setter;
@@ -193,26 +213,7 @@ public enum EditorTool{
                     fill(x, y, false, tester, setter);
                 }
             }else if(mode == 3){ //cliff fill
-                if(!tile.block().isStatic() || tile.block() == Blocks.cliff) return;
-                Bits wasStatic = new Bits(editor.width() * editor.height());
-                fill(x, y, false, t -> t.block().isStatic() && t.block() != Blocks.cliff, t -> {
-                    int rotation = 0;
-                    for(int i = 0; i < 8; i++){
-                        Tile other = world.tiles.get(t.x + Geometry.d8[i].x, t.y + Geometry.d8[i].y);
-                        if(other != null && !other.block().isStatic() && !wasStatic.get(other.array())){
-                            rotation |= (1 << i);
-                        }
-                    }
-
-                    if(rotation != 0){
-                        t.setBlock(Blocks.cliff);
-                    }else{
-                        t.setBlock(Blocks.air);
-                        wasStatic.set(t.array());
-                    }
-
-                    t.data = (byte)rotation;
-                });
+                fillCliffs(x, y, tile, t -> t.block().isStatic());
             }else if(mode == 4){ //fill under liquid
                 if(editor.drawBlock instanceof Floor f && !f.isLiquid){
                     if(!tile.floor().isLiquid) return;
@@ -230,6 +231,9 @@ public enum EditorTool{
                     
                     fill(x, y, false, tester, setter);
                 }
+            }else if(mode == 6){
+                Block target = tile.floor();
+                fillCliffs(x, y, tile, t -> t.floor() == target);
             }
         }
 
@@ -292,6 +296,31 @@ public enum EditorTool{
                     stack = new IntSeq();
                 }
             }
+        }
+
+        void fillCliffs(int x, int y, Tile tile, Boolf<Tile> tester){
+            if(!tester.get(tile) || tile.block() == Blocks.cliff) return;
+            Bits wasMatched = new Bits(editor.width() * editor.height());
+            Bits wasProcessed = new Bits(editor.width() * editor.height());
+            fill(x, y, false, t -> tester.get(t) && t.block() != Blocks.cliff && !wasProcessed.get(t.array()), t -> {
+                int rotation = 0;
+                for(int i = 0; i < 8; i++){
+                    Tile other = world.tiles.get(t.x + Geometry.d8[i].x, t.y + Geometry.d8[i].y);
+                    if(other != null && !tester.get(other) && !wasMatched.get(other.array())){
+                        rotation |= (1 << i);
+                    }
+                }
+
+                if(rotation != 0){
+                    t.setBlock(Blocks.cliff);
+                }else{
+                    t.setBlock(Blocks.air);
+                    wasMatched.set(t.array());
+                }
+                wasProcessed.set(t.array());
+
+                t.data = (byte)rotation;
+            });
         }
     },
     spray(KeyCode.r, "replace"){

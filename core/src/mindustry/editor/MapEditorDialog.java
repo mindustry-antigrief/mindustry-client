@@ -49,6 +49,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
     private BaseDialog menu;
     private Table blockSelection;
     private Rules lastSavedRules;
+    private Slider brushSizeSlider;
     private boolean saved = false; //currently never read
     private boolean shownWithMap = false;
     private final Seq<Block> blocksOut = new Seq<>();
@@ -716,11 +717,14 @@ public class MapEditorDialog extends Dialog implements Disposable{
                 mid.row();
 
                 mid.table(Tex.underline, t -> {
-                    Slider slider = new Slider(0, MapEditor.brushSizes.length - 1, 1, false);
-                    slider.moved(f -> editor.brushSize = MapEditor.brushSizes[(int)f]);
+                    brushSizeSlider = new Slider(0, MapEditor.brushSizes.length - 1, 1, false);
+                    brushSizeSlider.moved(f -> {
+                        editor.brushSizeIndex = (int)f;
+                        editor.brushSize = MapEditor.brushSizes[(int)f];
+                    });
                     for(int j = 0; j < MapEditor.brushSizes.length; j++){
                         if(MapEditor.brushSizes[j] == editor.brushSize){
-                            slider.setValue(j);
+                            brushSizeSlider.setValue(j);
                         }
                     }
 
@@ -728,7 +732,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
                     label.setAlignment(Align.center);
                     label.touchable = Touchable.disabled;
 
-                    t.top().stack(slider, label).width(size * 3f - 20).padTop(4f);
+                    t.top().stack(brushSizeSlider, label).width(size * 3f - 20).padTop(4f);
                     t.row();
                 }).padTop(5).growX().top();
 
@@ -757,6 +761,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
     }
 
     private void doInput(){
+        //TODO use bindings
 
         if(Core.input.ctrl()){
             //alt mode select
@@ -766,6 +771,7 @@ public class MapEditorDialog extends Dialog implements Disposable{
                     else view.getTool().mode = i;
                 }
             }
+            if(Core.input.keyTap(KeyCode.num0)) view.getTool().mode = -1;
         }else{
             for(EditorTool tool : EditorTool.all){
                 if(Core.input.keyTap(tool.key)){
@@ -778,6 +784,22 @@ public class MapEditorDialog extends Dialog implements Disposable{
         if(Core.input.keyTap(KeyCode.escape)){
             if(!menu.isShown()){
                 menu.show();
+            }
+        }
+
+        if(Core.input.keyTap(KeyCode.up)){
+            if(editor.brushSizeIndex + 1 < MapEditor.brushSizes.length){
+                editor.brushSizeIndex ++;
+                editor.brushSize = MapEditor.brushSizes[editor.brushSizeIndex];
+                brushSizeSlider.setValue((float)editor.brushSizeIndex);
+            }
+        }
+
+        if(Core.input.keyTap(KeyCode.down)){
+            if(editor.brushSizeIndex > 0){
+                editor.brushSizeIndex --;
+                editor.brushSize = MapEditor.brushSizes[editor.brushSizeIndex];
+                brushSizeSlider.setValue((float)editor.brushSizeIndex);
             }
         }
 
