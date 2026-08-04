@@ -51,13 +51,14 @@ import kotlin.math.*
 import kotlin.random.*
 import kotlinx.coroutines.*
 
-private val commandScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+// Uncomment when a command needs a coroutine
+// private val commandScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 fun setupCommands() {
-    Runtime.getRuntime().addShutdownHook(Thread {
+    /* Runtime.getRuntime().addShutdownHook(Thread {
         commandScope.cancel()
         Log.debug("Cancelled all command scopes")
-    })
+    }) */
 
     register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
