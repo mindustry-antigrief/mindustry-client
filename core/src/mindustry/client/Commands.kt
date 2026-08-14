@@ -49,7 +49,7 @@ import java.util.concurrent.*
 import java.util.regex.*
 import kotlin.math.*
 import kotlin.random.*
-import kotlinx.coroutines.*
+// import kotlinx.coroutines.*
 
 // Uncomment when a command needs a coroutine
 // private val commandScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
