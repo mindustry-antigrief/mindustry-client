@@ -454,6 +454,10 @@ public class DesktopInput extends InputHandler{
                     }
                 }
             }
+
+            if(input.keyTap(Binding.saveSchematic) && lastSchematic != null && selectPlans.any()){
+                showSchematicSave();
+            }
         }
 
         if(!scene.hasField() && !scene.hasDialog()){

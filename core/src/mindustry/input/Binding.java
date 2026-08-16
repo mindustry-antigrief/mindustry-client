@@ -117,6 +117,7 @@ public class Binding{
     save = KeyBind.add("save", KeyCode.s, KeyCode.controlLeft),
     undo = KeyBind.add("undo", KeyCode.z, KeyCode.controlLeft),
     redo = KeyBind.add("save", KeyCode.y, KeyCode.controlLeft),
+    saveSchematic = KeyBind.add("save_schematic", KeyCode.enter, KeyCode.controlLeft),
     
     //Map editor
     editorGrid = KeyBind.add("editor_grid", KeyCode.g, KeyCode.controlLeft),
