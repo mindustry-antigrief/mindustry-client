@@ -187,4 +187,10 @@ class Migrations {
             }
         }
     }
+
+    private fun migration14(){
+        if(prevMigration > 1){
+            settings.remove("blockiotutorial")
+        }
+    }
 }
