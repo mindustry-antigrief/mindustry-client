@@ -43,7 +43,7 @@ object BuildPlanCommunicationSystem : CommunicationSystem() {
         Timer.schedule({
             val start = Time.millis()
             for (p in Groups.player) {
-                val plan = p.unit()?.plans?.find { it.block == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
+                val plan = p.unit()?.plans?.find { it?.block == Blocks.microProcessor && (it.config as? String)?.run { re.containsMatchIn(this) } == true }
                 if (plan == null || plan.config !is String) continue
                 val hash = plan.config.hashCode()
                 if (lastGotten[p.id] == hash) continue

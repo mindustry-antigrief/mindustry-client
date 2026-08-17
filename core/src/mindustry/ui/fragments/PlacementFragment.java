@@ -505,23 +505,36 @@ public class PlacementFragment{
                     commandTable.image().color(Pal.accent).growX().pad(20f).padTop(0f).padBottom(4f).row();
                     commandTable.table(u -> {
 
+                        /** All commands that are active on at least one of the selected units. */
                         Bits activeCommands = new Bits(content.unitCommands().size);
+                        /** All stances that are active on at least one of the selected units. */
                         Bits activeStances = new Bits(content.unitStances().size);
+                        /** All stances that are active on all of the selected units. */
+                        Bits activeCommonStances = new Bits(content.unitStances().size);
 
+                        /** All commands that are available on at least one of the selected units. */
                         Bits availableCommands = new Bits(content.unitCommands().size);
+                        /** All stances that are available on at least one of the selected units. */
                         Bits availableStances = new Bits(content.unitStances().size);
                         Bits activeTypes = new Bits(content.units().size), prevActiveTypes = new Bits(content.units().size);
 
                         u.left();
                         Bits usedCommands = new Bits(content.unitCommands().size);
+                        /** All commands that are available on at least one of the selected units. */
                         var commands = new Seq<UnitCommand>();
 
                         Bits usedStances = new Bits(content.unitStances().size);
+                        /** All stances that are available on at least one of the selected units. */
                         var stances = new Seq<UnitStance>();
+                        /** Temporary seq used to prevent allocations */
                         var stancesOut = new Seq<UnitStance>();
 
                         UnitCommand[] hoveredCommand = {null};
                         int[][] countBox = new int[1][0];
+
+                        //For unit keybinds
+                        Bits selectedUnitTypes = new Bits(content.units().size);
+                        boolean[] isRemovingUnits = {false};
 
                         rebuildCommand = () -> {
                             if(countBox[0].length != content.units().size) countBox[0] = new int[content.units().size];
@@ -565,14 +578,27 @@ public class PlacementFragment{
                                             Label amountLabel = b.find("stack amount");
                                             if(amountLabel != null){
                                                 amountLabel.setText(() -> counts[fi] + "");
+                                                amountLabel.visible(() -> !Core.input.keyDown(Binding.selectUnitTypeModifier));
                                             }
+
+                                            String kb = UnitKeybinds.getKey(type);
+                                            if(kb != null) b.add(new Table(t -> {
+                                                t.top().right();
+                                                t.add(kb).style(Styles.outlineLabel);
+                                                t.pack();
+                                                t.visible(() -> Core.input.keyDown(Binding.selectUnitTypeModifier));
+                                            }));
 
                                             var listener = new ClickListener();
 
                                             //left click -> select
                                             b.clicked(KeyCode.mouseLeft, () -> {
-                                                control.input.selectedUnits.removeAll(unit -> unit.type != type);
-                                                Events.fire(Trigger.unitCommandChange);
+                                                if(Core.input.keyDown(Binding.selectUnitTypeModifier)){
+                                                    selectedUnitTypes.flip(fi);
+                                                } else {
+                                                    control.input.selectedUnits.removeAll(unit -> unit.type != type);
+                                                    Events.fire(Trigger.unitCommandChange);
+                                                }
                                             });
                                             //right click -> remove
                                             b.clicked(KeyCode.mouseRight, () -> {
@@ -582,14 +608,20 @@ public class PlacementFragment{
 
                                             b.addListener(listener);
                                             b.addListener(new HandCursorListener());
-                                            b.update(() ->
-                                                // gray on hover, green on command hover
-                                                ((Group)b.getChildren().first()).getChildren().first().setColor(
-                                                    hoveredCommand[0] != null &&
+                                            b.update(() -> {
+                                                Color color;
+                                                if(Core.input.keyDown(Binding.selectUnitTypeModifier)){
+                                                    color = selectedUnitTypes.get(fi) ?
+                                                        isRemovingUnits[0] ? Pal.remove : Color.valueOf("FFDF20")
+                                                    : Color.white;
+                                                } else {
+                                                    color = hoveredCommand[0] != null &&
                                                     type.commands.contains(hoveredCommand[0], true) ? Pal.heal :
-                                                    listener.isOver() ? Color.lightGray : Color.white
-                                                )
-                                            );
+                                                    listener.isOver() ? Color.lightGray : Color.white;
+                                                }
+                                                // gray on hover, green on command hover
+                                                ((Group)b.getChildren().first()).getChildren().first().setColor(color);
+                                            });
                                         });
 
                                         if(++col % 7 == 0){
@@ -645,9 +677,13 @@ public class PlacementFragment{
                                         int scol = 0;
                                         for(var stance : stances){
 
-                                            coms.button(stance.getIcon(), Styles.clearNoneTogglei, () -> {
-                                                Call.setUnitStance(player, units.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance, !activeStances.get(stance.id));
-                                            }).checked(i -> activeStances.get(stance.id)).size(50f).tooltip(stance.localized(), true);
+                                            var button = coms.button(stance.getIcon(), Styles.clearNoneTogglei, () -> {
+                                                Call.setUnitStance(player, units.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance, Core.input.modifierDown(Binding.enableStance) || !activeStances.get(stance.id));
+                                            }).size(50f).tooltip(stance.localized(), true).get();
+                                            button.update(() -> {
+                                                button.setColor(activeCommonStances.get(stance.id) ? Color.white : Pal.accentBack);
+                                                button.setChecked(activeStances.get(stance.id));
+                                            });
 
                                             if(++scol % 6 == 0) coms.row();
                                         }
@@ -664,6 +700,7 @@ public class PlacementFragment{
                                 int[] counts = countBox[0];
                                 activeCommands.clear();
                                 activeStances.clear();
+                                activeCommonStances.set(0, content.unitStances().size);
                                 availableCommands.clear();
                                 availableStances.clear();
                                 activeTypes.clear();
@@ -674,7 +711,8 @@ public class PlacementFragment{
                                 for(var unit : control.input.selectedUnits){
                                     if(unit.controller() instanceof CommandAI cmd){
                                         activeCommands.set(cmd.command.id);
-                                        activeStances.set(cmd.stances);
+                                        activeStances.or(cmd.stances);
+                                        activeCommonStances.and(cmd.stances);
                                     }
 
                                     counts[unit.type.id] ++;
@@ -702,7 +740,7 @@ public class PlacementFragment{
                                 for(UnitStance stance : stances){
                                     //first stance must always be the stop stance
                                     if(stance.keybind != null && Core.input.keyTap(stance.keybind)){
-                                        Call.setUnitStance(player, control.input.selectedUnits.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance, !activeStances.get(stance.id));
+                                        Call.setUnitStance(player, control.input.selectedUnits.mapInt(un -> un.id, un -> un.type.allowStance(un, stance)).toArray(), stance, Core.input.modifierDown(Binding.enableStance) || !activeStances.get(stance.id));
                                     }
                                 }
 
@@ -712,6 +750,32 @@ public class PlacementFragment{
                                         Call.setUnitCommand(player, control.input.selectedUnits.mapInt(un -> un.id, un -> un.type.allowCommand(un, command)).toArray(), command);
                                     }
                                 }
+
+                                //I'm adding more input logic -BalaM314
+                                if(Core.input.keyTap(Binding.selectUnitTypeModifier)){
+                                    isRemovingUnits[0] = false;
+                                    selectedUnitTypes.clear();
+                                }
+                                if(Core.input.keyDown(Binding.selectUnitTypeModifier)){
+                                    if(Core.input.keyDown(Binding.delete)) isRemovingUnits[0] ^= true;
+                                    for(var entry : UnitKeybinds.entries){
+                                        if(Core.input.keyTap(entry.key)){
+                                            boolean primary = control.input.selectedUnits.contains(un -> un.type == entry.unit);
+                                            boolean secondary = control.input.selectedUnits.contains(un -> un.type == entry.otherUnit);
+                                            if(primary && secondary) selectedUnitTypes.flip((Core.input.shift() ? entry.otherUnit : entry.unit).id);
+                                            else if(primary) selectedUnitTypes.flip(entry.unit.id);
+                                            else if(secondary) selectedUnitTypes.flip(entry.otherUnit.id);
+                                        }
+                                    }
+                                }
+                                if(Core.input.keyRelease(Binding.selectUnitTypeModifier)){
+                                    if(!selectedUnitTypes.isEmpty()){
+                                        control.input.selectedUnits.retainAll(unit -> selectedUnitTypes.get(unit.type.id) != isRemovingUnits[0]);
+                                        Events.fire(Trigger.unitCommandChange);
+                                        selectedUnitTypes.clear();
+                                    }
+                                }
+
                             }
                         });
                         rebuildCommand.run();
@@ -843,9 +907,9 @@ public class PlacementFragment{
         //if the mouse intersects the table or the UI has the mouse, no hovering can occur
         if(Core.scene.hasMouse(Core.input.mouseX(), Core.input.mouseY()) || topTable.hit(v.x, v.y, false) != null) return null;
 
-        if (!ClientVars.hidingUnits) { // FINISHME: respect hidingAirUnits setting
+        if (!ClientVars.hidingUnits) {
             //check for a unit
-            Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), Core.input.shift() ? tilesize * 6 : 5f, u -> !u.isLocal() && u.displayable());
+            Unit unit = Units.closestOverlap(Core.input.mouseWorldX(), Core.input.mouseWorldY(), Core.input.shift() ? tilesize * 6 : 5f, u -> !u.isLocal() && u.displayable() && !(ClientVars.hidingAirUnits && u.isFlying()));
             //if cursor has a unit, display it
             if (unit != null) return unit;
         }

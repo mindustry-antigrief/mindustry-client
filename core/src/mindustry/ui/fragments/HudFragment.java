@@ -463,7 +463,7 @@ public class HudFragment{
             }
 
             cont.update(() -> {
-                if(Core.input.keyTap(Binding.toggleMenus) && !ui.chatfrag.shown() && !Core.scene.hasDialog() && !Core.scene.hasField()){
+                if(Core.input.keyTap(Binding.toggleMenus) && !ui.chatfrag.shown() && !Core.scene.hasDialog() && !Core.scene.hasField() && !Core.input.alt() && !Core.input.shift() && !Core.input.ctrl()){
                     Core.settings.getBoolOnce("ui-hidden", () -> {
                         ui.announce(Core.bundle.format("showui",  Binding.toggleMenus.value.key.toString(), 11));
                     });
@@ -1157,7 +1157,7 @@ public class HudFragment{
             t.addListener(new Tooltip(tooltip ->
                 tooltip.background(Styles.black6).margin(4f).label(() ->
                     player.dead() ? Strings.format("@: N/A", Core.bundle.get("stat.health")) :
-                        shieldMax[0] > 0 ?
+                        shieldMax[0] > 0 || shield[0] > 0 ?
                             Strings.format("@: (@ + @)/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), Mathf.round(shield[0], 0.1f), player.unit().maxHealth)
                         : Strings.format("@: @/@", Core.bundle.get("stat.health"), Mathf.round(player.unit().health, 0.1f), player.unit().maxHealth)
                 ).style(Styles.outlineLabel)
@@ -1179,7 +1179,10 @@ public class HudFragment{
                         } else if(ab instanceof ShieldArcAbility sa){
                             shield[0] = sa.data;
                             shieldMax[0] = sa.max;
-                        } else shield[0] = shieldMax[0] = 0;
+                        } else {
+                            shield[0] = player.unit().shield;
+                            shieldMax[0] = 0;
+                        }
                         return shieldMax[0] > 0;
                     })
                 )

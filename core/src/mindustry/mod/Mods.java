@@ -43,6 +43,9 @@ public class Mods implements Loadable{
     //new patch API as of build 159 breaks older versions of the patch editor
     "patch-editor:1.10.1", "patch-editor:1.10.0", "patch-editor:1.9.5", "patch-editor:1.9.4", "patch-editor:1.9.3"
     );
+    private static final ObjectSet<String> blacklistedRepos = ObjectSet.with(
+    "anthropiccom/lithium4mindustry"
+    );
 
     private Json json = new Json();
     private @Nullable Scripts scripts;
@@ -1545,7 +1548,7 @@ public class Mods implements Loadable{
 
         /** Some mods are known to cause issues with the game; this detects and returns whether a mod is manually blacklisted. */
         public boolean isBlacklisted(){
-            return blacklistedMods.contains(name) || blacklistedMods.contains(name + ":" + version);
+            return blacklistedMods.contains(name) || blacklistedMods.contains(name + ":" + version) || (repo != null && blacklistedRepos.contains(repo));
         }
 
         public String shortDescription(){

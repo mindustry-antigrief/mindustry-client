@@ -1,8 +1,10 @@
 package mindustry.client.utils
 
 import arc.Core.*
+import arc.input.*
 import arc.struct.*
 import arc.util.*
+import mindustry.input.*
 import mindustry.type.*
 
 @Suppress("unused")
@@ -99,6 +101,90 @@ class Migrations {
         // This ensures people who have kept it at 30 wouldn't have their setting changed
         if (prevMigration > 1 && !settings.has("transferrangeopacity")) {
             settings.put("transferrangeopacity", 30)
+        }
+    }
+
+    private fun migration12() {
+        // Many keybinds were split into multiple bindings
+        // Update the new bindings based on the user's value of the old binding
+        if (prevMigration > 1) {
+            //this is really terrible but i cant be bothered to open arc again and it works
+            settings.get("keybind-default-keyboard-ping-key", null)?.let {
+                Binding.pingText.save()
+                Binding.pingClear.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-ping_text-key", key)
+                settings.put("keybind-default-keyboard-ping_clear-key", key)
+            }
+            settings.get("keybind-default-keyboard-schematic_menu-key", null)?.let {
+                Binding.schematicBrowser.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-schematic_browser-key", key)
+            }
+            settings.get("keybind-default-keyboard-select_all_units-key", null)?.let {
+                Binding.selectReallyAllUnits.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-select_really_all_units-key", key)
+            }
+            settings.get("keybind-default-keyboard-navigate_to_cursor-key", null)?.let {
+                Binding.viewChatPosition.save()
+                Binding.viewWarnPosition.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-view_warn_position-key", key)
+                settings.put("keybind-default-keyboard-view_chat_position-key", key)
+            }
+            settings.get("keybind-default-keyboard-show_turret_ranges-key", null)?.let {
+                Binding.showOverdriveRanges.save()
+                Binding.showAlliedTurretRanges.save()
+                Binding.showInvertedTurretRanges.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-show_overdrive_ranges-key", key)
+                settings.put("keybind-default-keyboard-show_allied_turret_ranges-key", key)
+                settings.put("keybind-default-keyboard-show_inverted_turret_ranges-key", key)
+            }
+            settings.get("keybind-default-keyboard-hide_blocks-key", null)?.let {
+                Binding.hidePlans.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-hide_plans-key", key)
+            }
+            settings.get("keybind-default-keyboard-invisible_units-key", null)?.let {
+                Binding.invisibleAirUnits.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-invisible_air_units-key", key)
+            }
+            settings.get("keybind-default-keyboard-auto_build-key", null)?.let {
+                Binding.sortBuildPlans.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-sort_build_plans-key", key)
+            }
+            settings.get("keybind-default-keyboard-toggle_auto_target-key", null)?.let {
+                Binding.autoTransfer.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-auto_transfer-key", key)
+            }
+            settings.get("keybind-default-keyboard-pause_building-key", null)?.let {
+                Binding.toggleFreezeQueueing.save()
+                Binding.flushFrozenPlans.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-toggle_freeze_queueing-key", key)
+                settings.put("keybind-default-keyboard-flush_frozen_plans-key", key)
+            }
+            settings.get("keybind-default-keyboard-clear_building-key", null)?.let {
+                Binding.clearFrozenPlans.save()
+                val key = it as Int
+                settings.put("keybind-default-keyboard-clear_frozen_plans-key", key)
+            }
+            for(bind in KeyBind.all){
+                bind.load();
+            }
+        }
+    }
+    private fun migration13(){
+        if(prevMigration > 1){
+            settings.getInt("keybind-default-keyboard-find_modifier-key", KeyCode.controlLeft.ordinal).let {
+                Binding.find.value.modifiers = arrayOf(KeyCode.byOrdinal(it))
+                Binding.find.save()
+            }
         }
     }
 }

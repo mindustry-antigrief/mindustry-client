@@ -105,7 +105,7 @@ public class SchematicBrowserDialog extends BaseDialog {
         Time.mark();
         loadRepositories();
         if(!Core.settings.getBool("schematicuicarryover")){
-            nameSearch = "";
+            if(nameSearchField != null) nameSearchField.selectAll();
             descSearch = "";
         }
 

@@ -93,7 +93,7 @@ abstract class Navigator {
         }
 
         //Consider respawning at a core
-        if (Time.timeSinceMillis(lastTp) > 3000 && player.team().cores().any()) {
+        if (Time.timeSinceMillis(lastTp) > 3000 && player.team().cores().any() && start.dst2(end) > 400) { //min 1.6 tiles
             if (
                 unit?.spawnedByCore == true &&
                 unit.stack.amount == 0 &&
