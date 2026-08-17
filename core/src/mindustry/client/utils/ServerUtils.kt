@@ -165,6 +165,10 @@ sealed class Server(
                 Log.debug("Returning to menu, server, mode override cleared")
             }
 
+            Events.on(ServerJoinEvent::class.java) {
+                current.handleLogin()
+            }
+
             // Anything below for server specific packet handlers - More abhorentness :)
             netClient.addPacketHandler("vote") {
                 try {
@@ -191,12 +195,13 @@ object CN : Server(
     rtv = Companion.Cmd("/rtv"),
     freeze = Companion.Cmd("/freeze", 3),
     mute = Companion.Cmd("/mute", 3),
+    unmute = Companion.Cmd("/pardon", 3), // not implemented
 ) {
     // TODO: Make the moderation handlers use Moderation.kt
     override fun adminui() = player.admin || ClientVars.rank >= 2
 
     // Support for CN Testing port 50016 (Non BE Testing)
-    override fun isJoinedServer(group: List<String>?, host: Host?) = super.isJoinedServer(group, host) || (host?.address == "5.196.91.230" && host.port == 50016)
+    override fun isJoinedServer(group: List<String>?, host: Host?) = super.isJoinedServer(group, host) || (host?.address == "5.196.91.230")
 
     override fun handleFreeze(p: Player) {
         Call.serverPacketReliable("foosModeration", Jval.newObject().apply {
@@ -224,7 +229,7 @@ object CN : Server(
                 1 -> false
                 2 -> true
                 3 -> Random.nextBoolean()
-                else -> false
+                else -> return
             }
             val force: Boolean = ClientVars.rank >= 2
             val json = Jval.newObject().apply {
@@ -251,12 +256,6 @@ object CN : Server(
             // TODO: Shitty string, make it better
             Log.err("Login Password setting indexing corrupted: ", e)
             player.sendMessage("Your username or password is corrupted, change your password")
-        }
-    }
-
-    init {
-        Events.on(PlayerJoin::class.java) {
-            handleLogin()
         }
     }
 }
