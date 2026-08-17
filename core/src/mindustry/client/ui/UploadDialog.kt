@@ -12,6 +12,7 @@ import mindustry.client.communication.*
 import mindustry.client.utils.*
 import mindustry.game.*
 import mindustry.gen.*
+import mindustry.input.*
 import mindustry.ui.*
 import mindustry.ui.dialogs.*
 
@@ -35,12 +36,11 @@ object UploadDialog : BaseDialog("@client.uploadtitle") { // FINISHME: Somehow s
             }
         }
 
-        keyDown {
-            if (Core.input.ctrl() && it == KeyCode.v) { // For some reason, it seems that interacting with the clipboard breaks sdl on Mac
-                if (OS.isMac) Vars.ui.showInfoToast("Image pasting does not work on mac.", 3f)
-                else {
-                    addImage(pixmapFromClipboard() ?: return@keyDown)
-                }
+        keyDown(Binding.paste) {
+            // For some reason, it seems that interacting with the clipboard breaks sdl on Mac
+            if (OS.isMac) Vars.ui.showInfoToast("Image pasting does not work on mac.", 3f)
+            else {
+                addImage(pixmapFromClipboard() ?: return@keyDown)
             }
         }
 

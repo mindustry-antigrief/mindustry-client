@@ -1658,6 +1658,10 @@ public class Block extends UnlockableContent implements Senseable{
         }
     }
 
+    public void rotatePlan(BuildPlan plan, int direction){
+        plan.rotation = planRotation(Mathf.mod(plan.rotation + direction, 4)); //Moved from InputHandler
+    }
+
     /** Fills the specified array with the list of configuration options this block has. Only used for plans. */
     public void getPlanConfigs(Seq<UnlockableContent> options){
         if(configurations.containsKey(Item.class)){

@@ -94,7 +94,7 @@ object Client {
             if (timer.get(1, 1 * 60F)) { // We still cache the start points as eachGroundSpawn is expensive. FINISHME: Should this actually use spawnTime?
                 tiles.clear()
                 tilesFlying.clear()
-                spawner.eachGroundSpawn { x, y -> tiles.add(world.tile(x, y)) }
+                spawner.eachGroundSpawn { x, y -> tiles.add(world.tile(x, y) ?: return@eachGroundSpawn) }
                 spawner.eachFlyerSpawn(tilesFlying::add) // FINISHME: Add a path for each unit type? Also add this to the non line based path drawing
             }
             for (t in tiles) {

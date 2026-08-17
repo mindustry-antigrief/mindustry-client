@@ -42,6 +42,7 @@ import mindustry.ui.*;
 import mindustry.ui.fragments.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
+import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.logic.*;
@@ -1260,12 +1261,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
                 Teamc attack = null;
                 
-                if(!Core.input.ctrl()){
-                    if(!Core.input.alt()) attack = world.buildWorld(target.x, target.y);
-
-                    if(attack == null || attack.team() == player.team()){
-                        attack = selectedEnemyUnit(target.x, target.y);
-                    }
+                if(!Core.input.modifierDown(Binding.commandNoTargetBuilding)){
+                    attack = world.buildWorld(target.x, target.y);
+                    if(attack != null && attack.team() == player.team()) attack = null;
+                }
+                if(attack == null && !Core.input.modifierDown(Binding.commandNoTargetUnit)){
+                    attack = selectedEnemyUnit(target.x, target.y);
                 }
 
                 int[] ids = new int[selectedUnits.size];
@@ -1627,7 +1628,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     public void useSchematic(Schematic schem){
-        useSchematic(schem, true);
+        useSchematic(schem, !state.rules.editor);
     }
 
     public abstract void useSchematic(Schematic schem, boolean checkHidden);
@@ -1690,7 +1691,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             }
             plan.x = World.toTile(wx - plan.block.offset) + ox;
             plan.y = World.toTile(wy - plan.block.offset) + oy;
-            plan.rotation = plan.block.planRotation(Mathf.mod(plan.rotation + direction, 4));
+            
+            plan.block.rotatePlan(plan, direction); //Foo's change, code moved to Block.rotatePlan to allow overriding it for cliffs
         });
     }
 
@@ -2000,7 +2002,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
             }
 
-            boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation, null, true);
+            boolean valid = validPlace(plan.x, plan.y, plan.block, plan.rotation, null, true)
+                || (state.rules.editor && plan.block instanceof OreBlock o && o.wallOre); //Always allow placing wall ores in editor mode, because there might be a wall in the plans that makes it valid
             if(freeze || (force && world.tile(plan.x, plan.y) != null) || valid){
                 BuildPlan copy = plan.copy();
                 if(configLogic && copy.block instanceof LogicBlock && copy.config != null) { // Store the configs for logic blocks locally, they cause issues when sent to the server
@@ -2736,9 +2739,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         && !plan.breaking
         && !(vpBlock.canReplace(plan.block) && plan.x == vpX && plan.y == vpY);
 
+    private static final Boolf<BuildPlan> spPredicate = plan ->
+        plan.x == vpX && plan.y == vpY && plan.block == vpBlock;
+
     public boolean validPlace(int x, int y, Block type, int rotation, @Nullable BuildPlan ignore, boolean ignoreUnits){
+        vpBlock = type;
+        vpX = x;
+        vpY = y;
         if(!(ignoreUnits ? Build.validPlaceIgnoreUnits(type, player.team(), x, y, rotation, true, true) : Build.validPlace(type, player.team(), x, y, rotation))){
-            return false;
+            var samePlan = playerPlanTree.find(x * tilesize, y * tilesize, 1, 1, spPredicate);
+            return samePlan != null; //Always allow overriding existing plans, otherwise return false if invalid
         }
 
         if(!player.dead() && player.unit().plans.size > 0){
@@ -2748,9 +2758,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             float s = type.size * tilesize;
             vpIgnore = ignore;
-            vpBlock = type;
-            vpX = x;
-            vpY = y;
 
             return playerPlanTree.find(x * tilesize + type.offset - s / 2f, y * tilesize + type.offset - s / 2f, s, s, vpPredicate) == null;
         }
@@ -2898,7 +2905,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             movement.add(input.mouseWorld().sub(player).scl(1f / 25f * speed)).limit(speed);
         }
 
-        boolean aimCursor = omni && player.shooting && unit.type().hasWeapons() && unit.type().faceTarget && !boosted;
+        boolean aimCursor = omni && player.shooting && unit.type().hasWeapons() && unit.type().faceTarget /*&& !boosted*/;
 
         if(aimCursor){
             unit.lookAt(direction);

@@ -31,6 +31,7 @@ import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.legacy.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.sandbox.*;
@@ -404,8 +405,12 @@ public class Schematics implements Loadable{
         all.sort();
     }
 
-    /** Creates a schematic from a world selection. */
     public Schematic create(int x, int y, int x2, int y2){
+        return create(x, y, x2, y2, false);
+    }
+
+    /** Creates a schematic from a world selection. */
+    public Schematic create(int x, int y, int x2, int y2, boolean useEnvThings){
         Team team = headless ? null : Vars.player.team();
         NormalizeResult result = Placement.normalizeArea(x, y, x2, y2, 0, false, maxSchematicSize);
         x = result.x;
@@ -417,34 +422,42 @@ public class Schematics implements Loadable{
 
         Seq<Stile> tiles = new Seq<>();
 
-        int minx = x2, miny = y2, maxx = x, maxy = y;
-        boolean found = false;
-        for(int cx = x; cx <= x2; cx++){
-            for(int cy = y; cy <= y2; cy++){
-                Building linked = world.build(cx, cy);
-                if(linked != null && (!linked.isDiscovered(team) || !linked.wasVisible)) continue;
+        if(useEnvThings){
+            //all tiles in the world have a valid floor, so the entire selection will be included
+            x = Math.max(0, x);
+            y = Math.max(0, y);
+            x2 = Math.min(Vars.world.width(), x2);
+            y2 = Math.min(Vars.world.height(), y2);
+        } else {
+            int minx = x2, miny = y2, maxx = x, maxy = y;
+            boolean found = false;
+            for(int cx = x; cx <= x2; cx++){
+                for(int cy = y; cy <= y2; cy++){
+                    Building linked = world.build(cx, cy);
+                    if(linked != null && (!linked.isDiscovered(team) || !linked.wasVisible)) continue;
 
-                Block realBlock = linked == null ? null : linked instanceof ConstructBuild cons ? cons.current : linked.block;
+                    Block realBlock = linked == null ? null : linked instanceof ConstructBuild cons ? cons.current : linked.block;
 
-                if(linked != null && realBlock != null && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
-                    int top = realBlock.size/2;
-                    int bot = realBlock.size % 2 == 1 ? -realBlock.size/2 : -(realBlock.size - 1)/2;
-                    minx = Math.min(linked.tileX() + bot, minx);
-                    miny = Math.min(linked.tileY() + bot, miny);
-                    maxx = Math.max(linked.tileX() + top, maxx);
-                    maxy = Math.max(linked.tileY() + top, maxy);
-                    found = true;
+                    if(linked != null && realBlock != null && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
+                        int top = realBlock.size/2;
+                        int bot = realBlock.size % 2 == 1 ? -realBlock.size/2 : -(realBlock.size - 1)/2;
+                        minx = Math.min(linked.tileX() + bot, minx);
+                        miny = Math.min(linked.tileY() + bot, miny);
+                        maxx = Math.max(linked.tileX() + top, maxx);
+                        maxy = Math.max(linked.tileY() + top, maxy);
+                        found = true;
+                    }
                 }
             }
-        }
 
-        if(found){
-            x = minx;
-            y = miny;
-            x2 = maxx;
-            y2 = maxy;
-        }else{
-            return new Schematic(new Seq<>(), new StringMap(), 1, 1);
+            if(found){
+                x = minx;
+                y = miny;
+                x2 = maxx;
+                y2 = maxy;
+            }else{
+                return new Schematic(new Seq<>(), new StringMap(), 1, 1);
+            }
         }
 
         int width = x2 - x + 1, height = y2 - y + 1;
@@ -452,16 +465,36 @@ public class Schematics implements Loadable{
         IntSet counted = new IntSet();
         for(int cx = ox; cx <= ox2; cx++){
             for(int cy = oy; cy <= oy2; cy++){
-                Building tile = world.build(cx, cy);
-                if(tile != null && (!tile.isDiscovered(team) || !tile.wasVisible)) continue;
-                Block realBlock = tile == null ? null : tile instanceof ConstructBuild cons ? cons.current : tile.block;
+                if(useEnvThings){
+                    Tile tile = world.tile(cx, cy);
+                    if(tile == null) continue;
+                    Floor floor = tile.floor();
+                    if(floor != null){ //i dont think this check is necessary
+                        //config is null, can we copy the tile data somehow?
+                        tiles.add(new Stile(floor, cx + offsetX, cy + offsetY, null, (byte)0));
+                    }
+                    Block block = tile.block();
+                    if(block != null && (block.isStatic() || block instanceof Prop)){
+                        Object config = block instanceof Cliff ? (int)tile.data : null;
+                        tiles.add(new Stile(block, cx + offsetX, cy + offsetY, config, (byte)0));
+                    }
+                    //Add overlay last to support wall ores
+                    Floor overlay = tile.overlay();
+                    if(overlay != null && overlay != Blocks.air){
+                        tiles.add(new Stile(overlay, cx + offsetX, cy + offsetY, null, (byte)0));
+                    }
+                } else {
+                    Building tile = world.build(cx, cy);
+                    if(tile != null && (!tile.isDiscovered(team) || !tile.wasVisible)) continue;
+                    Block realBlock = tile == null ? null : tile instanceof ConstructBuild cons ? cons.current : tile.block;
 
-                if(tile != null && !counted.contains(tile.pos()) && realBlock != null
-                    && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
-                    Object config = !(tile instanceof ConstructBuild cons) ?
-                        tile.config() : cons.lastConfig;
-                    tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config, (byte)tile.rotation));
-                    counted.add(tile.pos());
+                    if(tile != null && !counted.contains(tile.pos()) && realBlock != null
+                        && (realBlock.isVisible() || realBlock instanceof CoreBlock)){
+                        Object config = !(tile instanceof ConstructBuild cons) ?
+                            tile.config() : cons.lastConfig;
+                        tiles.add(new Stile(realBlock, tile.tileX() + offsetX, tile.tileY() + offsetY, config, (byte)tile.rotation));
+                        counted.add(tile.pos());
+                    }
                 }
             }
         }

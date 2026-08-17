@@ -93,7 +93,8 @@ enum class CustomMode(
 
         init {
             Events.on(WorldLoadEvent::class.java) {
-                val modeName = if (!net.client() || ui.join.lastHost?.modeName?.isBlank() != false) state.rules.modeName?.lowercase() else ui.join.lastHost.modeName.lowercase()
+                var modeName = if (!net.client() || ui.join.lastHost?.modeName?.isBlank() != false) state.rules.modeName?.lowercase() else ui.join.lastHost.modeName.lowercase()
+                if (modeName == "flood pvp") modeName = "flood" // lazy way to support floodpvp
                 current = entries.find { (it.modeName ?: it.name) == modeName } ?: none // If modeName (or just the enum name if modeName is unspecified) matches, setup this mode
             }
 

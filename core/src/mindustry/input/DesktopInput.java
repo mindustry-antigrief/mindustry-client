@@ -357,83 +357,9 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(input.keyTap(Binding.runJS) && scene.getKeyboardFocus() == null){
-            boolean ran = false;
-            for(var opt : JSBindingOption.values()){
-                if(opt.check.get() && !ran){
-                    if(!settings.getString(opt.settingsKey, "").isEmpty()){
-                        ChatFragment.handleClientCommand(Core.settings.getString(opt.settingsKey));
-                        ran = true;
-                    } else {
-                        Vars.player.sendMessage(Strings.format(opt.message, Binding.runJS.value.key.toString()));
-                    }
-                }
-            }
-        }
-
-        if(input.keyTap(Binding.invisibleUnits) && scene.getKeyboardFocus() == null){
-            if (input.shift()) hidingAirUnits = !hidingAirUnits;
-            else hidingUnits = !hidingUnits;
-        }
-
         if(input.keyTap(Binding.showReactorAndDomeRanges)){
             settings.put("showreactors", !settings.getBool("showreactors"));
             settings.put("showdomes", !settings.getBool("showdomes"));
-        }
-
-        if(input.keyTap(Binding.showTurretRanges) && scene.getKeyboardFocus() == null){
-            if (input.shift()) showingOverdrives = !showingOverdrives;
-            else if (input.ctrl() && settings.getBool("allowinvturrets")) showingInvTurrets = !showingInvTurrets;
-            else if (input.alt()) showingAllyTurrets = !showingAllyTurrets;
-            else showingTurrets = !showingTurrets;
-        }
-
-        if(input.keyTap(Binding.showMassdriverConfigs) && scene.getKeyboardFocus() == null){
-            showingMassDrivers = !showingMassDrivers;
-        }
-
-        if(input.keyTap(Binding.hideBlocks) && scene.getKeyboardFocus() == null){
-            if (input.shift()) hidingPlans = !hidingPlans;
-            else hidingBlocks = !hidingBlocks;
-        }
-
-        if(input.keyTap(Binding.stopFollowingPath) && scene.getKeyboardFocus() == null){
-            Navigation.stopFollowing();
-        }
-
-        if(input.keyTap(Binding.autoBuild) && scene.getKeyboardFocus() == null && !player.dead()){
-            if(input.shift()) {
-                var plans = player.unit().plans;
-                var arr = plans.toArray(BuildPlan.class); // FINISHME: Add an overload that takes an array param to avoid making a new one every time, make it use arraycopy twice instead of running get() in a loop
-                Sort.instance().sort(arr, Structs.comparingFloat(p -> p.dst2(player)));
-                plans.clear();
-                Structs.each(plans::add, arr);
-                new Toast(3).add("@client.sortedplans");
-            } else Navigation.follow(new BuildPath());
-        }
-
-        if(input.keyTap(Binding.autoRepair) && scene.getKeyboardFocus() == null && (input.shift() || (player != null && player.unit() != null && player.unit().type.canHeal))){
-            Navigation.follow(new RepairPath());
-        }
-
-        if(input.keyTap(Binding.autoMine) && scene.getKeyboardFocus() == null && (input.shift() || (player != null && player.unit() != null && player.unit().type.mineTier > 0))){
-            Navigation.follow(new MinePath());
-        }
-
-        if(input.keyTap(Binding.toggleStrictMode) && scene.getKeyboardFocus() == null){
-            settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
-        }
-
-        if(input.keyTap(Binding.toggleAutoTarget) && scene.getKeyboardFocus() == null && selectPlans.isEmpty()){
-            if (input.shift()) { // Toggle auto transfer
-                AutoTransfer.enabled ^= true;
-                settings.put("autotransfer", AutoTransfer.enabled);
-                new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
-            } else { // Toggle auto target
-                player.shooting = false;
-                settings.put("autotarget", !settings.getBool("autotarget"));
-                new Toast(1).add(bundle.get("setting.autotarget.name") + ": " + bundle.get((settings.getBool("autotarget") ? "mod.enabled" : "mod.disabled")));
-            }
         }
 
         boolean locked = locked();
@@ -441,24 +367,91 @@ public class DesktopInput extends InputHandler{
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
         boolean detached = settings.getBool("detach-camera", false);
 
-        if(input.keyTap(Binding.navigateToCursor) && scene.getKeyboardFocus() == null){
-            if(selectPlans.any() == input.shift() && !input.ctrl()) Navigation.navigateTo(input.mouseWorld(), Core.input.alt()); // Z to nav to cursor (SHIFT + Z when placing schem)
-            else if (selectPlans.isEmpty()){ // SHIFT + Z to view lastSentPos, double tap to nav there, special case for logic viruses as well (does nothing when placing schem)
-                if(input.shift()) {
+        if(scene.getKeyboardFocus() == null){
+            if(input.keyTap(Binding.showInvertedTurretRanges)) showingInvTurrets = !showingInvTurrets;
+            else if(input.keyTap(Binding.showAlliedTurretRanges)) showingAllyTurrets = !showingAllyTurrets;
+            else if(input.keyTap(Binding.showOverdriveRanges)) showingOverdrives = !showingOverdrives;
+            else if(input.keyTap(Binding.showTurretRanges)) showingTurrets = !showingTurrets;
+
+            if(input.keyTap(Binding.showMassdriverConfigs)) showingMassDrivers = !showingMassDrivers;
+
+            if(input.keyTap(Binding.stopFollowingPath)) Navigation.stopFollowing();
+
+            if(input.keyTap(Binding.toggleStrictMode)){
+                settings.put("assumeunstrict", !settings.getBool("assumeunstrict"));
+            }
+
+            if(!(commandMode && (Core.input.keyDown(Binding.selectUnitTypeModifier) || Core.input.alt()) && selectedUnits.any())){
+
+                if(input.keyTap(Binding.invisibleAirUnits)) hidingAirUnits ^= true;
+                else if(input.keyTap(Binding.invisibleUnits)) hidingUnits ^= true;
+
+                if(input.keyTap(Binding.runJS)){
+                    boolean ran = false;
+                    for(var opt : JSBindingOption.values()){
+                        if(opt.check.get() && !ran){
+                            if(!settings.getString(opt.settingsKey, "").isEmpty()){
+                                ChatFragment.handleClientCommand(Core.settings.getString(opt.settingsKey));
+                                ran = true;
+                            } else {
+                                Vars.player.sendMessage(Strings.format(opt.message, Binding.runJS.value.key.toString()));
+                            }
+                        }
+                    }
+                }
+
+                if(input.keyTap(Binding.hidePlans)) hidingPlans = !hidingPlans;
+                else if(input.keyTap(Binding.hideBlocks)) hidingBlocks = !hidingBlocks;
+
+                if(input.keyTap(Binding.sortBuildPlans) && !player.dead()){
+                    var plans = player.unit().plans;
+                    var arr = plans.toArray(BuildPlan.class); // FINISHME: Add an overload that takes an array param to avoid making a new one every time, make it use arraycopy twice instead of running get() in a loop
+                    Sort.instance().sort(arr, Structs.comparingFloat(p -> p.dst2(player)));
+                    plans.clear();
+                    Structs.each(plans::add, arr);
+                    new Toast(3).add("@client.sortedplans");
+                } else if(input.keyTap(Binding.autoBuild) && !player.dead()){
+                    Navigation.follow(new BuildPath());
+                }
+
+                if(input.keyTap(Binding.autoRepair) && (input.shift() || (player != null && player.unit() != null && player.unit().type.canHeal))){
+                    Navigation.follow(new RepairPath());
+                }
+
+                if(input.keyTap(Binding.autoMine) && (input.shift() || (player != null && player.unit() != null && player.unit().type.mineTier > 0))){
+                    Navigation.follow(new MinePath());
+                }
+
+                if (input.keyTap(Binding.autoTransfer)) {
+                    AutoTransfer.enabled ^= true;
+                    settings.put("autotransfer", AutoTransfer.enabled);
+                    new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
+                } else if(input.keyTap(Binding.toggleAutoTarget) && (selectPlans.isEmpty() || !input.keyTap(Binding.schematicFlipY))){
+                    player.shooting = false;
+                    settings.put("autotarget", !settings.getBool("autotarget"));
+                    new Toast(1).add(bundle.get("setting.autotarget.name") + ": " + bundle.get((settings.getBool("autotarget") ? "mod.enabled" : "mod.disabled")));
+                }
+
+                boolean schematicFlip = selectPlans.any() && input.keyTap(Binding.schematicFlipX);
+                if(input.keyTap(Binding.viewChatPosition) && !schematicFlip) {
                     if (Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(lastSentPos.cpy().scl(tilesize));
                     else Spectate.INSTANCE.spectate(lastSentPos.cpy().scl(tilesize));
-                } else if(input.ctrl()) {
+                } else if(input.keyTap(Binding.viewWarnPosition)) {
                     if (Time.timeSinceMillis(lastShiftZ) < 400) Navigation.navigateTo(lastWarnPos.cpy().scl(tilesize));
                     else Spectate.INSTANCE.spectate(lastWarnPos.cpy().scl(tilesize)); // reusing lastShiftZ should be fine since its a small interval welp
+                } else if(input.keyTap(Binding.navigateToCursor) && (!schematicFlip || Core.input.shift())){ //this is bad UX design to move bindings around based on state, too late to change it
+                    Navigation.navigateTo(input.mouseWorld(), Core.input.alt()); // Z to nav to cursor
                 }
-                lastShiftZ = Time.millis();
+                if(input.keyTap(Binding.navigateToCursor) && selectPlans.isEmpty()){
+                    lastShiftZ = Time.millis();
 
-                if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus
-                    virusBuild = lastVirusWarning; // Store this build in its own var so it isn't overwritten
-                    lastVirusWarning = null;
+                    if(Time.timeSinceMillis(lastVirusWarnTime) < 3000 && lastVirusWarning != null && world.tile(lastVirusWarning.pos()).build == lastVirusWarning){ // Logic virus
+                        virusBuild = lastVirusWarning; // Store this build in its own var so it isn't overwritten
+                        lastVirusWarning = null;
 
-                    virusBuild.configure(LogicBlock.compress("end\n" + virusBuild.code, virusBuild.relativeConnections())); // Disable the block while we look into it
-                    try{Vars.ui.logic.show(virusBuild.code, virusBuild.executor, virusBuild.block.privileged, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
+                        virusBuild.configure(LogicBlock.compress("end\n" + virusBuild.code, virusBuild.relativeConnections())); // Disable the block while we look into it
+                        try{Vars.ui.logic.show(virusBuild.code, virusBuild.executor, virusBuild.block.privileged, code -> virusBuild.configure(LogicBlock.compress(code, virusBuild.relativeConnections())));}catch(Exception ignored){} // Inspect the code
+                    }
                 }
             }
         }
@@ -521,7 +514,7 @@ public class DesktopInput extends InputHandler{
             mode = none;
         }
 
-        if (input.keyDown(Binding.findModifier) && input.keyRelease(Binding.find)) {
+        if (input.keyRelease(Binding.find) && scene.getKeyboardFocus() == null && !(commandMode && input.keyDown(Binding.selectUnitTypeModifier) && selectedUnits.any())) {
             FindDialog.INSTANCE.show();
         }
 
@@ -555,7 +548,7 @@ public class DesktopInput extends InputHandler{
                 !(!player.dead() && player.unit().type.canBoost && Binding.commandMode.value.key == Binding.boost.value.key)){
             if(settings.getBool("commandmodehold")){
                 commandMode = input.keyDown(Binding.commandMode);
-            }else if(input.keyTap(Binding.commandMode)){
+            }else if(input.keyTap(Binding.commandMode) && !(input.keyDown(Binding.selectUnitTypeModifier) && selectedUnits.any() && Binding.commandMode.value != null && Binding.commandMode.value.key != null && Character.isAlphabetic(Binding.commandMode.value.key.value.charAt(0)))){
                 commandMode = !commandMode;
             }
         }else{
@@ -566,47 +559,49 @@ public class DesktopInput extends InputHandler{
         selectedUnits.removeAll(u -> !u.allowCommand() || !u.isValid() || u.team != player.team());
 
         if(commandMode && !scene.hasField() && !scene.hasDialog()){
-            if(input.keyTap(Binding.selectAllUnits)){
-                selectedUnits.clear();
-                commandBuildings.clear();
-                if(input.keyDown(Binding.selectAcrossScreen)){
-                    camera.bounds(Tmp.r1);
-                    selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height).retainAll(u -> input.ctrl() || u.type.controlSelectGlobal));
-                }else{
-                    for(var unit : player.team().data().units){
-                        if(unit.isCommandable() && (unit.type.controlSelectGlobal || input.ctrl())){
-                            selectedUnits.add(unit);
+            if(!(input.keyDown(Binding.selectUnitTypeModifier) && selectedUnits.any())){
+                if(input.keyTap(Binding.selectAllUnits) || input.keyTap(Binding.selectReallyAllUnits)){
+                    selectedUnits.clear();
+                    commandBuildings.clear();
+                    if(input.keyDown(Binding.selectAcrossScreen)){
+                        camera.bounds(Tmp.r1);
+                        selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height).retainAll(u -> u.type.controlSelectGlobal || input.keyTap(Binding.selectReallyAllUnits)));
+                    }else{
+                        for(var unit : player.team().data().units){
+                            if(unit.isCommandable() && (unit.type.controlSelectGlobal || input.keyTap(Binding.selectReallyAllUnits))){
+                                selectedUnits.add(unit);
+                            }
                         }
                     }
                 }
-            }
 
-            if(input.keyTap(Binding.selectAllUnitTransport)){
-                selectedUnits.clear();
-                commandBuildings.clear();
-                if(input.keyDown(Binding.selectAcrossScreen)){
-                    camera.bounds(Tmp.r1);
-                    selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height, u -> u instanceof Payloadc));
-                }else{
-                    for(var unit : player.team().data().units){
-                        if(unit.isCommandable() && unit instanceof Payloadc){
-                            selectedUnits.add(unit);
+                if(input.keyTap(Binding.selectAllUnitTransport)){
+                    selectedUnits.clear();
+                    commandBuildings.clear();
+                    if(input.keyDown(Binding.selectAcrossScreen)){
+                        camera.bounds(Tmp.r1);
+                        selectedUnits.set(selectedCommandUnits(Tmp.r1.x, Tmp.r1.y, Tmp.r1.width, Tmp.r1.height, u -> u instanceof Payloadc));
+                    }else{
+                        for(var unit : player.team().data().units){
+                            if(unit.isCommandable() && unit instanceof Payloadc){
+                                selectedUnits.add(unit);
+                            }
                         }
                     }
                 }
-            }
 
-            if(input.keyTap(Binding.selectAllUnitFactories)){
-                selectedUnits.clear();
-                commandBuildings.clear();
-                for(var build : player.team().data().buildings){
-                    if(build.isCommandable()){
-                        commandBuildings.add(build);
+                if(input.keyTap(Binding.selectAllUnitFactories)){
+                    selectedUnits.clear();
+                    commandBuildings.clear();
+                    for(var build : player.team().data().buildings){
+                        if(build.isCommandable()){
+                            commandBuildings.add(build);
+                        }
                     }
-                }
-                if(input.keyDown(Binding.selectAcrossScreen)){
-                    camera.bounds(Tmp.r1);
-                    commandBuildings.retainAll(b -> Tmp.r1.overlaps(b.x - (b.hitSize() /2), b.y - (b.hitSize() /2), b.hitSize(), b.hitSize()));
+                    if(input.keyDown(Binding.selectAcrossScreen)){
+                        camera.bounds(Tmp.r1);
+                        commandBuildings.retainAll(b -> Tmp.r1.overlaps(b.x - (b.hitSize() /2), b.y - (b.hitSize() /2), b.hitSize(), b.hitSize()));
+                    }
                 }
             }
 
@@ -753,13 +748,22 @@ public class DesktopInput extends InputHandler{
                         shouldShoot = false;
                         recentRespawnTimer = 1f;
                         Navigation.stopFollowing();
-                    } else if ((input.keyDown(Binding.control) || input.shift()) && on.isPlayer()) {
-                        Navigation.follow(new AssistPath(on.getPlayer(),
-                                input.shift() && input.alt() ? AssistPath.Type.FreeMove :
-                                input.keyDown(Binding.control) && input.alt() ? AssistPath.Type.BuildPath :
-                                input.keyDown(Binding.control) ? AssistPath.Type.Cursor : AssistPath.Type.Regular,
-                                Core.settings.getBool("circleassist")));
-                        shouldShoot = false;
+                    } else if (on.isPlayer()) {
+                        Player other = on.getPlayer();
+                        boolean circleassist = Core.settings.getBool("circleassist");
+                        if(input.keyDown(Binding.assistPlayerFreemove)){
+                            Navigation.follow(new AssistPath(other, AssistPath.Type.FreeMove, circleassist));
+                            shouldShoot = false;
+                        } else if(input.keyDown(Binding.assistPlayerBuildpath)){
+                            Navigation.follow(new AssistPath(other, AssistPath.Type.BuildPath, circleassist));
+                            shouldShoot = false;
+                        } else if(input.keyDown(Binding.assistPlayerCursor)){
+                            Navigation.follow(new AssistPath(other, AssistPath.Type.Cursor, circleassist));
+                            shouldShoot = false;
+                        } else if(input.keyDown(Binding.assistPlayer)){
+                            Navigation.follow(new AssistPath(other, AssistPath.Type.Regular, circleassist));
+                            shouldShoot = false;
+                        }
                     }
                 }else if(build != null && input.keyDown(Binding.control)){
                     Call.buildingControlSelect(player, build);
@@ -791,10 +795,10 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(!player.dead() && !state.isPaused() && !scene.hasField() && !locked){
-            updateMovement(player.unit());
-
-            if(Core.input.keyTap(Binding.respawn) && !scene.hasDialog()){
+        if(!player.dead() && !state.isPaused() && !locked){
+            boolean ignoreKeys = scene.hasField() || (commandMode && selectedUnits.any() && input.keyDown(Binding.selectUnitTypeModifier));
+            updateMovement(player.unit(), ignoreKeys);
+            if(!ignoreKeys && Core.input.keyTap(Binding.respawn) && !scene.hasDialog()){
                 controlledType = null;
                 recentRespawnTimer = 1f;
                 droppingItem = false;
@@ -815,14 +819,12 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(state.isGame() && !scene.hasDialog() && !scene.hasField()){
+        if(state.isGame() && !scene.hasDialog() && !scene.hasField() && !(commandMode && (input.keyDown(Binding.selectUnitTypeModifier) || input.alt()) && selectedUnits.any())){
             if(Core.input.keyTap(Binding.minimap)) ui.minimapfrag.toggle();
             if(Core.input.keyTap(Binding.planetMap) && state.isCampaign()) ui.planet.toggle();
             if(Core.input.keyTap(Binding.research) && state.isCampaign()) ui.research.toggle();
-            if(Core.input.keyTap(Binding.schematicMenu)){
-                if(Core.input.shift()) ui.toggleSchematicBrowser();
-                else ui.toggleSchematicMenu();
-            }
+            if(Core.input.keyTap(Binding.schematicBrowser)) ui.toggleSchematicBrowser();
+            else if(Core.input.keyTap(Binding.schematicMenu)) ui.toggleSchematicMenu();
 
             if(Core.input.keyTap(Binding.toggleBlockStatus)){
                 Core.settings.put("blockstatus", !Core.settings.getBool("blockstatus"));
@@ -866,13 +868,13 @@ public class DesktopInput extends InputHandler{
             }
         }
 
-        if(input.keyTap(Binding.ping) && !Core.scene.hasMouse() && !scene.hasKeyboard()){
-            if(input.ctrl()){
+        if(!Core.scene.hasMouse() && !scene.hasKeyboard()){
+            if(input.keyTap(Binding.pingText)){
                 ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> Call.pingLocation(Vars.player, input.mouseWorldX(), input.mouseWorldY(), UI.formatIcons(result)));
-            }else if(input.shift()){
+            }else if(input.keyTap(Binding.pingClear)){
                 //Shift+ping to clear ping
                 Call.pingLocation(Vars.player, Float.NaN, Float.NaN, null);
-            }else{
+            }else if(input.keyTap(Binding.ping)){
                 Call.pingLocation(Vars.player, input.mouseWorldX(), input.mouseWorldY(), null);
             }
         }
@@ -991,17 +993,15 @@ public class DesktopInput extends InputHandler{
             player.unit().mineTile = null;
         }
 
-        if(Core.input.keyTap(Binding.clearBuilding)){
-            if(Core.input.shift()){
-                frozenPlans.clear();
-            }else{
-                if(!player.dead() && player.unit().plans.isEmpty()){
-                    lastSchematic = null;
-                    selectPlans.clear();
-                }
-                Player.persistPlans.clear(); // FINISHME: Persistplans is vanilla now
-                if(player.unit() != null) player.unit().clearBuilding(); // As of v8, the player unit is null when dead
+        if(Core.input.keyTap(Binding.clearFrozenPlans)){
+            frozenPlans.clear();
+        }else if(Core.input.keyTap(Binding.clearBuilding)){
+            if(!player.dead() && player.unit().plans.isEmpty()){
+                lastSchematic = null;
+                selectPlans.clear();
             }
+            Player.persistPlans.clear(); // FINISHME: Persistplans is vanilla now
+            if(player.unit() != null) player.unit().clearBuilding(); // As of v8, the player unit is null when dead
         }
 
         if((Core.input.keyTap(Binding.schematicSelect) || Core.input.keyTap(Binding.rebuildSelect)) && !Core.scene.hasKeyboard() && mode != breaking){
@@ -1016,8 +1016,8 @@ public class DesktopInput extends InputHandler{
 
         if(!Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
             if(Core.input.keyRelease(Binding.schematicSelect)){
-                lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY);
-                useSchematic(lastSchematic);
+                lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY, Core.input.alt() && state.rules.editor);
+                useSchematic(lastSchematic, !state.rules.editor); //Ignore hidden blocks in editor mode
                 if(selectPlans.isEmpty()){
                     lastSchematic = null;
                 }
@@ -1032,11 +1032,11 @@ public class DesktopInput extends InputHandler{
         }
 
         if(!selectPlans.isEmpty()){
-            if(Core.input.keyTap(Binding.schematicFlipX) && !input.shift()){ // Don't rotate when shift is held, if shift is held navigate instead.
+            if(Core.input.keyTap(Binding.schematicFlipX) && !(input.shift() && input.keyTap(Binding.navigateToCursor))){ // Don't rotate when shift is held, if shift is held navigate instead.
                 flipPlans(selectPlans, true);
             }
 
-            if(Core.input.keyTap(Binding.schematicFlipY)){
+            if(Core.input.keyTap(Binding.schematicFlipY) && !(input.shift() && input.keyTap(Binding.autoTransfer))){
                 flipPlans(selectPlans, false);
             }
         }
@@ -1055,19 +1055,17 @@ public class DesktopInput extends InputHandler{
             linePlans.clear();
         }
 
-        if(Core.input.keyTap(Binding.pauseBuilding)){
-            if (Core.input.shift()) isFreezeQueueing = !isFreezeQueueing;
-            else if (Core.input.ctrl()) {
-                temp.set(frozenPlans);
-                flushPlans(temp, false, false, true);
-                temp.clear();
-            } else {
-                isBuilding = !isBuilding;
-                buildWasAutoPaused = false;
+        if (Core.input.keyTap(Binding.toggleFreezeQueueing)) isFreezeQueueing = !isFreezeQueueing;
+        else if (Core.input.keyTap(Binding.flushFrozenPlans)) {
+            temp.set(frozenPlans);
+            flushPlans(temp, false, false, true);
+            temp.clear();
+        } else if(Core.input.keyTap(Binding.pauseBuilding)){
+            isBuilding = !isBuilding;
+            buildWasAutoPaused = false;
 
-                if(isBuilding){
-                    player.shooting = false;
-                }
+            if(isBuilding){
+                player.shooting = false;
             }
         }
 
@@ -1098,7 +1096,7 @@ public class DesktopInput extends InputHandler{
                 mode = none;
             }else if(selectPlans.any()){
                 flushPlans(
-                    temp.selectFrom(selectPlans, s -> s.block.isVisible() || s.block instanceof CoreBlock),
+                    temp.selectFrom(selectPlans, s -> (state.rules.editor || s.block.isVisible()) || s.block instanceof CoreBlock),
                     isFreezeQueueing, Core.input.keyDown(Binding.forcePlaceModifier), isFreezeQueueing);
                 temp.clear();
                 movedPlan = true;
@@ -1278,21 +1276,18 @@ public class DesktopInput extends InputHandler{
             }
 
             if(commandMode && selectedUnits.any()){
-                if(!Core.input.ctrl()){
-                    boolean canAttack = !Core.input.alt() && cursor.build != null && !cursor.build.inFogTo(player.team()) && cursor.build.team != player.team();
+                boolean canAttack = !Core.input.modifierDown(Binding.commandNoTargetBuilding) && cursor.build != null && !cursor.build.inFogTo(player.team()) && cursor.build.team != player.team();
 
-                    if(!canAttack){
-                        var unit = selectedEnemyUnit(input.mouseWorldX(), input.mouseWorldY());
-                        if(unit != null){
-                            canAttack = selectedUnits.contains(u -> u.canTarget(unit));
-                        }
-                    }
-
-                    if(canAttack){
-                        cursorType = ui.targetCursor;
+                if(!canAttack && !Core.input.modifierDown(Binding.commandNoTargetUnit)){
+                    var unit = selectedEnemyUnit(input.mouseWorldX(), input.mouseWorldY());
+                    if(unit != null){
+                        canAttack = selectedUnits.contains(u -> u.canTarget(unit));
                     }
                 }
 
+                if(canAttack){
+                    cursorType = ui.targetCursor;
+                }
 
                 if(input.keyTap(Binding.commandQueue) && Binding.commandQueue.value.key.type != KeyType.mouse){
                     commandTap(input.mouseX(), input.mouseY(), true);
@@ -1384,13 +1379,17 @@ public class DesktopInput extends InputHandler{
         }
     }
 
-    protected void updateMovement(Unit unit){ // Heavily modified to support navigation
+    protected void updateMovement(Unit unit){
+        updateMovement(unit, false);
+    }
+
+    protected void updateMovement(Unit unit, boolean ignoreKeys){ // Heavily modified to support navigation
         boolean omni = unit.type.omniMovement;
 
         float speed = unit.speed();
         float xa = Core.input.axis(Binding.moveX);
         float ya = Core.input.axis(Binding.moveY);
-        if(input.keyDown(Binding.freecamModifier)){
+        if(input.keyDown(Binding.freecamModifier) || ignoreKeys){
             xa = ya = 0f;
         }
         boolean boosted = (unit instanceof Mechc && unit.isFlying());
@@ -1414,7 +1413,7 @@ public class DesktopInput extends InputHandler{
 
         if(!Navigation.isFollowing()){
             float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
-            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted;
+            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget/* && !boosted*/;
 
             if(aimCursor) unit.lookAt(mouseAngle);
             else unit.lookAt(unit.prefRotation());
@@ -1425,11 +1424,13 @@ public class DesktopInput extends InputHandler{
 
             unit.aim(Core.input.mouseWorld());
 
-            if(settings.getBool("unitboosthold", true)){
-                // If auto-boost, invert the behavior of the boost key
-                player.boosting = unit.type.canBoost && Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost);
-            }else if(input.keyTap(Binding.boost)){
-                player.boosting = unit.type.canBoost && !player.boosting;
+            if(!ignoreKeys){
+                if(settings.getBool("unitboosthold", true)){
+                    // If auto-boost, invert the behavior of the boost key
+                    player.boosting = unit.type.canBoost && Core.settings.getBool("autoboost") ^ input.keyDown(Binding.boost);
+                }else if(input.keyTap(Binding.boost)){
+                    player.boosting = unit.type.canBoost && !player.boosting;
+                }
             }
 
             if ((!Core.input.keyDown(Binding.select) || block != null) && shouldShoot) AutoShootKt.autoShoot();
@@ -1440,7 +1441,7 @@ public class DesktopInput extends InputHandler{
         player.mouseY = unit.aimY();
 
         //update payload input
-        if(unit instanceof Payloadc){
+        if(unit instanceof Payloadc && !ignoreKeys){
             if(Core.input.keyTap(Binding.pickupCargo)){
                 tryPickupPayload();
                 lastPayloadKeyTapMillis = Time.millis();
