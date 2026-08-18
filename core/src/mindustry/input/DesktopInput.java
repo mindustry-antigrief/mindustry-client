@@ -560,7 +560,7 @@ public class DesktopInput extends InputHandler{
         }
 
         //validate commanding units
-        selectedUnits.removeAll(u -> !u.allowCommand() || !u.isValid() || u.team != player.team());
+        selectedUnits.removeAll(u -> /*!u.allowCommand() || */ u.isPlayer() || !u.isValid() || u.team != player.team());
 
         if(commandMode && !scene.hasField() && !scene.hasDialog()){
             if(!(input.keyDown(Binding.selectUnitTypeModifier) && selectedUnits.any())){

@@ -1335,9 +1335,10 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         if(commandMode){
             //happens sometimes
-            selectedUnits.removeAll(u -> !u.allowCommand());
+            selectedUnits.removeAll(u -> u.isPlayer());
 
             for(Unit unit : selectedUnits){
+                if(!unit.allowCommand()) continue;
 
                 Color color = unit.controller() instanceof LogicAI ? Team.malis.color : Pal.accent;
 
