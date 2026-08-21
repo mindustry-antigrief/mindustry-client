@@ -25,12 +25,12 @@ class Moderation {
         init {
             Vars.netClient.addPacketHandler("playerdata") { // Handles autostats from plugins FINISHME: This is server-specific code. Treat it as such.
                 if (Server.io() || Server.corium()) {
-                    val json = JsonReader().parse(it)
+                    val json = Jval.read(it)
                     if (Core.settings.getBool("logplayerdata")) Log.debug(json)
 
                     fun String.i() = json.getInt(this, Int.MAX_VALUE)
                     fun String.s() = json.getString(this, "unknown")
-                    fun String.b() = json.getBoolean(this)
+                    fun String.b() = json.getBool(this, false) // Jval requires a default value for bool
 
                     val id = "id".i()
                     val player = Groups.player.getByID(id) ?: return@addPacketHandler
@@ -68,11 +68,11 @@ class Moderation {
                         }
                     }
                 } else if (Server.cn()) {
-                    val json = JsonReader().parse(it)
+                    val json = Jval.read(it)
                     if (Core.settings.getBool("logplayerdata")) Log.debug(json)
 
                     fun String.s() = json.getString(this, "unknown")
-                    fun String.b() = json.getBoolean(this)
+                    fun String.b() = json.getBool(this, false)
                     fun String.i() = json.getInt(this, Int.MAX_VALUE)
 
                     if ("currentID".i() == Vars.player.id) {

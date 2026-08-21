@@ -1,9 +1,11 @@
 package mindustry.client.navigation
 
+import arc.Events
 import arc.math.geom.*
 import arc.struct.*
 import arc.util.*
 import arc.util.pooling.*
+import arc.util.serialization.Jval
 import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.navigation.waypoints.*
@@ -20,7 +22,14 @@ import mindustry.world.blocks.storage.*
 abstract class Navigator {
     @JvmField
     var lastTp = 0L
+    val map = IntMap<Vec2>()
     private val realObstacles = Seq<Circle>() // Avoids creating new lists every time navigate is called
+
+    init {
+        Events.on(EventType.WorldLoadEvent::class.java) {
+            map.clear()
+        }
+    }
 
     /** Called once upon client loading.  */
     abstract fun init()
@@ -94,11 +103,23 @@ abstract class Navigator {
 
         //Consider respawning at a core
         if (Time.timeSinceMillis(lastTp) > 3000 && player.team().cores().any() && start.dst2(end) > 400) { //min 1.6 tiles
-            if (
+            if (map.size > 0) { // CN navTp is different as a plugin allows for some magic...
+                val closestCore = map.minByOrNull { it.value.dst2(end) }!!
+                if (player.dst2(closestCore.value) > buildingRange * buildingRange && player.dst2(end) > closestCore.value.dst2(end)) {
+                    lastTp = Time.millis() // Try again in 3s
+                    // teleport requires x, y to be in world units
+                    Call.serverPacketReliable("teleport", Jval.newObject().apply {
+                        put("x", closestCore.value.x)
+                        put("y", closestCore.value.y)
+                        put("targetId", player.id) // admins can teleport other players (ClientVars.rank = 3), do something with that?
+                        put("navTp", true)
+                    }.toString())
+                }
+            } else if (
                 unit?.spawnedByCore == true &&
                 unit.stack.amount == 0 &&
                 (unit as? Payloadc)?.hasPayload()?.not() ?: true // no payloads
-            ) {
+            ) { // Everything that isn't CN
                 var best: Position = player.team().cores().min(Structs.comps(Structs.comparingInt { -it.block.size }, Structs.comparingFloat { it.dst2(end) }))
                 if (unit.type.coreUnitDock && ClientVars.ratelimitRemaining > 2) { // Try to use a unit if it's closer FINISHME: If the player is a different unit, they can still teleport to a closer one of the same type.
                     val u = Units.closest(player.team(), end.x, end.y, unit.type.speed * 60F * 5) { u -> u.playerControllable() && !u.isPlayer } // Anything within a few seconds of the target

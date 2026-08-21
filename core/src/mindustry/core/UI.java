@@ -22,6 +22,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.client.claj.*;
+import mindustry.client.navigation.*;
 import mindustry.client.ui.*;
 import mindustry.client.utils.*;
 import mindustry.editor.*;
@@ -33,6 +34,7 @@ import mindustry.mod.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.ui.fragments.*;
+import mindustry.world.blocks.storage.*;
 
 import static arc.scene.actions.Actions.*;
 import static mindustry.Vars.*;
@@ -497,6 +499,10 @@ public class UI implements ApplicationListener, Loadable{
 
     /** Shows a label in the world. This label is behind everything. Does not fade. */
     public void showLabel(@Nullable String info, int id, float duration, float worldx, float worldy, int flags){
+        if (Server.cn.b() && (info.startsWith("#") &&
+                Character.isDigit(info.charAt(1))) && // ensures it is atleast #1(-9) cores are indexed from bottom to top, left to right
+                Vars.world.buildWorld(worldx, worldy) instanceof CoreBlock.CoreBuild)
+            Navigation.navigator.getMap().put(Strings.parseInt(info.replace("#", "")), new Vec2(worldx, worldy));
         if(info == null){ // null info allows deletion of old labels provided they have ids
             var label = labels.remove(id);
             if(label != null) label.remove();
