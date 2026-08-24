@@ -874,7 +874,9 @@ public class DesktopInput extends InputHandler{
 
         if(!Core.scene.hasMouse() && !scene.hasKeyboard()){
             if(input.keyTap(Binding.pingText)){
-                ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> Call.pingLocation(Vars.player, input.mouseWorldX(), input.mouseWorldY(), UI.formatIcons(result)));
+                var x = input.mouseWorldX();
+                var y = input.mouseWorldY();
+                ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> Call.pingLocation(Vars.player, x, y, UI.formatIcons(result)));
             }else if(input.keyTap(Binding.pingClear)){
                 //Shift+ping to clear ping
                 Call.pingLocation(Vars.player, Float.NaN, Float.NaN, null);
