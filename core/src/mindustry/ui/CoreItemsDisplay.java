@@ -7,7 +7,6 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.client.*;
 import mindustry.core.*;
 import mindustry.type.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
@@ -27,7 +26,6 @@ public class CoreItemsDisplay extends Table{
 
     public CoreItemsDisplay(){
         rebuild();
-        ClientVars.coreItemsDisplay = this;
     }
 
     public void resetUsed(){
@@ -92,6 +90,11 @@ public class CoreItemsDisplay extends Table{
         if(amount > 0 && (trackItems || mode == CoreItemDisplayMode.inputOnly)) inputItems.add(item, amount);
     }
 
+    public void checkContentArrayCapacity(int items){
+        inputItems.checkArrayCapacity(items);
+        totalItems.checkArrayCapacity(items);
+    }
+
     public static String colorFor(float rate){
         if(!trackItems) return "";
         if(rate < 0) return "[#FFAAAA]";
@@ -127,7 +130,7 @@ public class CoreItemsDisplay extends Table{
         private final static int pollScl = 30; // every 30 time units or something
         private final static float rateMultiplier = 60f / pollScl;
         private float lastUpdate = 0;
-        private final int numItems = content.items().size;
+        private int numItems = content.items().size;
         private int[] itemRates = new int[numItems * (trackItems ? 1800 : trackSteps + 1)]; // +1 because we don't want average to loop around to itself
         private int stepsRecorded = 0;
 
@@ -178,13 +181,17 @@ public class CoreItemsDisplay extends Table{
             return steps;
         }
 
+        public void checkArrayCapacity(int size){
+            if(size != numItems){
+                numItems = size;
+                reset();
+            }
+        }
+
         public void reset(){
             int targetLength = numItems * (trackItems ? 1800 : trackSteps + 1);
             if (itemRates.length != targetLength) itemRates = new int[targetLength];
-            itemRates[0] = 0;
-            for (int i = 1; i < targetLength; i <<= 1) {
-                System.arraycopy(itemRates, 0, itemRates, i, Math.min(targetLength - i, i));
-            }
+            else Arrays.fill(itemRates, 0);
             idx = 0;
             stepsRecorded = 0;
         }

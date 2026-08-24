@@ -33,9 +33,6 @@ public class ClientVars {
     public static Seq<BuildPlan> frozenPlans = new Seq<>();
     public static final String[] noInteractTurrets = {"foreshadow", "ripple", "arc"};
 
-    // Core Item Display - for only input. Net in/out is handled through reading from Vars.player.core.items()
-    public static CoreItemsDisplay coreItemsDisplay; // FINISHME: Redundant.
-
     // Config Queue
     @NotNull public static LinkedBlockingDeque<Runnable> configs = new LinkedBlockingDeque<>(); // Thread safe just in case, contains mostly instances of ConfigRequest.
     public static int ratelimitMax = Core.settings.getInt("ratelimitmax", Administration.Config.interactRateLimit.num()); // The max number of configs per ratelimit window

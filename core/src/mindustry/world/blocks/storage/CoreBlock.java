@@ -34,7 +34,6 @@ import mindustry.world.meta.*;
 import mindustry.world.modules.*;
 
 import static mindustry.Vars.*;
-import static mindustry.client.ClientVars.coreItemsDisplay;
 
 public class CoreBlock extends StorageBlock{
     public static final float cloudScaling = 1700f, cfinScl = -2f, cfinOffset = 0.3f, calphaFinOffset = 0.25f, cloudAlpha = 0.81f;
@@ -753,7 +752,7 @@ public class CoreBlock extends StorageBlock{
                     Fx.coreBurn.at(x, y);
                 }
             }
-            if(team == player.team()) coreItemsDisplay.addItem(item, realAmount);
+            if(team == player.team()) ui.hudfrag.coreItems.addItem(item, realAmount);
         }
 
         @Override
@@ -866,7 +865,7 @@ public class CoreBlock extends StorageBlock{
                 incinerateEffect(this, source);
                 noEffect = false;
             }
-            if(team == player.team() && items.get(item) < storageCapacity) coreItemsDisplay.addItem(item, 1);
+            if(team == player.team() && items.get(item) < storageCapacity) ui.hudfrag.coreItems.addItem(item, 1);
         }
 
         @Override

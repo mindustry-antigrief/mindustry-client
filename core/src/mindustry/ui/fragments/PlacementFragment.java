@@ -31,6 +31,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.meta.*;
 
+import java.lang.ref.*;
 import java.util.*;
 
 import static mindustry.Vars.*;
@@ -451,18 +452,23 @@ public class PlacementFragment{
                                 }).width(190f).wrap();
                             }, () -> getUnplaceableReason(displayBlock) != null).left();
 
-                        }else if(hovered != null){
+                        }
+
+                        if(hovered != null && displayBlock == null){
                             //show hovered item, whatever that may be
                             hovered.display(topTable);
                         }
 
                         if (Core.settings.getBool("placementfragmentsearch")) {
+                            float rawMarginBot = Reflect.get(Table.class, topTable, "marginBot"); // Get the bottom margin set by some display() calls.
+                            float extraPadTop = rawMarginBot == Float.NEGATIVE_INFINITY ? 0 : rawMarginBot / Scl.scl(1f); // Since the margin is scaled already, we have to unscale it as it will be scaled again when we use this value to set pads.
+                            topTable.marginBottom(0); // Since we're adding a search bar, we move the marginBottom to padTop on the search bar instead to keep that same spacing
                             topTable.row();
                             topTable.table(s -> {
-                                s.image(Icon.zoom).size(32).padRight(8).left();
-                                search = s.field(null, text -> rebuildCategory.run()).growX().get();
+                                s.image(Icon.zoom).padRight(8).left();
+                                search = s.field(null, text -> rebuildCategory.run()).width(190f).get();
                                 search.setMessageText("@players.search");
-                            }).growX();
+                            }).growX().padTop(extraPadTop);
                         }
                     });
                 }).colspan(3).fillX().visible(this::hasInfoBox).touchable(Touchable.enabled).row();
@@ -480,7 +486,7 @@ public class PlacementFragment{
 
                         //hacky, but forces command table to be same width as blocks. offset by the margins of the cells so that the sizing is exactly the same
                         if(control.input.commandMode){
-                            commandTable.getCells().peek().width((blockCatTable.getWidth() - (4 * 2 + 5 * 2 + 3 * 2)) / Scl.scl(1f));
+                            commandTable.getCells().peek().width(blockCatTable.getWidth() / Scl.scl(1f) - (4 * 2 + 5 * 2 + 3 * 2));
                         }
 
                         wasCommandMode = control.input.commandMode;
@@ -801,7 +807,7 @@ public class PlacementFragment{
                             t.row();
                             control.input.buildPlacementUI(t);
                         }).name("inputTable").growX();
-                    }).fillY().bottom().touchable(Touchable.enabled);
+                    }).growX().fillY().bottom().touchable(Touchable.enabled);
                     blockCatTable.table(categories -> {
                         categories.bottom();
                         categories.add(new Image(Styles.black6){

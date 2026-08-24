@@ -333,6 +333,9 @@ public class DataPatcher{
             }
         }
 
+        // Foo's specific change: our item tracking needs to be aware of item array size
+        if(!Vars.headless && Vars.ui != null && Vars.ui.hudfrag != null) Vars.ui.hudfrag.coreItems.checkContentArrayCapacity(items);
+
         //TODO: this doesn't do anything about extensive ItemSeq usage across the codebase, which is limited to the campaign
         //TODO: this also doesn't change sectors
         needsArrayFix = false;
