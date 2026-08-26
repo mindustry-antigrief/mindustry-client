@@ -835,53 +835,56 @@ public class LogicBlock extends Block{
         public void buildConfiguration(Table table){
             table.button(Icon.pencil, Styles.cleari, this::showEditDialog).size(40);
 
-            // FINISHME: bundle
-            table.button(Icon.refresh, Styles.cleari, () -> {
-                var original = code;
-                ClientVars.configs.add(() -> { // Cursed, enqueues a config now, when that one is run it enqueues a second config.
-                    new ConfigRequest(this, compress("end\n" + code, relativeConnections())).run();
-                    Timer.schedule(() -> ClientVars.configs.add(new ConfigRequest(this, LogicBlock.compress(original, relativeConnections()))), net.client() ? netClient.getPing()/1000f : 0);
-                });
-            }).size(40).tooltip("Restart code execution").disabled(b -> !ClientVars.configs.isEmpty());
-
-            table.button(Icon.trash, Styles.cleari, () -> {
-                if(Core.input.shift()) removeCode();
-                else ui.showConfirm("@confirm", "Are you sure you want to delete this processor's code?", this::removeCode);
-            }).size(40).tooltip("Remove code").disabled(b -> !accessible() || !ClientVars.configs.isEmpty());
-
-            table.button(Icon.eyeOff, Styles.cleari, () -> {
-                if(Core.input.shift()) removeLinks();
-                else ui.showConfirm("@confirm", "Are you sure you want to remove all links?", this::removeLinks);
-            }).size(40).tooltip("Remove all links").disabled(b -> !accessible() || !ClientVars.configs.isEmpty());
-
-            table.button(Icon.tree, Styles.cleari, () -> {
-                if(Core.input.shift()){
-                    importFromClipboard();
-                    new Toast(2).add("@client.processorimported");
-                    return;
-                }
-                BaseDialog dialog = new BaseDialog("@editor.export");
-                dialog.cont.pane(p -> {
-                    p.margin(10f);
-                    p.table(Tex.button, t -> {
-                        TextButtonStyle style = Styles.flatt;
-                        t.defaults().size(280f, 60f).left();
-
-                        t.button("@copy.clipboard", Icon.copy, style, () -> {
-                            dialog.hide();
-                            Core.app.setClipboardText(code);
-                        }).marginLeft(12f);
-                        t.row();
-                        t.button("@load.clipboard", Icon.download, style, () -> {
-                            dialog.hide();
-                            importFromClipboard();
-                        }).marginLeft(12f);
+            if(Core.settings.getBool("processorextrabuttons", true)){
+                // FINISHME: bundle
+                table.button(Icon.refresh, Styles.cleari, () -> {
+                    var original = code;
+                    ClientVars.configs.add(() -> { // Cursed, enqueues a config now, when that one is run it enqueues a second config.
+                        new ConfigRequest(this, compress("end\n" + code, relativeConnections())).run();
+                        Timer.schedule(() -> ClientVars.configs.add(new ConfigRequest(this, LogicBlock.compress(original, relativeConnections()))), net.client() ? netClient.getPing()/1000f : 0);
                     });
-                });
+                }).size(40).tooltip("Restart code execution").disabled(b -> !ClientVars.configs.isEmpty());
 
-                dialog.addCloseButton();
-                dialog.show();
-            }).size(40).tooltip("Copy/paste Code").disabled(b -> !accessible());
+                table.button(Icon.trash, Styles.cleari, () -> {
+                    if(Core.input.shift()) removeCode();
+                    else ui.showConfirm("@confirm", "Are you sure you want to delete this processor's code?", this::removeCode);
+                }).size(40).tooltip("Remove code").disabled(b -> !accessible() || !ClientVars.configs.isEmpty());
+
+                table.button(Icon.eyeOff, Styles.cleari, () -> {
+                    if(Core.input.shift()) removeLinks();
+                    else ui.showConfirm("@confirm", "Are you sure you want to remove all links?", this::removeLinks);
+                }).size(40).tooltip("Remove all links").disabled(b -> !accessible() || !ClientVars.configs.isEmpty());
+
+                table.button(Icon.tree, Styles.cleari, () -> {
+                    if(Core.input.shift()){
+                        importFromClipboard();
+                        new Toast(2).add("@client.processorimported");
+                        return;
+                    }
+                    BaseDialog dialog = new BaseDialog("@editor.export");
+                    dialog.cont.pane(p -> {
+                        p.margin(10f);
+                        p.table(Tex.button, t -> {
+                            TextButtonStyle style = Styles.flatt;
+                            t.defaults().size(280f, 60f).left();
+
+                            t.button("@copy.clipboard", Icon.copy, style, () -> {
+                                dialog.hide();
+                                Core.app.setClipboardText(code);
+                            }).marginLeft(12f);
+                            t.row();
+                            t.button("@load.clipboard", Icon.download, style, () -> {
+                                dialog.hide();
+                                importFromClipboard();
+                            }).marginLeft(12f);
+                        });
+                    });
+
+                    dialog.addCloseButton();
+                    dialog.show();
+                }).size(40).tooltip("Copy/paste Code").disabled(b -> !accessible());
+            }
+
         }
 
         public void showEditDialog(){
