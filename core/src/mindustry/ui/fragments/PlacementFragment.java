@@ -536,15 +536,19 @@ public class PlacementFragment{
                         var stancesOut = new Seq<UnitStance>();
 
                         UnitCommand[] hoveredCommand = {null};
-                        int[][] countBox = new int[1][0];
+                        int[][] countBox = new int[2][0];
 
                         //For unit keybinds
                         Bits selectedUnitTypes = new Bits(content.units().size);
                         boolean[] isRemovingUnits = {false};
 
                         rebuildCommand = () -> {
-                            if(countBox[0].length != content.units().size) countBox[0] = new int[content.units().size];
+                            if(countBox[0].length != content.units().size){
+                                countBox[0] = new int[content.units().size];
+                                countBox[1] = new int[content.units().size];
+                            }
                             int[] counts = countBox[0];
+                            int[] logicedCounts = countBox[1];
 
                             u.clearChildren();
                             var units = control.input.selectedUnits;
@@ -554,9 +558,11 @@ public class PlacementFragment{
                                 commands.clear();
                                 stances.clear();
                                 Arrays.fill(counts, 0);
+                                Arrays.fill(logicedCounts, 0);
 
                                 for(var unit : units){
-                                    counts[unit.type.id] ++;
+                                    if(!unit.allowCommand()) logicedCounts[unit.type.id] ++;
+                                    else counts[unit.type.id] ++;
 
                                     stancesOut.clear();
                                     unit.type.getUnitStances(unit, stancesOut);
@@ -575,15 +581,17 @@ public class PlacementFragment{
                                 int col = 0;
                                 for(int i = 0; i < counts.length; i++){
                                     int fi = i;
-                                    if(counts[i] > 0){
+                                    if(counts[i] > 0 || logicedCounts[i] > 0){
                                         var type = content.unit(i);
-                                        unitlist.add(StatValues.stack(type, counts[i])).pad(4).with(b -> {
+                                        unitlist.add(StatValues.stack(type, 1 /* HACK */)).pad(4).with(b -> {
                                             b.clearListeners();
                                             b.addListener(Tooltips.getInstance().create(type.localizedName, false));
 
                                             Label amountLabel = b.find("stack amount");
                                             if(amountLabel != null){
-                                                amountLabel.setText(() -> counts[fi] + "");
+                                                amountLabel.setText(() -> (
+                                                    logicedCounts[fi] > 0 ? "[#bf99f9]" : ""
+                                                ) + String.valueOf(counts[fi]));
                                                 amountLabel.visible(() -> !Core.input.keyDown(Binding.selectUnitTypeModifier));
                                             }
 
@@ -702,8 +710,12 @@ public class PlacementFragment{
 
                         u.update(() -> {
                             {
-                                if(countBox[0].length != content.units().size) countBox[0] = new int[content.units().size];
+                                if(countBox[0].length != content.units().size){
+                                    countBox[0] = new int[content.units().size];
+                                    countBox[1] = new int[content.units().size];
+                                }
                                 int[] counts = countBox[0];
+                                int[] logicedCounts = countBox[1];
                                 activeCommands.clear();
                                 activeStances.clear();
                                 activeCommonStances.set(0, content.unitStances().size);
@@ -712,6 +724,7 @@ public class PlacementFragment{
                                 activeTypes.clear();
 
                                 Arrays.fill(counts, 0);
+                                Arrays.fill(logicedCounts, 0);
 
                                 //find the command that all units have, or null if they do not share one
                                 for(var unit : control.input.selectedUnits){
@@ -721,7 +734,8 @@ public class PlacementFragment{
                                         activeCommonStances.and(cmd.stances);
                                     }
 
-                                    counts[unit.type.id] ++;
+                                    if(unit.isCommandable()) counts[unit.type.id] ++;
+                                    else logicedCounts[unit.type.id] ++;
 
                                     activeTypes.set(unit.type.id);
 

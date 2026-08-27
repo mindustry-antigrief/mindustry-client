@@ -454,6 +454,10 @@ public class DesktopInput extends InputHandler{
                     }
                 }
             }
+
+            if(input.keyTap(Binding.saveSchematic) && lastSchematic != null && selectPlans.any()){
+                showSchematicSave();
+            }
         }
 
         if(!scene.hasField() && !scene.hasDialog()){
@@ -556,7 +560,7 @@ public class DesktopInput extends InputHandler{
         }
 
         //validate commanding units
-        selectedUnits.removeAll(u -> !u.allowCommand() || !u.isValid() || u.team != player.team());
+        selectedUnits.removeAll(u -> /*!u.allowCommand() || */ u.isPlayer() || !u.isValid() || u.team != player.team());
 
         if(commandMode && !scene.hasField() && !scene.hasDialog()){
             if(!(input.keyDown(Binding.selectUnitTypeModifier) && selectedUnits.any())){
@@ -870,7 +874,9 @@ public class DesktopInput extends InputHandler{
 
         if(!Core.scene.hasMouse() && !scene.hasKeyboard()){
             if(input.keyTap(Binding.pingText)){
-                ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> Call.pingLocation(Vars.player, input.mouseWorldX(), input.mouseWorldY(), UI.formatIcons(result)));
+                var x = input.mouseWorldX();
+                var y = input.mouseWorldY();
+                ui.showTextInput("", "@ping.text", Vars.maxPingTextLength, "", result -> Call.pingLocation(Vars.player, x, y, UI.formatIcons(result)));
             }else if(input.keyTap(Binding.pingClear)){
                 //Shift+ping to clear ping
                 Call.pingLocation(Vars.player, Float.NaN, Float.NaN, null);
