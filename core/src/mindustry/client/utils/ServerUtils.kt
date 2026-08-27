@@ -9,7 +9,6 @@ import mindustry.Vars.*
 import mindustry.client.*
 import mindustry.client.antigrief.*
 import mindustry.client.utils.CustomMode.*
-import mindustry.client.utils.Server.Companion.other
 import mindustry.content.*
 import mindustry.content.UnitTypes.*
 import mindustry.entities.*
@@ -184,7 +183,7 @@ object IO : Server(
             val id = p.trace?.uuid ?: p.serverID
             if (id != null) {
                 ui.showConfirm("@confirm", "@client.rollback.title") {
-                    Call.sendChatMessage("/rollback $id 5-f")
+                    Call.sendChatMessage("/rollback $id 5 -f")
                 }
             }
             Call.adminRequest(p, AdminAction.ban, reason)

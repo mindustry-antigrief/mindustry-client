@@ -197,11 +197,12 @@ public class CoreItemsDisplay extends Table{
         }
 
         public void update(ItemModule items){
+            checkArrayCapacity(items.length()); // Crashes otherwise. Maybe it's because ui is updating before these are being resized? I don't know but this should fix it.
             // TODO handle interpolation of data
             int steps = checkUpdate();
             if (steps <= 0) return;
             changeIdx(steps);
-            if (numItems >= 0) System.arraycopy(items.getAllItems(), 0, itemRates, idx, numItems); // ok intellij, i trust that arraycopy will not be slow for <30 elements
+            if (numItems >= 0) System.arraycopy(items.getAllItems(), 0, itemRates, idx, numItems);
         }
 
         public void update(){
