@@ -160,8 +160,6 @@ public class SchematicsDialog extends BaseDialog{
                         control.input.useSchematic(firstSchematic);
                         hide();
                     }
-                    control.input.useSchematic(firstSchematic);
-                    hide();
                 }
             });
 
