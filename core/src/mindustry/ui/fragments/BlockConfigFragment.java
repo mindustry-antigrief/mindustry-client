@@ -51,7 +51,7 @@ public class BlockConfigFragment{
         if(selected != null) selected.onConfigureClosed();
         if(tile.configTapped()){
             selected = tile;
-            dragging = validBuilds.contains(selected.getClass());
+            dragging = Core.settings.getBool("dragconfig") && validBuilds.contains(selected.getClass());
             table.visible = true;
             table.clear();
             table.background(null); // clear the background as some blocks set custom ones
