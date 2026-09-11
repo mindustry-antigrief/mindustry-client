@@ -39,7 +39,6 @@ abstract class FireComp implements Timedc, Posc, Syncc, Drawc{
 
     @Override
     public void update(){
-
         animation += Time.delta / ticksPerFrame;
         warmup += Time.delta;
         animation %= frames;

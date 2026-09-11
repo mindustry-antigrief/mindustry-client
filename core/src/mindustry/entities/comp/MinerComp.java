@@ -85,10 +85,11 @@ abstract class MinerComp implements Itemsc, Posc, Teamc, Rotc, Drawc{
             mineTile = null;
             mineTimer = 0f;
         }else if(mining() && item != null){
-            mineTimer += Time.delta * type.mineSpeed * state.rules.unitMineSpeed(team());
+            float rate = Time.delta * type.mineSpeed * state.rules.unitMineSpeed(team());
+            mineTimer += rate;
 
-            if(Mathf.chance(0.06 * Time.delta)){
-                Fx.pulverizeSmall.at(mineTile.worldx() + Mathf.range(tilesize / 2f), mineTile.worldy() + Mathf.range(tilesize / 2f), 0f, item.color);
+            if(Mathf.chance(0.035f * rate)){
+                Fx.unitMine.at(mineTile.worldx() + Mathf.range(2f), mineTile.worldy() + Mathf.range(2f), 0f, item.color);
             }
 
             if(mineTimer >= 50f + (type.mineHardnessScaling ? item.hardness*15f : 15f)){

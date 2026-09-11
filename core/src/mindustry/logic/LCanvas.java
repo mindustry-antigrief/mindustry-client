@@ -63,8 +63,17 @@ public class LCanvas extends Table{
     }
 
     /** @return if statement elements should have rows. */
+<<<<<<< HEAD
     public static boolean useRows(){
         return Core.graphics.getWidth() < Scl.scl(900f) / (Core.settings.getInt("processorstatementscale") / 100f);
+=======
+    public static boolean isCompact(){
+        return Core.graphics.getWidth() < Scl.scl(900f) * 1.2f;
+>>>>>>> v160
+    }
+
+    public static float getTargetWidth(){
+        return isCompact() ? 410f : Mathf.clamp(Core.graphics.getWidth() / Scl.scl(1f) * 0.95f - Scl.scl(80f), 400f, 1200f);
     }
 
     public static void tooltip(Cell<?> cell, String key){
@@ -104,8 +113,12 @@ public class LCanvas extends Table{
     }
 
     public void rebuild(){
+<<<<<<< HEAD
 //        targetWidth = useRows() ? 400f : 900f;
         targetWidth = Core.graphics.getWidth() * Core.settings.getInt("processorstatementscale") / 100f;
+=======
+        targetWidth = getTargetWidth();
+>>>>>>> v160
         float s = pane != null ? pane.getVisualScrollY() : 0f;
         String toLoad = statements != null ? save() : null;
 
@@ -410,7 +423,7 @@ public class LCanvas extends Table{
                 t.margin(6f);
                 t.touchable = Touchable.enabled;
 
-                t.add(st.name()).style(Styles.outlineLabel).name("statement-name").color(color).padRight(8);
+                t.add(st.localizedName()).style(Styles.outlineLabel).name("statement-name").color(color).padRight(8);
                 t.add().growX();
 
                 addressLabel = t.add(index + "").style(Styles.outlineLabel).color(color).padRight(8).get();
@@ -484,6 +497,7 @@ public class LCanvas extends Table{
 
             row();
 
+<<<<<<< HEAD
             table(t -> {
                 t.left();
                 t.marginLeft(4);
@@ -493,6 +507,17 @@ public class LCanvas extends Table{
                     button = (JumpButton)t.getChildren().peek();
                 }
             }).pad(4).padTop(2).left().grow();
+=======
+            Table t = st.useWrapping() ? new WrapTable() : new Table();
+
+            t.left();
+            t.marginLeft(4);
+            t.setColor(color);
+            if(st.useWrapping()) t.marginRight(4f);
+            st.build(t);
+
+            add(t).pad(4).padTop(2).left().grow();
+>>>>>>> v160
 
             marginBottom(7);
         }

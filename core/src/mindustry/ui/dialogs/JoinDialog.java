@@ -6,10 +6,12 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.input.*;
 import arc.math.*;
+import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.Timer;
 import arc.util.*;
 import arc.util.Timer.*;
 import arc.util.serialization.*;
@@ -24,12 +26,22 @@ import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
+<<<<<<< HEAD
 import java.net.*;
+=======
+import java.util.*;
+>>>>>>> v160
 
 import static mindustry.Vars.*;
 
 public class JoinDialog extends BaseDialog{
+<<<<<<< HEAD
     public Seq<Host> communityHosts = new Seq<>();
+=======
+    static Seq<Element> tmpElements = new Seq<>();
+    static final int favoriteCountOffset = 9_999_999;
+
+>>>>>>> v160
     Seq<ServerGroup> tmpServers = new Seq<>();
     public Seq<Server> servers = new Seq<>();
     Dialog add;
@@ -52,6 +64,7 @@ public class JoinDialog extends BaseDialog{
     public static Runnable onCommunityFetch; // This is jank, I know.
 
     String serverSearch = "";
+    boolean sortPing = true;
 
     public JoinDialog(){
         super("@joingame");
@@ -373,6 +386,13 @@ public class JoinDialog extends BaseDialog{
             name.add(label).pad(10).growX().left().color(Pal.accent);
 
             if(eye){
+                name.button(Icon.chartBar, Styles.emptyi, () -> {
+                    sortPing = !sortPing;
+                    Core.settings.put("sort-servers-ping", sortPing);
+                    refreshCommunity();
+                }).update(i -> i.getStyle().imageUp = (sortPing ? Icon.chartBar : Icon.players))
+                    .size(40f).right().padRight(3).tooltip(true, t -> t.background(Styles.black8).margin(4f).label(() -> sortPing ? "@servers.sortping" : "@servers.sortplayers"));
+
                 name.button(Icon.eyeSmall, Styles.emptyi, () -> {
                     showHidden = !showHidden;
                     refreshCommunity();
@@ -388,6 +408,15 @@ public class JoinDialog extends BaseDialog{
         hosts.row();
         hosts.image().growX().pad(5).padLeft(10).padRight(10).height(3).color(Pal.accent);
         hosts.row();
+        if(eye){
+            hosts.table(t -> {
+                t.add("@search").padRight(10);
+                t.field(serverSearch, text ->
+                serverSearch = text.trim().replaceAll(" +", " ").toLowerCase()
+                ).grow().pad(8).get().keyDown(KeyCode.enter, this::refreshCommunity);
+                t.button(Icon.zoom, Styles.emptyi, this::refreshCommunity).size(54f);
+            }).width((targetWidth() + 5f) * columns()).height(70f).pad(4).row();
+        }
         hosts.add(coll).width((targetWidth() + 5f) * columns());
         hosts.row();
     }
@@ -412,6 +441,7 @@ public class JoinDialog extends BaseDialog{
             fetchServers();
         }
 
+<<<<<<< HEAD
         if(fetchingCommunityServersErrored){ // FINISHME: Bundle
             global.add("Error: Unable to fetch community servers list.").color(Color.red).center();
             global.row();
@@ -425,6 +455,8 @@ public class JoinDialog extends BaseDialog{
             t.button(Icon.zoom, Styles.emptyi, this::refreshCommunity).size(54f);
         }).width((targetWidth() + 5f) * columns()).height(70f).pad(4).row();
 
+=======
+>>>>>>> v160
         //if the servers have been fetched, use the fetched list
         //otherwise use the cached list + the extra servers that may have been included by mods
         var servers = fetchedServers ? defaultServers : tmpServers.clear().addAll(cachedServers).addAll(defaultServers);
@@ -478,7 +510,29 @@ public class JoinDialog extends BaseDialog{
                         addHeader(groupTable, group, hidden, favorite, true); //why are these calls the exact same -BalaM314, merging v8, Apr 13 2025
                     }
 
+                    boolean needsSort = false;
+
+                    //hub servers are ignored
+                    if(!sortPing && !Strings.stripColors(res.name).toLowerCase(Locale.ROOT).contains("hub") && groupTable[0].userObject instanceof Integer count){
+                        //hack: apply large numerical offset to favorite servers
+                        int actualCount = (count >= favoriteCountOffset ? res.players + favoriteCountOffset : res.players);
+                        needsSort = actualCount > count;
+                        groupTable[0].userObject = Math.max(count, actualCount);
+                    }
+
                     addCommunityHost(res, groupTable[1]);
+
+                    if(needsSort && !sortPing){
+                        //when the count changes, sort by player count, descending
+                        var oldChildren = tmpElements;
+                        tmpElements.set(global.getChildren());
+                        oldChildren.sort(c -> c instanceof Table t && t.userObject instanceof Integer playerCount ? -playerCount : 0);
+                        global.clearChildren();
+                        for(var child : oldChildren){
+                            global.add(child);
+                            global.row();
+                        }
+                    }
 
                     groupTable[0].margin(5f);
                     groupTable[0].pack();
@@ -489,7 +543,7 @@ public class JoinDialog extends BaseDialog{
 
     void addHeader(Table[] groupTable, ServerGroup group, boolean hidden, boolean favorite, boolean doInit){ // outlined separately
         if(groupTable[0] == null){
-            global.table(t -> groupTable[0] = t).fillX().left().row();
+            global.table(t -> groupTable[0] = t).with(t -> t.userObject = favorite ? favoriteCountOffset : 0).fillX().left().row();
         }
         groupTable[0].visible(() -> doInit);
         if(!doInit){
@@ -702,6 +756,7 @@ public class JoinDialog extends BaseDialog{
 
     @SuppressWarnings("unchecked")
     private void loadServers(){
+        sortPing = Core.settings.getBool("sort-servers-ping", true);
         servers = Core.settings.getJson("servers", Seq.class, Server.class, Seq::new);
 
         //load imported legacy data
@@ -803,16 +858,14 @@ public class JoinDialog extends BaseDialog{
         }else if(host.version == 0){
             return Core.bundle.get("server.outdated");
         }else if(host.version < Version.build && Version.build != -1){
-            return Core.bundle.get("server.outdated") + "\n" +
-            Core.bundle.format("server.version", host.version, host.versionType);
+            return "\n" + Core.bundle.format("server.version", host.version, host.versionType) + " " + Core.bundle.get("server.outdated");
         }else if(host.version > Version.build && Version.build != -1){
-            return Core.bundle.get("server.outdated.client") + "\n" +
-            Core.bundle.format("server.version", host.version, host.versionType);
+            return "\n" + Core.bundle.format("server.version", host.version, host.versionType) + " " + Core.bundle.get("server.outdated.client");
         }else if(host.version == Version.build && Version.type.equals(host.versionType)){
             //not important
             return "";
         }else{
-            return Core.bundle.format("server.version", host.version, host.versionType);
+            return Core.bundle.format("server.version", host.version, "official".equals(host.versionType) ? "" : host.versionType);
         }
     }
 

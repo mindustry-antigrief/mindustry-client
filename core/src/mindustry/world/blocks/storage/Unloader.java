@@ -147,6 +147,9 @@ public class Unloader extends Block{
             Pools.freeAll(possibleBlocks, true);
             possibleBlocks.clear();
 
+            //check item length for data patches - this method is called upon world load; keep it out of the update loop
+            if(allItems.length != content.items().size) allItems = content.items().toArray(Item.class);
+
             for(int i = 0; i < proximity.size; i++){
                 var other = proximity.get(i);
                 if(!other.interactable(team)) continue; //avoid blocks of the wrong team
@@ -169,7 +172,6 @@ public class Unloader extends Block{
         public void updateTile(){
             if(((unloadTimer += delta()) < speed) || (possibleBlocks.size < 2)) return;
             Item item = null;
-            boolean any = false;
 
             if(sortItem != null){
                 if(isPossibleItem(sortItem)) item = sortItem;
@@ -204,37 +206,77 @@ public class Unloader extends Block{
                 }
 
                 possibleBlocks.sort(comparator);
+                unloadAccumulate(item);
+            }else{
+                unloadTimer = Math.min(unloadTimer, speed);
+            }
+        }
 
+<<<<<<< HEAD
+=======
+        //allow dumping regardless of framerate. The expensive checks such as isPossibleItem() are still dependant on update()
+        public void unloadAccumulate(Item item){
+            if(item == null) return;
+
+            boolean any = false;
+            var pbi = possibleBlocks.items;
+            int pbs = possibleBlocks.size;
+
+            while(unloadTimer >= speed){
+                dumpingTo = null;
+                dumpingFrom = null;
+
+>>>>>>> v160
                 //choose the building to accept the item
                 for(int i = 0; i < pbs; i++){
-                    if(pbi[i].canLoad){
-                        dumpingTo = pbi[i];
+                    var pb = pbi[i];
+                    if(pb.canLoad && pb.building.acceptItem(this, item)){
+                        dumpingTo = pb;
                         break;
                     }
                 }
 
                 //choose the building to take the item from
                 for(int i = pbs - 1; i >= 0; i--){
-                    if(pbi[i].canUnload){
-                        dumpingFrom = pbi[i];
+                    var pb = pbi[i];
+                    if(pb.canUnload && pb.building.canUnload() && pb.building.items != null && pb.building.items.has(item)){
+                        dumpingFrom = pb;
                         break;
                     }
                 }
 
+                if(dumpingFrom == null || dumpingTo == null) break;
+
+                var from = dumpingFrom.building;
+                var to = dumpingTo.building;
+
+                int fromMax = from.getMaximumAccepted(item);
+                int toMax = to.getMaximumAccepted(item);
+                dumpingFrom.loadFactor = fromMax == 0 || from.items == null ? 0f : from.items.get(item) / (float)fromMax;
+                dumpingTo.loadFactor = toMax == 0 || to.items == null ? 0f : to.items.get(item) / (float)toMax;
+
                 //trade the items
+<<<<<<< HEAD
                 if(dumpingFrom != null && dumpingTo != null && (dumpingFrom.loadFactor != dumpingTo.loadFactor || !dumpingFrom.canLoad)){
                     dumpingTo.building.handleItem(this, item);
                     dumpingFrom.building.removeStack(item, 1);
                     dumpingTo.lastUsed = 0;
                     dumpingFrom.lastUsed = 0;
                     lastItem = item;
+=======
+                if(dumpingFrom.loadFactor != dumpingTo.loadFactor || !dumpingFrom.canLoad){
+                    to.handleItem(this, item);
+                    from.removeStack(item, 1);
+                    dumpingTo.lastUsed = dumpingFrom.lastUsed = 0;
+                    unloadTimer -= speed;
+>>>>>>> v160
                     any = true;
+                }else{
+                    break;
                 }
             }
 
-            if(any){
-                unloadTimer %= speed;
-            }else{
+            if(!any){
                 unloadTimer = Math.min(unloadTimer, speed);
             }
         }

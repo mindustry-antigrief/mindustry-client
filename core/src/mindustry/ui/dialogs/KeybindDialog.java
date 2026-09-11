@@ -11,6 +11,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.*;
 import mindustry.ui.*;
 
 import java.util.*;
@@ -130,7 +131,7 @@ public class KeybindDialog extends Dialog{
                     rebind(keybind, KeyCode.unset);
                 }).size(bw, bh).padLeft(4f).disabled(t -> keybind.value.key == KeyCode.unset);
             }
-            table.button("@settings.resetKey", tstyle, keybind::resetToDefault).disabled(t -> keybind.isDefault()).size(bw, bh).pad(2f).padLeft(4f);
+            if(keybind != Binding.menu) table.button("@settings.resetKey", tstyle, keybind::resetToDefault).disabled(t -> keybind.isDefault()).size(bw, bh).pad(2f).padLeft(4f);
             table.row();
         }
 
@@ -173,16 +174,42 @@ public class KeybindDialog extends Dialog{
         }
     }
 
+<<<<<<< HEAD
     private void openDialog(KeyBind name){
         rebindDialog = new Dialog(rebindAxis ? bundle.get("keybind.press.axis") : bundle.get("keybind.press"));
 
         Seq<KeyCode> pressedKeys = new Seq<>(3);
+=======
+    private void openDialog(KeyBind keyBind){
+        InputListener blocker = new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
+                event.cancel();
+                return true;
+            }
+        };
+
+        float bw = 210f, bh = 64f;
+        rebindDialog = new Dialog(bundle.get("keybind." + keyBind.name + ".name", Strings.capitalize(keyBind.name))){{
+            title.setAlignment(Align.center);
+            cont.add(rebindAxis ? bundle.get("keybind.press.axis") : bundle.get("keybind.press")).pad(40f);
+
+            buttons.button("@back", Icon.left, this::hide).size(bw, bh).get().addListener(blocker);
+            buttons.button("@settings.unbindKey", Icon.cancel, () -> {
+                keyBind.unset();
+                hide();
+            }).size(bw, bh).get().addListener(blocker);
+        }};
+
+        rebindKey = keyBind;
+>>>>>>> v160
 
         rebindDialog.titleTable.getCells().first().pad(4);
         rebindDialog.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
                 if(Core.app.isAndroid()) return false;
+<<<<<<< HEAD
                 rebindDialog.hide();
                 pressedKeys.add(button);
                 rebind(name, pressedKeys);
@@ -196,12 +223,20 @@ public class KeybindDialog extends Dialog{
                     rebindDialog.hide();
                     rebind(name, pressedKeys);
                 }
+=======
+                rebind(keyBind, button);
+>>>>>>> v160
                 return false;
             }
 
             @Override
             public boolean keyDown(InputEvent event, KeyCode keycode){
+<<<<<<< HEAD
                 pressedKeys.add(keycode);
+=======
+                rebindDialog.hide();
+                rebind(keyBind, keycode);
+>>>>>>> v160
                 return false;
             }
 
@@ -209,8 +244,12 @@ public class KeybindDialog extends Dialog{
             public boolean scrolled(InputEvent event, float x, float y, float amountX, float amountY){
                 if(!rebindAxis) return false;
                 rebindDialog.hide();
+<<<<<<< HEAD
                 pressedKeys.add(KeyCode.scroll);
                 rebind(name, pressedKeys);
+=======
+                rebind(keyBind, KeyCode.scroll);
+>>>>>>> v160
                 return false;
             }
         });

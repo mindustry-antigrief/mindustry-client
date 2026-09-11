@@ -127,9 +127,16 @@ public class UnitAssembler extends PayloadBlock{
         }
 
         addBar("progress", (UnitAssemblerBuild e) -> new Bar(
+<<<<<<< HEAD
             () -> Core.bundle.format("bar.progresstime", UI.formatTime(e.plan().time * (1 - e.progress) / e.timeScale() / state.rules.unitBuildSpeedMultiplier)),
             () -> Pal.ammo,
             () -> e.progress));
+=======
+            () -> Core.bundle.format("bar.progress", Strings.autoFixed(e.progress * 100f, 0)),
+            () -> Pal.ammo,
+            () -> e.progress
+        ));
+>>>>>>> v160
 
         addBar("units", (UnitAssemblerBuild e) ->
             new Bar(() ->
@@ -190,7 +197,7 @@ public class UnitAssembler extends PayloadBlock{
 
             if(plan.liquidReq != null){
                 for(LiquidStack stack : plan.liquidReq){
-                    liquidFilter[stack.liquid.id] = true;
+                    if(stack.liquid.id < liquidFilter.length) liquidFilter[stack.liquid.id] = true;
                 }
             }
         }

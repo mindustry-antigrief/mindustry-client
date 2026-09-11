@@ -299,7 +299,7 @@ public class HudFragment{
         parent.fill(t -> {
             float sidePad = dsize * 5 + 4f;
             t.name = "paused";
-            t.top().visible(() -> state.isPaused() && shown && !netServer.isWaitingForPlayers() && !(mobile && Core.graphics.isPortrait())).touchable = Touchable.disabled;
+            t.top().visible(() -> state.isPaused() && shown() && !netServer.isWaitingForPlayers() && !(mobile && Core.graphics.isPortrait())).touchable = Touchable.disabled;
             t.table(Styles.black6, top -> {
                 top.label(() -> state.gameOver && state.isCampaign() ? "@sector.curlost" : "@paused")
                 .style(Styles.outlineLabel).pad(8f);
@@ -311,7 +311,7 @@ public class HudFragment{
         //pause disabled table
         parent.fill(t -> {
             t.name = "pause-disabled";
-            t.top().visible(() -> pauseDisableDur > 0f && shown && !mobile && !netServer.isWaitingForPlayers() && !state.isPaused() && !(state.gameOver && state.isCampaign())).touchable = Touchable.disabled;
+            t.top().visible(() -> pauseDisableDur > 0f && shown() && !mobile && !netServer.isWaitingForPlayers() && !state.isPaused() && !(state.gameOver && state.isCampaign())).touchable = Touchable.disabled;
             t.update(() -> {
                 t.color.a = t.color.a > 0f && pauseDisableDur > 0f ? t.color.a - Time.delta / pauseDisableDur : 1f;
                 if(t.color.a <= 0f){
@@ -340,7 +340,7 @@ public class HudFragment{
         //"waiting for players"
         parent.fill(t -> {
             t.name = "waiting";
-            t.visible(() -> netServer.isWaitingForPlayers() && state.isPaused() && shown).touchable = Touchable.disabled;
+            t.visible(() -> netServer.isWaitingForPlayers() && state.isPaused() && shown()).touchable = Touchable.disabled;
             t.table(Styles.black6, top -> top.add("@waiting.players").style(Styles.outlineLabel).pad(18f));
         });
 
@@ -348,8 +348,12 @@ public class HudFragment{
         parent.fill(t -> {
             t.visible(() -> shown && Core.settings.getBool(("minimap"))); // FINISHME: Only hide minimap when doing so, use a collapser to shrink it maybe? Idk
             t.name = "minimap/position";
+<<<<<<< HEAD
             //tile hud
             t.add(new TileInfoFragment()).name("tilehud").top();
+=======
+            t.visible(() -> Core.settings.getBool("minimap") && shown());
+>>>>>>> v160
             //minimap
             t.add(new Minimap()).name("minimap").top();
             t.row();
@@ -455,7 +459,8 @@ public class HudFragment{
                     });
 
                     select.image().color(Pal.gray).width(4f).fillY();
-                });
+                    //there is no back button on iOS, so the menu has to be shown at all times.
+                }).visible(() -> OS.isIos || !control.input.logicHideHud);
 
                 cont.row();
                 cont.image().height(4f).color(Pal.gray).fillX();
@@ -495,7 +500,7 @@ public class HudFragment{
                 }
             }).name("waves/editor");
 
-            wavesMain.visible(() -> shown && !state.isEditor());
+            wavesMain.visible(() -> shown() && !state.isEditor());
             wavesMain.top().left().name = "waves";
 
             wavesMain.table(s -> {
@@ -593,13 +598,13 @@ public class HudFragment{
             }
 
             editorMain.row().add().growY();
-            editorMain.visible(() -> shown && state.isEditor());
+            editorMain.visible(() -> shown() && state.isEditor());
 
             //fps display
             cont.table(info -> {
                 info.name = "fps/ping";
                 info.touchable = Touchable.disabled;
-                info.top().left().margin(4).visible(() -> Core.settings.getBool("fps") && shown);
+                info.top().left().margin(4).visible(() -> Core.settings.getBool("fps") && shown());
                 IntFormat fps = new IntFormat("fps");
                 IntFormat ping = new IntFormat("ping");
                 IntFormat tps = new IntFormat("tps");
@@ -666,7 +671,7 @@ public class HudFragment{
                 t.margin(macNotchHeight);
             }
 
-            t.visible(() -> shown);
+            t.visible(this::shown);
 
             t.name = "coreinfo";
 
@@ -674,7 +679,11 @@ public class HudFragment{
 
             t.table(c -> {
                 //core items
+<<<<<<< HEAD
                 c.top().collapser(coreItems, () -> Core.settings.getBool("coreitems") && shown).fillX().row();
+=======
+                c.top().collapser(coreItems, () -> Core.settings.getBool("coreitems") && !mobile && shown()).fillX().row();
+>>>>>>> v160
 
                 float notifDuration = 240f;
 
@@ -706,7 +715,7 @@ public class HudFragment{
                         coreAttackTime = 0f;
                         return false;
                     }
-                    if(!shown || state.isPaused()) return false;
+                    if(!shown() || state.isPaused()) return false;
 
                     return (coreAttackTime -= Time.delta) > 0;
                 })
@@ -884,7 +893,7 @@ public class HudFragment{
 
             Table table = new Table(Tex.button);
             table.update(() -> {
-                if(state.isMenu() || !ui.hudfrag.shown){
+                if(state.isMenu() || !ui.hudfrag.shown()){
                     table.remove();
                 }
             });
@@ -1232,7 +1241,7 @@ public class HudFragment{
 
                     String text = obj.text();
                     if(text != null && !text.isEmpty()){
-                        if(!first) builder.append("\n[white]");
+                        if(!first) builder.append("\n\n[white]");
                         builder.append(UI.formatIcons(text));
 
                         first = false;
@@ -1376,6 +1385,10 @@ public class HudFragment{
 
     private boolean canSkipWave(){
         return state.rules.waves && (state.rules.winWave <= 0 || state.wave < state.rules.winWave) && (net.server() || !net.active() || Server.current.adminui()) /* && state.enemies == 0 && !spawner.isSpawning() */;
+    }
+
+    public boolean shown() {
+        return shown && !control.input.logicHideHud;
     }
 
 }

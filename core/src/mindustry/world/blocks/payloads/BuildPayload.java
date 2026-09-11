@@ -40,6 +40,11 @@ public class BuildPayload implements Payload{
     }
 
     @Override
+    public boolean isDead(){
+        return build.dead;
+    }
+
+    @Override
     public boolean contentEquals(Payload other){
         return other instanceof BuildPayload bp && bp.block() == build.block;
     }
@@ -61,6 +66,7 @@ public class BuildPayload implements Payload{
     public void destroyed(){
         build.dead = true;
         build.onDestroyed();
+        build.afterDestroyed();
     }
 
     @Override

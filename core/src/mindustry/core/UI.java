@@ -38,7 +38,6 @@ import static arc.scene.actions.Actions.*;
 import static mindustry.Vars.*;
 
 public class UI implements ApplicationListener, Loadable{
-
     private static final StringBuilder buffer = new StringBuilder();
     public static String billions, millions, thousands;
 
@@ -84,8 +83,6 @@ public class UI implements ApplicationListener, Loadable{
     public FullTextDialog fullText;
     public CampaignCompleteDialog campaignComplete;
     public CampaignRulesDialog campaignRules;
-
-    public IntMap<Dialog> followUpMenus;
 
     public Cursor drillCursor, unloadCursor, targetCursor, repairCursor;
 
@@ -253,7 +250,6 @@ public class UI implements ApplicationListener, Loadable{
         fullText = new FullTextDialog();
         campaignComplete = new CampaignCompleteDialog();
         campaignRules = new CampaignRulesDialog();
-        followUpMenus = new IntMap<>();
 
         // Client related
         unitPicker = new UnitPicker();
@@ -356,9 +352,11 @@ public class UI implements ApplicationListener, Loadable{
             }});
         }else{
             new Dialog(titleText){{
-                cont.margin(30).add(text).padRight(6f);
+                cont.image().width(400f).pad(2).height(4f).color(Pal.accent);
+                cont.row();
+                cont.add(text).row();
                 TextFieldFilter filter = numbers ? TextFieldFilter.digitsOnly : (f, c) -> true;
-                TextField field = cont.field(def, t -> {}).size(330f, 50f).get();
+                TextField field = cont.field(def, t -> {}).size(400f, 50f).get();
                 field.setMaxLength(textLength);
                 field.setFilter(filter);
                 buttons.defaults().size(120, 54).pad(4);
@@ -715,6 +713,7 @@ public class UI implements ApplicationListener, Loadable{
         dialog.show();
     }
 
+<<<<<<< HEAD
     // TODO REPLACE INTEGER WITH arc.fun.IntCons(int, T) or something like that.
     public Dialog newMenuDialog(String title, String message, String[][] options, Cons2<Integer, Dialog> buttonListener){
         return new Dialog(title){{
@@ -829,6 +828,8 @@ public class UI implements ApplicationListener, Loadable{
         }
     }
 
+=======
+>>>>>>> v160
     /**
      * Finds all :name: in a string and replaces them with the icon, if such exists.
      * Based on TextFormatter::simpleFormat

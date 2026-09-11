@@ -15,7 +15,8 @@ import java.util.*;
 public class Stats{
     /** Whether to display stats with categories. If false, categories are completely ignored during display. */
     public boolean useCategories = false;
-    /** Whether these stats are initialized yet. */
+    /** @deprecated does nothing, will be removed in v9 */
+    @Deprecated
     public boolean intialized = false;
     /** Production time period in ticks. Used for crafters. **/
     public float timePeriod = -1;
@@ -82,6 +83,10 @@ public class Stats{
 
     public void add(Stat stat, Attribute attr, boolean floating, float scale, boolean startZero){
         add(stat, StatValues.blocks(attr, floating, scale, startZero));
+    }
+
+    public void add(Stat stat, Attribute attr, boolean floating, float scale1, float scale2, @Nullable Seq<ItemStack> outputs, float timePeriod, boolean startZero){
+        add(stat, StatValues.blocks(attr, floating, scale1, scale2, outputs, timePeriod, startZero));
     }
 
     /** Adds a single string value with this stat. */

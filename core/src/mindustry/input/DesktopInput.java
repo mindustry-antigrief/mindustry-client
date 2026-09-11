@@ -83,6 +83,7 @@ public class DesktopInput extends InputHandler{
     private float buildPlanMouseOffsetX, buildPlanMouseOffsetY;
     private boolean changedCursor, pressedCommandRect;
 
+<<<<<<< HEAD
 
     // Client Vars
     private long lastShiftZ;
@@ -90,6 +91,12 @@ public class DesktopInput extends InputHandler{
     public float dragX = Float.NaN, dragY;
     /** Whether the player has provided movement input since some other code set it to false */
     public boolean moved = false;
+=======
+    boolean showHint(){
+        return ui.hudfrag.shown() && Core.settings.getBool("hints") && selectPlans.isEmpty() && !player.dead() &&
+            (!isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() || !player.dead() && !player.unit().spawnedByCore());
+    }
+>>>>>>> v160
 
     @Override
     public void reset(){
@@ -174,6 +181,18 @@ public class DesktopInput extends InputHandler{
                     return str.length() != 0 ? tmp.replace(0, tmp.length(), str.deleteCharAt(0).toString()) : tmp;
                 }).style(Styles.outlineLabel);
 
+<<<<<<< HEAD
+=======
+        //schematic controls
+        group.fill(t -> {
+            t.visible(() -> ui.hudfrag.shown() && lastSchematic != null && !selectPlans.isEmpty());
+            t.bottom();
+            t.table(Styles.black6, b -> {
+                b.defaults().left();
+                b.label(() -> Core.bundle.format("schematic.flip",
+                    Binding.schematicFlipX.value.key.toString(),
+                    Binding.schematicFlipY.value.key.toString())).style(Styles.outlineLabel).visible(() -> Core.settings.getBool("hints"));
+>>>>>>> v160
                 b.row();
                 b.table().update(c -> { // This is the worst way possible to add/remove the schematic save button but it works ok
                     if (!c.hasChildren() && lastSchematic != null && selectPlans.any()) {
@@ -1027,13 +1046,17 @@ public class DesktopInput extends InputHandler{
                 if(selectPlans.isEmpty()){
                     lastSchematic = null;
                 }
-                schemX = -1;
-                schemY = -1;
+                if(!input.keyDown(Binding.rebuildSelect)){
+                    schemX = -1;
+                    schemY = -1;
+                }
             }else if(input.keyRelease(Binding.rebuildSelect)){
 
                 rebuildArea(schemX, schemY, rawCursorX, rawCursorY);
-                schemX = -1;
-                schemY = -1;
+                if(!input.keyDown(Binding.schematicSelect)){
+                    schemX = -1;
+                    schemY = -1;
+                }
             }
         }
 
@@ -1441,6 +1464,13 @@ public class DesktopInput extends InputHandler{
 
             if ((!Core.input.keyDown(Binding.select) || block != null) && shouldShoot) AutoShootKt.autoShoot();
         }
+<<<<<<< HEAD
+=======
+
+        unit.movePref(movement);
+
+        unit.aim(input.mouseWorldX(), input.mouseWorldY(), true);
+>>>>>>> v160
         unit.controlWeapons(true, player.shooting && !boosted);
 
         player.mouseX = unit.aimX();

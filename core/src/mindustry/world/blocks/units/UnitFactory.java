@@ -120,9 +120,16 @@ public class UnitFactory extends UnitBlock{
     public void setBars(){
         super.setBars();
         addBar("progress", (UnitFactoryBuild e) -> new Bar(
+<<<<<<< HEAD
             () -> Core.bundle.format("bar.progresstime", UI.formatTime(e.ticksRemaining())),
             () -> Pal.ammo,
             e::fraction));
+=======
+            () -> Core.bundle.format("bar.progress", Strings.autoFixed(e.fraction() * 100f, 0)),
+            () -> Pal.ammo,
+            e::fraction
+        ));
+>>>>>>> v160
 
         addBar("units", (UnitFactoryBuild e) ->
         new Bar(
@@ -237,9 +244,7 @@ public class UnitFactory extends UnitBlock{
 
         public boolean canSetCommand(){
             var output = unit();
-            return output != null && output.commands.size > 1 && output.allowChangeCommands &&
-                //to avoid cluttering UI, don't show command selection for "standard" units that only have two commands.
-                !(output.commands.size == 2 && output.commands.get(1) == UnitCommand.enterPayloadCommand);
+            return output != null && output.commands.size > 1 && output.allowChangeCommands;
         }
 
         @Override
@@ -266,6 +271,12 @@ public class UnitFactory extends UnitBlock{
         @Override
         public void onCommand(Vec2 target){
             commandPos = target;
+            if(command != null && command.snapToBuilding){
+                var build = world.buildWorld(target.x, target.y);
+                if(build != null && build.team == this.team){
+                    commandPos.set(build);
+                }
+            } 
         }
 
         @Override

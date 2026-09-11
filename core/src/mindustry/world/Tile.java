@@ -161,7 +161,7 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     }
 
     public boolean inMapArea(){
-        return !state.rules.limitMapArea || Rect.contains(state.rules.limitX , state.rules.limitY , state.rules.limitWidth, state.rules.limitHeight, x, y);
+        return world.isInMapArea(x, y);
     }
 
     public float worldx(){
@@ -195,6 +195,11 @@ public class Tile implements Position, QuadTreeObject, Displayable{
 
     public Floor overlay(){
         return overlay;
+    }
+
+    /** Internal method for data patches - do not use!! */
+    public void updateBlockReference(Block block){
+        this.block = block;
     }
 
     @SuppressWarnings("unchecked")
@@ -468,6 +473,10 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         return !block.solid && (floor.isDeep() || floor.damages());
     }
 
+    public boolean isDeep(){
+        return block == Blocks.air && floor.isDeep();
+    }
+
     /**
      * Iterates through the list of all tiles linked to this multiblock, or just itself if it's not a multiblock.
      * The result contains all linked tiles, including this tile itself.
@@ -727,6 +736,11 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     }
 
     @Override
+    public boolean displayable(){
+        return (drop() != null && block == Blocks.air) || wallDrop() != null || (floor().liquidDrop != null && block == Blocks.air);
+    }
+
+    @Override
     public float getX(){
         return drawx();
     }
@@ -774,6 +788,44 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         for(int pos : positions){
             Tile tile = world.tile(pos);
             if(tile != null){
+                tile.setOverlay(floor);
+            }
+        }
+    }
+
+    /** Fills an area. x2/y2 are inclusive.*/
+    @Remote(called = Loc.server)
+    public static void fillTileBlocks(int x, int y, int x2, int y2, Block block, Team team){
+        for(int tx = x; tx <= x2; tx++){
+            for(int ty = y; ty <= y2; ty++){
+                Tile tile = world.tile(tx, ty);
+                if(tile == null) return; //out of bounds; return instead of breaking since it's a rectangle
+                tile.setBlock(block, team, 0);
+            }
+        }
+    }
+
+    /** Fills an area. x2/y2 are inclusive.*/
+    @Remote(called = Loc.server)
+    public static void fillTileFloors(int x, int y, int x2, int y2, Block block){
+        if(!(block instanceof Floor floor)) return;
+        for(int tx = x; tx <= x2; tx++){
+            for(int ty = y; ty <= y2; ty++){
+                Tile tile = world.tile(tx, ty);
+                if(tile == null) return; //out of bounds; return instead of breaking since it's a rectangle
+                tile.setFloor(floor);
+            }
+        }
+    }
+
+    /** Fills an area. x2/y2 are inclusive.*/
+    @Remote(called = Loc.server)
+    public static void fillTileOverlays(int x, int y, int x2, int y2, Block block){
+        if(!(block instanceof OverlayFloor floor)) return;
+        for(int tx = x; tx <= x2; tx++){
+            for(int ty = y; ty <= y2; ty++){
+                Tile tile = world.tile(tx, ty);
+                if(tile == null) return; //out of bounds; return instead of breaking since it's a rectangle
                 tile.setOverlay(floor);
             }
         }

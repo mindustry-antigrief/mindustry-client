@@ -46,18 +46,18 @@ public class LogicDialog extends BaseDialog{
 
         shown(this::setup);
         shown(() -> {
-            wasRows = LCanvas.useRows();
+            wasRows = LCanvas.isCompact();
             wasPortrait = Core.graphics.isPortrait();
         });
         hidden(() -> {
             if (executor != null && !Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
         });
         onResize(() -> {
-            if(wasRows != LCanvas.useRows() || wasPortrait != Core.graphics.isPortrait()){
+            if(wasRows != LCanvas.isCompact() || wasPortrait != Core.graphics.isPortrait()){
                 setup();
                 canvas.rebuild();
                 wasPortrait = Core.graphics.isPortrait();
-                wasRows = LCanvas.useRows();
+                wasRows = LCanvas.isCompact();
             }
         });
 
@@ -139,7 +139,7 @@ public class LogicDialog extends BaseDialog{
                     t.button("@load.clipboard", Icon.download, style, () -> {
                         dialog.hide();
                         try{
-                            canvas.load(Core.app.getClipboardText().replace("\r\n", "\n"));
+                            canvas.load(Core.app.getClipboardText());
                         }catch(Throwable e){
                             ui.showException(e);
                         }
@@ -305,7 +305,7 @@ public class LogicDialog extends BaseDialog{
                     for(Prov<LStatement> prov : LogicIO.allStatements){
                         LStatement example = prov.get();
                         if(example instanceof InvalidStatement || example.hidden() || (example.privileged() && !privileged) || (example.nonPrivileged() && privileged) ||
-                            (!text.isEmpty() && !example.name().toLowerCase(Locale.ROOT).contains(text) && !example.typeName().toLowerCase(Locale.ROOT).contains(text)) ||
+                            (!text.isEmpty() && !example.localizedName().toLowerCase(Locale.ROOT).contains(text) && !example.typeName().toLowerCase(Locale.ROOT).contains(text)) ||
                             (!privileged && !state.rules.logicUnitControl && example.category() == LCategory.unit)) continue;
 
                         if(matched[0] == null){
@@ -335,12 +335,19 @@ public class LogicDialog extends BaseDialog{
                         style.fontColor = category.color;
                         style.font = Fonts.outline;
 
+<<<<<<< HEAD
                         cat.button(example.name(), style, () -> {
                             canvas.addAt(at == -1 ? canvas.statements.getChildren().size : at, prov.get());
                             dialog.hide();
                             canvas.layout();
                             canvas.recalculate();
                         }).size(130f, 50f).self(c -> tooltip(c, "lst." + example.name())).top().left();
+=======
+                        cat.button(example.localizedName(), style, () -> {
+                            canvas.addAt(position == -1 ? canvas.statements.getChildren().size : position, prov.get());
+                            dialog.hide();
+                        }).size(130f, 50f).self(c -> tooltip(c, "lst." + example.statementKey())).top().left();
+>>>>>>> v160
 
                         if(cat.getChildren().size % 3 == 0) cat.row();
                     }

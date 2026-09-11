@@ -69,16 +69,28 @@ function targetedBuilding(){
 //more coming soon
 
 importPackage(Packages.arc)
+importPackage(Packages.arc.assets)
+importPackage(Packages.arc.assets.loaders)
 importPackage(Packages.arc.audio)
+importPackage(Packages.arc.backend.headless)
 importPackage(Packages.arc.files)
 importPackage(Packages.arc.flabel)
+importPackage(Packages.arc.freetype)
 importPackage(Packages.arc.func)
+importPackage(Packages.arc.fx)
+importPackage(Packages.arc.fx.filters)
+importPackage(Packages.arc.fx.util)
 importPackage(Packages.arc.graphics)
 importPackage(Packages.arc.graphics.g2d)
+importPackage(Packages.arc.graphics.g3d)
 importPackage(Packages.arc.graphics.gl)
 importPackage(Packages.arc.input)
 importPackage(Packages.arc.math)
 importPackage(Packages.arc.math.geom)
+importPackage(Packages.arc.mock)
+importPackage(Packages.arc.net)
+importPackage(Packages.arc.net.dns)
+importPackage(Packages.arc.packer)
 importPackage(Packages.arc.scene)
 importPackage(Packages.arc.scene.actions)
 importPackage(Packages.arc.scene.event)
@@ -141,6 +153,7 @@ importPackage(Packages.mindustry.type.unit)
 importPackage(Packages.mindustry.type.weapons)
 importPackage(Packages.mindustry.type.weather)
 importPackage(Packages.mindustry.ui)
+importPackage(Packages.mindustry.ui.builder)
 importPackage(Packages.mindustry.ui.dialogs)
 importPackage(Packages.mindustry.ui.fragments)
 importPackage(Packages.mindustry.ui.layout)
@@ -197,6 +210,7 @@ const BlockBuildEventTile = Packages.mindustry.game.EventType.BlockBuildEventTil
 const BlockBuildEndEvent = Packages.mindustry.game.EventType.BlockBuildEndEvent
 const BlockBuildBeginEventBefore = Packages.mindustry.game.EventType.BlockBuildBeginEventBefore
 const BlockBuildBeginEvent = Packages.mindustry.game.EventType.BlockBuildBeginEvent
+const RulesLoadEvent = Packages.mindustry.game.EventType.RulesLoadEvent
 const ResearchEvent = Packages.mindustry.game.EventType.ResearchEvent
 const UnlockEvent = Packages.mindustry.game.EventType.UnlockEvent
 const StateChangeEvent = Packages.mindustry.game.EventType.StateChangeEvent
@@ -206,6 +220,7 @@ const TileOverlayChangeEvent = Packages.mindustry.game.EventType.TileOverlayChan
 const TileFloorChangeEvent = Packages.mindustry.game.EventType.TileFloorChangeEvent
 const TileChangeEvent = Packages.mindustry.game.EventType.TileChangeEvent
 const TilePreChangeEvent = Packages.mindustry.game.EventType.TilePreChangeEvent
+const BulletCreateEvent = Packages.mindustry.game.EventType.BulletCreateEvent
 const BuildDamageEvent = Packages.mindustry.game.EventType.BuildDamageEvent
 const GameOverEventClient = Packages.mindustry.game.EventType.GameOverEventClient
 const GameOverEvent = Packages.mindustry.game.EventType.GameOverEvent
@@ -223,6 +238,7 @@ const ClientChatEvent = Packages.mindustry.game.EventType.ClientChatEvent
 const PlayerChatEventClient = Packages.mindustry.game.EventType.PlayerChatEventClient
 const PlayerChatEvent = Packages.mindustry.game.EventType.PlayerChatEvent
 const TextInputEvent = Packages.mindustry.game.EventType.TextInputEvent
+const MenuBuilderOptionChooseEvent = Packages.mindustry.game.EventType.MenuBuilderOptionChooseEvent
 const MenuOptionChooseEvent = Packages.mindustry.game.EventType.MenuOptionChooseEvent
 const ClientServerConnectEvent = Packages.mindustry.game.EventType.ClientServerConnectEvent
 const ClientPreConnectEvent = Packages.mindustry.game.EventType.ClientPreConnectEvent
@@ -233,6 +249,7 @@ const LaunchItemEvent = Packages.mindustry.game.EventType.LaunchItemEvent
 const SectorInvasionEvent = Packages.mindustry.game.EventType.SectorInvasionEvent
 const SectorLoseEvent = Packages.mindustry.game.EventType.SectorLoseEvent
 const SaveLoadEvent = Packages.mindustry.game.EventType.SaveLoadEvent
+const TextureStreamEvent = Packages.mindustry.game.EventType.TextureStreamEvent
 const DataPatchLoadEvent = Packages.mindustry.game.EventType.DataPatchLoadEvent
 const WorldLoadEndEvent = Packages.mindustry.game.EventType.WorldLoadEndEvent
 const WorldLoadBeginEvent = Packages.mindustry.game.EventType.WorldLoadBeginEvent

@@ -65,7 +65,12 @@ public class ChatFragment extends Table{
                 if (shown) hide(false);
                 clearMessages();
             }
+<<<<<<< HEAD
             return ui.hudfrag.shown;
+=======
+
+            return net.active() && ui.hudfrag.shown();
+>>>>>>> v160
         });
 
         update(() -> {
