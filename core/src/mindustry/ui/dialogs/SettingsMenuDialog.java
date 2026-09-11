@@ -431,6 +431,7 @@ public class SettingsMenuDialog extends BaseDialog{
 
         client.category("controls");
         client.checkPref("blockreplace", true);
+        client.checkPref("dragconfig", false);
         client.checkPref("instantturn", true);
         client.checkPref("autoboost", false);
         client.checkPref("assumeunstrict", false);

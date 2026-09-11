@@ -104,6 +104,8 @@ public class DesktopInput extends InputHandler{
         shouldShoot = false;
         deleting = false;
     }
+    /** Whether the current selected building being dragged from*/
+    private boolean configDragging = false;
 
     @Override
     public void buildUI(Group group){
@@ -236,6 +238,16 @@ public class DesktopInput extends InputHandler{
                 drawRebuildSelection(schemX, schemY, cursorX, cursorY);
             }
         }
+
+        if (config.dragging) {
+            Vec2 mouseCoords = input.mouseWorld();
+            Building selected = config.getSelected();
+            Draw.color(Pal.accent);
+            Lines.line(mouseCoords.x, mouseCoords.y, selected.x, selected.y);
+            Draw.reset();
+        }
+
+        drawCommanded();
 
         Draw.reset();
     }
@@ -1114,6 +1126,16 @@ public class DesktopInput extends InputHandler{
                     player.unit().plans.removeIndex(index);
                     player.unit().plans.addFirst(plan);
                 }
+            }
+        }
+
+        // Handle drag to config behaviour
+        if(config.dragging && Core.input.keyRelease(Binding.select)){
+            config.dragging = false;
+            Building hovered = selected == null ? null : selected.build;
+            if(hovered != config.getSelected()){
+                if(hovered != null) config.getSelected().onConfigureBuildTapped(hovered);
+                config.hideConfig();
             }
         }
 
