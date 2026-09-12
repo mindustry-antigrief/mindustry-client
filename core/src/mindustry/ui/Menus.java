@@ -7,6 +7,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.client.*;
 import mindustry.client.utils.*;
@@ -146,8 +147,6 @@ public class Menus{
         if(message == null) message = "";
         if(options == null) options = new String[0][0];
         if(options.length > 0 && options[0].length > 1 && options[0][0].contains("") && options[0][1].contains("")) return; // .io is annoying
-        if(title.contains("Rate this map") && // FINISHME: Migrate this "adblock" stuff to ServerUtils
-            options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b()) return; // cn is equally annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
 <<<<<<< HEAD
@@ -163,7 +162,6 @@ public class Menus{
         if(title == null) title = "";
         if(message == null) message = "";
         if(options == null) options = new String[0][0];
-        if(title.equals("Hello there") && Server.cn.b()) return; // Cn join popup
 
 <<<<<<< HEAD
         Log.debug("Displaying followup menu @ with title: @", menuId, title);
@@ -315,6 +313,19 @@ public class Menus{
     public static void infoMessage(String message){
         if(message == null) return;
         if(Server.io.b() && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
+
+        // These menus are stupid
+        if(Server.cn.b()) {
+            if (message.contains("You have been logged in successfully")) {
+                // This popup is annoying
+                Vars.player.sendMessage(Core.bundle.get("client.command.login.success"));
+                return;
+            } else if (message.contains("You are already logged in")) {
+                // For the login command
+                Vars.player.sendMessage(Core.bundle.get("client.command.login.alreadylogged"));
+                return;
+            }
+        }
 
         ui.showText("", message);
     }
