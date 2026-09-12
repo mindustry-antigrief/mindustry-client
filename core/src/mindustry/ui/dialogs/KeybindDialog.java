@@ -197,8 +197,6 @@ public class KeybindDialog extends Dialog{
             }).size(bw, bh).get().addListener(blocker);
         }};
 
-        rebindKey = keyBind;
-
         rebindDialog.titleTable.getCells().first().pad(4);
         rebindDialog.addListener(new InputListener(){
             @Override

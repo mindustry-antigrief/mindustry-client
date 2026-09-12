@@ -186,6 +186,8 @@ public class SaveIO{
 
     public static Pixmap generatePreview(Saves.SaveSlot slot) throws IOException{
         Pixmap[] floors = {null}, walls = {null};
+        short[][] floorIds = new short[1][0];
+        boolean[][] overlays = new boolean[1][0];
         try(InputStream is = new InflaterInputStream(slot.file.read(bufferSize)); CounterInputStream counter = new CounterInputStream(is); DataInputStream stream = new DataInputStream(counter)){
             SaveIO.readHeader(stream);
             int version = stream.readInt();
@@ -210,10 +212,13 @@ public class SaveIO{
             };
 
             ver.readRegion("content", stream, counter, ver::readContentHeader);
-            ver.readRegion("preview_map", stream, counter, in -> ver.readMap(in, new WorldContext(){
+            ver.readRegion("preview_map", stream, counter, in -> ver.readMap(in, new SaveReadState(new WorldContext(){
                 @Override public void resize(int width, int height){
                     walls[0] = new Pixmap(width, height);
                     floors[0] = new Pixmap(width, height);
+                    int len = width * height;
+                    floorIds[0] = new short[len];
+                    overlays[0] = new boolean[len];
                 }
                 @Override public boolean isGenerating(){return false;}
                 @Override public void begin(){
@@ -254,9 +259,32 @@ public class SaveIO{
                     }else{
                         floors[0].set(x, floors[0].height - 1 - y, MapIO.colorFor(Blocks.air, content.block(floorID), Blocks.air, Team.derelict));
                     }
+
+                    floorIds[0][x + y * floors[0].width] = (short)floorID;
+                    overlays[0][x + y * floors[0].width] = overlayID != 0;
                     return tile;
                 }
-            }));
+
+                @Override
+                public void onReadTileData(){
+                    Block block = tile.block();
+                    Block floor = content.block(floorIds[0][tile.x + tile.y*walls[0].width]);
+
+                    if(!block.synthetic() && block != Blocks.air){
+                        int color = block.minimapColor(tile);
+                        if(color != 0){
+                            walls[0].set(tile.x, walls[0].height - 1 - tile.y, color);
+                        }
+                    }else if(!overlays[0][tile.array()] && block == Blocks.air){
+                        int color = floor.minimapColor(tile);
+                        if(color != 0){
+                            floors[0].set(tile.x, floors[0].height - 1 - tile.y, color);
+                        }
+                    }
+                }
+            }){{
+                preview = true;
+            }}));
 
             floors[0].draw(walls[0], true);
             return floors[0];

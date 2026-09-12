@@ -210,15 +210,19 @@ public class MemoryBlock extends Block{
             table.row();
             table.label(() -> {
                 StringBuilder sb = new StringBuilder();
-                int i = 0;
-                for (double item : memory) {
-                    if (i++ > 7) {
-                        sb.append("...");
-                        break;
+                final int maxRows = 8;
+                for(int i = 0; i < Math.min(memoryCapacity, maxRows); i ++){
+                    if(objectMemory[i] == sentinel){
+                        sb.append(numberMemory[i]);
+                    } else if(objectMemory[i] == null){
+                        //this should never happen, i think, but just to be safe -bala
+                        sb.append("null");
+                    } else {
+                        sb.append(objectMemory[i].toString());
                     }
-                    sb.append(item);
                     sb.append("\n");
                 }
+                if(memoryCapacity > maxRows) sb.append("...");
                 return sb.toString();
             });
         }

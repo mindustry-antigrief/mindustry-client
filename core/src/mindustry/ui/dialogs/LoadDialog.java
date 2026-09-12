@@ -110,12 +110,12 @@ public class LoadDialog extends BaseDialog{
         if(!control.saves.loading){ // Start an async load if we haven't yet done so
             control.saves.load(false, s -> {
                 if(!visible) return;
-                if(s != null && addSlot(s, count[0], maxwidth)) count[0]++;
+                if(s != null && addSlot(s, count[0], cols)) count[0]++;
                 else if (s == null) rebuild(); // Ensures that ordering is correct based on last played timestamp and not file last modified timestamp.
             });
         }else{
             for(SaveSlot slot : control.saves.getSaveSlots().sort(s -> -s.getTimestamp())){
-                if(addSlot(slot, count[0], maxwidth)) count[0]++;
+                if(addSlot(slot, count[0], cols)) count[0]++;
             }
             if(count[0] == 0) slots.add("@save.none");
         }
@@ -212,7 +212,7 @@ public class LoadDialog extends BaseDialog{
 
         slots.add(button).uniformX().fillX().pad(4).padRight(8f).margin(10f);
 
-        if((i + 1) % cols == 0){
+        if((i + 1) % maxwidth == 0){
             slots.row();
         }
         return true;

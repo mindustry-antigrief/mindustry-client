@@ -28,6 +28,7 @@ import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.logic.*;
 import mindustry.service.*;

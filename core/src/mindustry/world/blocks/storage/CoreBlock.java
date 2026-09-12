@@ -289,7 +289,27 @@ public class CoreBlock extends StorageBlock{
 
         @Override
         public void buildConfiguration(Table table){
+            // Client: Always have configuration to set preferred core
+            table.button(Icon.commandRally, Styles.clearTogglei, () -> {
+                preferredCoreType = preferredCoreType == this.block ? null : (CoreBlock)this.block;
+            }).size(40f)
+            .checked(b -> this.block == preferredCoreType)
+            .tooltip(Core.bundle.format("client.preferredcore", this.block.localizedName));
+
+            if(state.isCampaign() && !net.client()){
+                table.button(Icon.downOpen, Styles.cleari, () -> {
+                    ui.planet.showSelect(state.rules.sector, other -> {
+                        if(state.isCampaign()){
+                            other.info.destination = state.rules.sector;
+                        }
+                    });
+                    deselect();
+                }).size(40f);
+            } // Else deselect
+
             if(!state.rules.coreBuildAndConfig) return;
+
+            table.row();
 
             ButtonGroup<ImageButton> group = new ButtonGroup<>();
             group.setMinCheckCount(0);
@@ -926,27 +946,6 @@ public class CoreBlock extends StorageBlock{
         public boolean onConfigureBuildTapped(Building other){
             deselect();
             return other != this;
-        }
-
-        @Override
-        public void buildConfiguration(Table table){
-            // Client: Always have configuration to set preferred core
-            table.button(Icon.commandRally, Styles.clearTogglei, () -> {
-                preferredCoreType = preferredCoreType == this.block ? null : (CoreBlock)this.block;
-            }).size(40f)
-            .checked(b -> this.block == preferredCoreType)
-            .tooltip(Core.bundle.format("client.preferredcore", this.block.localizedName));
-
-            if(state.isCampaign() && !net.client()){
-            table.button(Icon.downOpen, Styles.cleari, () -> {
-                ui.planet.showSelect(state.rules.sector, other -> {
-                    if(state.isCampaign()){
-                        other.info.destination = state.rules.sector;
-                    }
-                });
-                deselect();
-            }).size(40f);
-            } // Else deselect
         }
 
         @Override
