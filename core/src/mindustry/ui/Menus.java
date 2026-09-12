@@ -150,12 +150,8 @@ public class Menus{
             options[0][0].contains("Downvote") && options[1][0].contains("Upvote") && Server.cn.b()) return; // cn is equally annoying
         if(title.contains("Basic Info and Rules") && Server.fish.b()) return; // fish is equally annoying (though this is a join popup, not a vote prompt)
 
-<<<<<<< HEAD
         Log.debug("Displaying menu @ with title: @", menuId, title);
-        ui.showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
-=======
         showMenu(title, message, options, (option) -> Call.menuChoose(player, menuId, option));
->>>>>>> v160
     }
 
     @Remote(variants = Variant.both)
@@ -165,12 +161,8 @@ public class Menus{
         if(options == null) options = new String[0][0];
         if(title.equals("Hello there") && Server.cn.b()) return; // Cn join popup
 
-<<<<<<< HEAD
         Log.debug("Displaying followup menu @ with title: @", menuId, title);
-        ui.showFollowUpMenu(menuId, title, message, options, (option) -> Call.menuChoose(player, menuId, option));
-=======
         showFollowUpMenu(menuId, title, message, options, (option) -> Call.menuChoose(player, menuId, option));
->>>>>>> v160
     }
 
     @Remote(variants = Variant.both)

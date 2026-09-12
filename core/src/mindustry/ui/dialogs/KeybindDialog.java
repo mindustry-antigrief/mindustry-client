@@ -174,13 +174,9 @@ public class KeybindDialog extends Dialog{
         }
     }
 
-<<<<<<< HEAD
-    private void openDialog(KeyBind name){
-        rebindDialog = new Dialog(rebindAxis ? bundle.get("keybind.press.axis") : bundle.get("keybind.press"));
-
-        Seq<KeyCode> pressedKeys = new Seq<>(3);
-=======
     private void openDialog(KeyBind keyBind){
+        Seq<KeyCode> pressedKeys = new Seq<>(3);
+
         InputListener blocker = new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
@@ -202,17 +198,15 @@ public class KeybindDialog extends Dialog{
         }};
 
         rebindKey = keyBind;
->>>>>>> v160
 
         rebindDialog.titleTable.getCells().first().pad(4);
         rebindDialog.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
                 if(Core.app.isAndroid()) return false;
-<<<<<<< HEAD
                 rebindDialog.hide();
                 pressedKeys.add(button);
-                rebind(name, pressedKeys);
+                rebind(keyBind, pressedKeys);
                 return false;
             }
 
@@ -221,22 +215,14 @@ public class KeybindDialog extends Dialog{
                 //Doesn't matter which key was released as long as it's one of the pressed keys
                 if(pressedKeys.contains(keycode)){
                     rebindDialog.hide();
-                    rebind(name, pressedKeys);
+                    rebind(keyBind, pressedKeys);
                 }
-=======
-                rebind(keyBind, button);
->>>>>>> v160
                 return false;
             }
 
             @Override
             public boolean keyDown(InputEvent event, KeyCode keycode){
-<<<<<<< HEAD
                 pressedKeys.add(keycode);
-=======
-                rebindDialog.hide();
-                rebind(keyBind, keycode);
->>>>>>> v160
                 return false;
             }
 
@@ -244,12 +230,8 @@ public class KeybindDialog extends Dialog{
             public boolean scrolled(InputEvent event, float x, float y, float amountX, float amountY){
                 if(!rebindAxis) return false;
                 rebindDialog.hide();
-<<<<<<< HEAD
                 pressedKeys.add(KeyCode.scroll);
-                rebind(name, pressedKeys);
-=======
-                rebind(keyBind, KeyCode.scroll);
->>>>>>> v160
+                rebind(keyBind, pressedKeys);
                 return false;
             }
         });

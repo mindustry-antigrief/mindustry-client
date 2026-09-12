@@ -1023,15 +1023,10 @@ public class BulletType extends Content implements Cloneable{
 
     @Remote(called = Loc.server, unreliable = true)
     public static void createBullet(BulletType type, Team team, float x, float y, float angle, float damage, float velocityScl, float lifetimeScl){
-<<<<<<< HEAD
         if (type == null) return;
         if (Server.nydus.b() && Core.settings.getBool("nyduspadpatch") && world.tileWorld(x, y) != null && world.tileWorld(x, y).block() == Blocks.launchPad) return; // Nydus is annoying
         else if ((damage < .1F || team == player.team()) && Server.io.b() && Groups.player.contains(p -> p.admin && p.within(x, y, tilesize * 10))) return; // .io admin abuse is annoying
-        type.create(null, team, x, y, angle, damage, velocityScl, lifetimeScl, null);
-=======
-        if(type == null) return;
         var bullet = type.create(null, team, x, y, angle, damage, velocityScl, lifetimeScl, null);
         Events.fire(bulletCreateEvent.set(bullet));
->>>>>>> v160
     }
 }

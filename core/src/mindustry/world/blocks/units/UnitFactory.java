@@ -120,16 +120,9 @@ public class UnitFactory extends UnitBlock{
     public void setBars(){
         super.setBars();
         addBar("progress", (UnitFactoryBuild e) -> new Bar(
-<<<<<<< HEAD
             () -> Core.bundle.format("bar.progresstime", UI.formatTime(e.ticksRemaining())),
             () -> Pal.ammo,
             e::fraction));
-=======
-            () -> Core.bundle.format("bar.progress", Strings.autoFixed(e.fraction() * 100f, 0)),
-            () -> Pal.ammo,
-            e::fraction
-        ));
->>>>>>> v160
 
         addBar("units", (UnitFactoryBuild e) ->
         new Bar(

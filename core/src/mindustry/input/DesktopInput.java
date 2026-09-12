@@ -83,7 +83,6 @@ public class DesktopInput extends InputHandler{
     private float buildPlanMouseOffsetX, buildPlanMouseOffsetY;
     private boolean changedCursor, pressedCommandRect;
 
-<<<<<<< HEAD
 
     // Client Vars
     private long lastShiftZ;
@@ -91,12 +90,6 @@ public class DesktopInput extends InputHandler{
     public float dragX = Float.NaN, dragY;
     /** Whether the player has provided movement input since some other code set it to false */
     public boolean moved = false;
-=======
-    boolean showHint(){
-        return ui.hudfrag.shown() && Core.settings.getBool("hints") && selectPlans.isEmpty() && !player.dead() &&
-            (!isBuilding && !Core.settings.getBool("buildautopause") || player.unit().isBuilding() || !player.dead() && !player.unit().spawnedByCore());
-    }
->>>>>>> v160
 
     @Override
     public void reset(){
@@ -110,7 +103,7 @@ public class DesktopInput extends InputHandler{
         //various hints
         group.fill(t -> {
             t.bottom();
-            t.visible(() -> ui.hudfrag.shown);
+            t.visible(() -> ui.hudfrag.shown());
             t.table(Styles.black6, b -> {
                 StringBuilder str = new StringBuilder(), tmp = new StringBuilder();
                 Boolp showHint = () -> str.length() != 0 || lastSchematic != null && selectPlans.any();
@@ -181,18 +174,6 @@ public class DesktopInput extends InputHandler{
                     return str.length() != 0 ? tmp.replace(0, tmp.length(), str.deleteCharAt(0).toString()) : tmp;
                 }).style(Styles.outlineLabel);
 
-<<<<<<< HEAD
-=======
-        //schematic controls
-        group.fill(t -> {
-            t.visible(() -> ui.hudfrag.shown() && lastSchematic != null && !selectPlans.isEmpty());
-            t.bottom();
-            t.table(Styles.black6, b -> {
-                b.defaults().left();
-                b.label(() -> Core.bundle.format("schematic.flip",
-                    Binding.schematicFlipX.value.key.toString(),
-                    Binding.schematicFlipY.value.key.toString())).style(Styles.outlineLabel).visible(() -> Core.settings.getBool("hints"));
->>>>>>> v160
                 b.row();
                 b.table().update(c -> { // This is the worst way possible to add/remove the schematic save button but it works ok
                     if (!c.hasChildren() && lastSchematic != null && selectPlans.any()) {
@@ -1451,7 +1432,7 @@ public class DesktopInput extends InputHandler{
             else if (Core.settings.getBool("decreasedrift") && unit.vel().len() > 3.5 && movement.epsilonEquals(0, 0)) unit.vel().scl(0.95f);
             else unit.movePref(movement);
 
-            unit.aim(Core.input.mouseWorld());
+            unit.aim(input.mouseWorldX(), input.mouseWorldY(), true);
 
             if(!ignoreKeys){
                 if(settings.getBool("unitboosthold", true)){
@@ -1464,13 +1445,6 @@ public class DesktopInput extends InputHandler{
 
             if ((!Core.input.keyDown(Binding.select) || block != null) && shouldShoot) AutoShootKt.autoShoot();
         }
-<<<<<<< HEAD
-=======
-
-        unit.movePref(movement);
-
-        unit.aim(input.mouseWorldX(), input.mouseWorldY(), true);
->>>>>>> v160
         unit.controlWeapons(true, player.shooting && !boosted);
 
         player.mouseX = unit.aimX();

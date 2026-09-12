@@ -713,82 +713,6 @@ public class UI implements ApplicationListener, Loadable{
         dialog.show();
     }
 
-<<<<<<< HEAD
-    // TODO REPLACE INTEGER WITH arc.fun.IntCons(int, T) or something like that.
-    public Dialog newMenuDialog(String title, String message, String[][] options, Cons2<Integer, Dialog> buttonListener){
-        return new Dialog(title){{
-            setFillParent(true);
-            removeChild(titleTable);
-            cont.add(titleTable).width(400f);
-
-            cont.row();
-            cont.image().width(400f).pad(2).colspan(2).height(4f).color(Pal.accent).bottom();
-            cont.row();
-            cont.pane(table -> {
-                table.add(message).width(400f).wrap().get().setAlignment(Align.center);
-                table.row();
-
-                int option = 0;
-                for(var optionsRow : options){
-                    if(optionsRow.length == 0) continue;
-                    Table buttonRow = table.row().table().get().row();
-                    int fullWidth = 400 - (optionsRow.length - 1) * 8; // adjust to count padding as well
-                    int width = fullWidth / optionsRow.length;
-                    int lastWidth = fullWidth - width * (optionsRow.length - 1); // take the rest of space for uneven table
-
-                    for(int i = 0; i < optionsRow.length; i++){
-                        if(optionsRow[i] == null) continue;
-
-                        String optionName = optionsRow[i];
-                        int finalOption = option;
-                        buttonRow.button(optionName, () -> buttonListener.get(finalOption, this))
-                                .size(i == optionsRow.length - 1 ? lastWidth : width, 50).pad(4);
-                        option++;
-                    }
-                }
-            }).growX();
-        }};
-    }
-
-    /** Shows a menu that fires a callback when an option is selected. If nothing is selected, -1 is returned. */
-    public void showMenu(String title, String message, String[][] options, Intc callback){
-        Dialog dialog = newMenuDialog(title, message, options, (option, myself) -> {
-            callback.get(option);
-            myself.hide();
-        });
-        dialog.closeOnBack(() -> callback.get(-1));
-        dialog.show();
-    }
-
-    /** Shows a menu that hides when another followUp-menu is shown or when nothing is selected.
-     * @see UI#showMenu(String, String, String[][], Intc) */
-    public void showFollowUpMenu(int menuId, String title, String message, String[][] options, Intc callback) {
-        Dialog dialog = newMenuDialog(title, message, options, (option, myself) -> {
-            callback.get(option);
-            if(!state.isGame()){
-                myself.hide();
-            }
-        });
-        dialog.closeOnBack(() -> {
-            followUpMenus.remove(menuId);
-            callback.get(-1);
-        });
-
-        Dialog oldDialog = followUpMenus.remove(menuId);
-        if(oldDialog != null){
-            dialog.show(Core.scene, null);
-            oldDialog.hide(null);
-        }else{
-            dialog.show();
-        }
-        followUpMenus.put(menuId, dialog);
-    }
-
-    public void hideFollowUpMenu(int menuId) {
-        if(!followUpMenus.containsKey(menuId)) return;
-        followUpMenus.remove(menuId).hide();
-    }
-
     public void toggleSchematicMenu() {
         if (ui.schematicBrowser.isShown()) ui.schematicBrowser.hide();
         if (ui.schematics.isShown()) ui.schematics.hide();
@@ -828,8 +752,6 @@ public class UI implements ApplicationListener, Loadable{
         }
     }
 
-=======
->>>>>>> v160
     /**
      * Finds all :name: in a string and replaces them with the icon, if such exists.
      * Based on TextFormatter::simpleFormat

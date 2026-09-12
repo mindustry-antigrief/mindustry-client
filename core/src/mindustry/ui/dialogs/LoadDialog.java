@@ -105,16 +105,7 @@ public class LoadDialog extends BaseDialog{
 
         Time.runTask(2f, () -> Core.scene.setScrollFocus(pane));
 
-<<<<<<< HEAD
-        int maxwidth = Math.max((int)(Core.graphics.getWidth() / Scl.scl(470)), 1);
-=======
-        Seq<SaveSlot> array = control.saves.getSaveSlots();
-        array.sort((slot, other) -> -Long.compare(slot.getTimestamp(), other.getTimestamp()));
-
         int cols = Math.max((int)(Core.graphics.getWidth() / Scl.scl(470)), 1);
-        int i = 0;
-        boolean any = false;
->>>>>>> v160
 
         if(!control.saves.loading){ // Start an async load if we haven't yet done so
             control.saves.load(false, s -> {
@@ -197,40 +188,13 @@ public class LoadDialog extends BaseDialog{
                     draw.setRegion(reg);
                     invalidate();
                 }
-<<<<<<< HEAD
                 super.draw();
-=======
-                im.setScaling(Scaling.fit);
-            }).left().size(160f).padRight(6);
-
-            button.table(meta -> {
-                meta.left().top();
-                meta.defaults().padBottom(-2).left().width(280f);
-                meta.row();
-                meta.labelWrap(Core.bundle.format("save.map", color + (slot.getMap() == null ? Core.bundle.get("unknown") : slot.getMap().name())));
-                meta.row();
-                meta.labelWrap(slot.mode().toString() + " /" + color + " " + Core.bundle.format("save.wave", color + slot.getWave()));
-                meta.row();
-                meta.labelWrap(() -> Core.bundle.format("save.autosave", color + Core.bundle.get(slot.isAutosave() ? "on" : "off")));
-                meta.row();
-                meta.labelWrap(() -> Core.bundle.format("save.playtime", color + slot.getPlayTime()));
-                meta.row();
-                meta.labelWrap(color + slot.getDate());
-                meta.row();
-            }).left().growX().width(260f);
-
-            modifyButton(button, slot);
-            slots.add(button).uniformX().fillX().pad(4).padRight(8f).margin(10f);
-
-            if(++i % cols == 0){
-                slots.row();
->>>>>>> v160
             }
         }).left().size(160f).padRight(6).get().setScaling(Scaling.fit);
 
         button.table(meta -> {
             meta.left().top();
-            meta.defaults().padBottom(-2).left().width(290f);
+            meta.defaults().padBottom(-2).left().width(280f);
             meta.row();
             meta.labelWrap(Core.bundle.format("save.map", color + (slot.getMap() == null ? Core.bundle.get("unknown") : slot.getMap().name())));
             meta.row();
@@ -242,13 +206,13 @@ public class LoadDialog extends BaseDialog{
             meta.row();
             meta.labelWrap(color + slot.getDate());
             meta.row();
-        }).left().growX().width(250f);
+        }).left().growX().width(260f);
 
         modifyButton(button, slot);
 
         slots.add(button).uniformX().fillX().pad(4).padRight(8f).margin(10f);
 
-        if((i + 1) % maxwidth == 0){
+        if((i + 1) % cols == 0){
             slots.row();
         }
         return true;

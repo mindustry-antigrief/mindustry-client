@@ -1,10 +1,7 @@
 package mindustry.world.blocks.logic;
 
-<<<<<<< HEAD
 import arc.scene.ui.layout.*;
-=======
 import arc.util.*;
->>>>>>> v160
 import arc.util.io.*;
 import mindustry.gen.*;
 import mindustry.io.*;

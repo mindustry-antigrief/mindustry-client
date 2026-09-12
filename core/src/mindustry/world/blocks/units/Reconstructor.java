@@ -202,11 +202,6 @@ public class Reconstructor extends UnitBlock{
         public boolean canSetCommand(){
             var output = unit();
             return output == null || output.allowChangeCommands;
-<<<<<<< HEAD
-            // Foos: Allow configuring even without unit
-            // return output != null && output.commands.length > 1;
-=======
->>>>>>> v160
         }
 
         @Override
@@ -223,14 +218,6 @@ public class Reconstructor extends UnitBlock{
         public void buildConfiguration(Table table){
             var unit = unit();
 
-<<<<<<< HEAD
-            // if(unit == null){
-            //     deselect();
-            //     return;
-            // }
-
-=======
->>>>>>> v160
             var group = new ButtonGroup<ImageButton>();
             group.setMinCheckCount(0);
             int i = 0, columns = 5;

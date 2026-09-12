@@ -346,14 +346,10 @@ public class HudFragment{
 
         //minimap + position
         parent.fill(t -> {
-            t.visible(() -> shown && Core.settings.getBool(("minimap"))); // FINISHME: Only hide minimap when doing so, use a collapser to shrink it maybe? Idk
+            t.visible(() -> shown() && Core.settings.getBool("minimap")); // FINISHME: Only hide minimap when doing so, use a collapser to shrink it maybe? Idk
             t.name = "minimap/position";
-<<<<<<< HEAD
             //tile hud
             t.add(new TileInfoFragment()).name("tilehud").top();
-=======
-            t.visible(() -> Core.settings.getBool("minimap") && shown());
->>>>>>> v160
             //minimap
             t.add(new Minimap()).name("minimap").top();
             t.row();
@@ -679,11 +675,7 @@ public class HudFragment{
 
             t.table(c -> {
                 //core items
-<<<<<<< HEAD
-                c.top().collapser(coreItems, () -> Core.settings.getBool("coreitems") && shown).fillX().row();
-=======
-                c.top().collapser(coreItems, () -> Core.settings.getBool("coreitems") && !mobile && shown()).fillX().row();
->>>>>>> v160
+                c.top().collapser(coreItems, () -> Core.settings.getBool("coreitems") && shown()).fillX().row();
 
                 float notifDuration = 240f;
 

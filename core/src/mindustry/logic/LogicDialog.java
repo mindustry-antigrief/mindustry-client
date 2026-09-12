@@ -335,19 +335,12 @@ public class LogicDialog extends BaseDialog{
                         style.fontColor = category.color;
                         style.font = Fonts.outline;
 
-<<<<<<< HEAD
-                        cat.button(example.name(), style, () -> {
+                        cat.button(example.localizedName(), style, () -> {
                             canvas.addAt(at == -1 ? canvas.statements.getChildren().size : at, prov.get());
                             dialog.hide();
                             canvas.layout();
                             canvas.recalculate();
-                        }).size(130f, 50f).self(c -> tooltip(c, "lst." + example.name())).top().left();
-=======
-                        cat.button(example.localizedName(), style, () -> {
-                            canvas.addAt(position == -1 ? canvas.statements.getChildren().size : position, prov.get());
-                            dialog.hide();
                         }).size(130f, 50f).self(c -> tooltip(c, "lst." + example.statementKey())).top().left();
->>>>>>> v160
 
                         if(cat.getChildren().size % 3 == 0) cat.row();
                     }

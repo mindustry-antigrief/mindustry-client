@@ -613,15 +613,12 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             team.data().updateCount(type, -1);
         }
 
-<<<<<<< HEAD
+        Vars.unitPhysics.add(self());
+
         // Client stuff below
         if(hasWeapons()) turretEnts = Navigation.setupEnts(self());
 
         if(ui != null) ui.unitPicker.handle(self());
-=======
-        Vars.unitPhysics.add(self());
-
->>>>>>> v160
     }
 
     @Override

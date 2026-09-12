@@ -16,13 +16,10 @@ import arc.util.*;
 import arc.util.Http.*;
 import arc.util.io.*;
 import arc.util.serialization.*;
-<<<<<<< HEAD
+import arc.util.serialization.Jval.*;
 import mindustry.core.*;
 import mindustry.client.*;
 import mindustry.client.ui.*;
-=======
-import arc.util.serialization.Jval.*;
->>>>>>> v160
 import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
@@ -408,32 +405,19 @@ public class ModsDialog extends BaseDialog{
     private void showMod(LoadedMod mod){
         modDetails = new BaseDialog(mod.meta.displayName);
 
-<<<<<<< HEAD
-        dialog.buttons.defaults().height(64).minWidth(210);
-        dialog.buttons.button("@back", Icon.left, dialog::hide).wrapLabel(false);
-        dialog.addCloseListener();
+        modDetails.buttons.defaults().height(64).minWidth(210);
+        modDetails.buttons.button("@back", Icon.left, modDetails::hide).wrapLabel(false);
+        modDetails.addCloseListener();
 
         if(!mobile){
-            dialog.buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(mod.file.absolutePath())).wrapLabel(false);
-=======
-        modDetails.addCloseButton();
-
-        if(!mobile){
-            modDetails.buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(mod.file.absolutePath()));
->>>>>>> v160
+            modDetails.buttons.button("@mods.openfolder", Icon.link, () -> Core.app.openFolder(mod.file.absolutePath())).wrapLabel(false);
         }
 
         if(mod.getRepo() != null){
             boolean showImport = !mod.hasSteamID();
-<<<<<<< HEAD
-            dialog.buttons.button("@mods.github.open", Icon.link, () -> Core.app.openURI("https://github.com/" + mod.getRepo())).wrapLabel(false);
-            if(mobile && showImport) dialog.buttons.row();
-            if(showImport) dialog.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava(), null, false)).wrapLabel(false);
-=======
-            modDetails.buttons.button("@mods.github.open", Icon.link, () -> Core.app.openURI("https://github.com/" + mod.getRepo()));
+            modDetails.buttons.button("@mods.github.open", Icon.link, () -> Core.app.openURI("https://github.com/" + mod.getRepo())).wrapLabel(false);
             if(mobile && showImport) modDetails.buttons.row();
-            if(showImport) modDetails.buttons.button("@mods.browser.reinstall", Icon.download, () -> viewReleases(mod.getRepo(), mod.isJava(), true));
->>>>>>> v160
+            if(showImport) modDetails.buttons.button("@mods.browser.reinstall", Icon.download, () -> githubImportMod(mod.getRepo(), mod.isJava(), null, false)).wrapLabel(false);
         }
 
         modDetails.cont.pane(desc -> {

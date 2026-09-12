@@ -288,12 +288,8 @@ public class LogicBlock extends Block{
         public Seq<LogicLink> links = new Seq<>();
         public @Nullable ObjectIntMap<String> linkMap;
         public boolean checkedDuplicates = false;
-<<<<<<< HEAD
         public boolean isVirus = false;
-        //dynamic only for privileged processors
-=======
 
->>>>>>> v160
         public int ipt = instructionsPerTick;
         /** Display name, for convenience. This is currently only available for world processors. */
         public @Nullable String tag;

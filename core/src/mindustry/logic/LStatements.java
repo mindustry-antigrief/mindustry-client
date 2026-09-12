@@ -965,11 +965,7 @@ public class LStatements{
             table.table(this::rebuild);
 
             table.add().growX();
-<<<<<<< HEAD
             table.add(new JumpButton(() -> dest, s -> {dest = s; saveUI();})).size(30).right().padLeft(-8);
-=======
-            table.add(new JumpButton(() -> dest, s -> dest = s, this.elem)).size(30).right().padRight(-8f);
->>>>>>> v160
 
             String name = localizedName();
 

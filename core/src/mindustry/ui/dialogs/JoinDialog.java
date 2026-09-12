@@ -26,22 +26,16 @@ import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
 
-<<<<<<< HEAD
 import java.net.*;
-=======
 import java.util.*;
->>>>>>> v160
 
 import static mindustry.Vars.*;
 
 public class JoinDialog extends BaseDialog{
-<<<<<<< HEAD
     public Seq<Host> communityHosts = new Seq<>();
-=======
     static Seq<Element> tmpElements = new Seq<>();
     static final int favoriteCountOffset = 9_999_999;
 
->>>>>>> v160
     Seq<ServerGroup> tmpServers = new Seq<>();
     public Seq<Server> servers = new Seq<>();
     Dialog add;
@@ -441,22 +435,11 @@ public class JoinDialog extends BaseDialog{
             fetchServers();
         }
 
-<<<<<<< HEAD
         if(fetchingCommunityServersErrored){ // FINISHME: Bundle
             global.add("Error: Unable to fetch community servers list.").color(Color.red).center();
             global.row();
         }
 
-        global.table(t -> {
-            t.add("@search").padRight(10);
-            t.field(serverSearch, text ->
-                serverSearch = text.trim().replaceAll(" +", " ").toLowerCase()
-            ).grow().pad(8).get().keyDown(KeyCode.enter, this::refreshCommunity);
-            t.button(Icon.zoom, Styles.emptyi, this::refreshCommunity).size(54f);
-        }).width((targetWidth() + 5f) * columns()).height(70f).pad(4).row();
-
-=======
->>>>>>> v160
         //if the servers have been fetched, use the fetched list
         //otherwise use the cached list + the extra servers that may have been included by mods
         var servers = fetchedServers ? defaultServers : tmpServers.clear().addAll(cachedServers).addAll(defaultServers);

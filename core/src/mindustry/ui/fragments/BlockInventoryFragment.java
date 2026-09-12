@@ -233,14 +233,7 @@ public class BlockInventoryFragment{
     private void updateTablePosition(){
         Vec2 v = input.mouseScreen(build.x + build.block.size * tilesize / 2f, build.y + build.block.size * tilesize / 2f);
         table.pack();
-<<<<<<< HEAD
-
-        //Position the table diagonally when the building is an item bridge so that connecting to another bridge one
-        //tile away is possible without the overlay preventing the click.
-        table.setPosition(v.x - Core.scene.marginLeft, v.y - Core.scene.marginBottom, build.block instanceof ItemBridge ? Align.bottomLeft : Align.topLeft);
-=======
         table.setPosition(v.x - Core.scene.marginLeft, v.y - Core.scene.marginBottom, build.block.diagonalConfigInventory ? Align.bottomLeft : Align.topLeft);
->>>>>>> v160
     }
 
     private Element itemImage(TextureRegion region, Prov<CharSequence> text){

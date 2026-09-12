@@ -151,11 +151,7 @@ public class ForceFieldAbility extends Ability{
 
     @Override
     public void displayBars(Unit unit, Table bars){
-<<<<<<< HEAD
-        bars.add(new Bar(() -> Core.bundle.get("stat.shieldhealth") + " (" + unit.shield + ")", () -> Pal.accent, () -> unit.shield / max)).row();
-=======
-        bars.add(new Bar("stat.shieldhealth", Pal.accent, () -> unit.shield / scaledMax(unit))).row();
->>>>>>> v160
+        bars.add(new Bar(() -> Core.bundle.get("stat.shieldhealth") + " (" + unit.shield + ")", () -> Pal.accent, () -> unit.shield / scaledMax(unit))).row();
     }
 
     @Override

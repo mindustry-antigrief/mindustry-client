@@ -1585,7 +1585,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
             if(flowItems != null){
                 table.row();
-<<<<<<< HEAD
                 table.left();
                 table.table(l -> {
                     Bits current = new Bits();
@@ -1612,9 +1611,6 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
                         }
                     });
                 }).left();
-=======
-                table.add(Core.bundle.format("lastaccessed", lastAccessed)).width(260f).wrap().left();
->>>>>>> v160
             }
 
             if(liquids != null){
@@ -1654,7 +1650,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         if(net.active() && lastAccessed != null){
             table.row();
-            table.add(Core.bundle.format("lastaccessed", lastAccessed)).growX().wrap().left();
+            table.add(Core.bundle.format("lastaccessed", lastAccessed)).width(260f).wrap().left();
         }
         table.marginBottom(-5);
     }

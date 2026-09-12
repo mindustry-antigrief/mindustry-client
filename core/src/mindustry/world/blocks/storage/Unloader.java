@@ -189,9 +189,6 @@ public class Unloader extends Block{
                 }
             }
 
-            dumpingTo = null;
-            dumpingFrom = null;
-
             if(item != null){
                 rotations = item.id; //next rotation for nulloaders //TODO maybe if(sortItem == null)
                 var pbi = possibleBlocks.items;
@@ -212,8 +209,6 @@ public class Unloader extends Block{
             }
         }
 
-<<<<<<< HEAD
-=======
         //allow dumping regardless of framerate. The expensive checks such as isPossibleItem() are still dependant on update()
         public void unloadAccumulate(Item item){
             if(item == null) return;
@@ -226,7 +221,6 @@ public class Unloader extends Block{
                 dumpingTo = null;
                 dumpingFrom = null;
 
->>>>>>> v160
                 //choose the building to accept the item
                 for(int i = 0; i < pbs; i++){
                     var pb = pbi[i];
@@ -256,20 +250,12 @@ public class Unloader extends Block{
                 dumpingTo.loadFactor = toMax == 0 || to.items == null ? 0f : to.items.get(item) / (float)toMax;
 
                 //trade the items
-<<<<<<< HEAD
-                if(dumpingFrom != null && dumpingTo != null && (dumpingFrom.loadFactor != dumpingTo.loadFactor || !dumpingFrom.canLoad)){
-                    dumpingTo.building.handleItem(this, item);
-                    dumpingFrom.building.removeStack(item, 1);
-                    dumpingTo.lastUsed = 0;
-                    dumpingFrom.lastUsed = 0;
-                    lastItem = item;
-=======
                 if(dumpingFrom.loadFactor != dumpingTo.loadFactor || !dumpingFrom.canLoad){
                     to.handleItem(this, item);
                     from.removeStack(item, 1);
                     dumpingTo.lastUsed = dumpingFrom.lastUsed = 0;
                     unloadTimer -= speed;
->>>>>>> v160
+                    lastItem = item;
                     any = true;
                 }else{
                     break;
