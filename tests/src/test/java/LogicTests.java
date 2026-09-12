@@ -1,3 +1,5 @@
+package test;
+
 import mindustry.logic.*;
 import mindustry.logic.LExecutor.*;
 import org.junit.jupiter.api.*;
