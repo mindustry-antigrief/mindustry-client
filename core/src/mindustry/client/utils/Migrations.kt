@@ -73,7 +73,6 @@ class Migrations {
     private fun migration7() {
         if (settings.has("restrictschematicloading")) settings.put("schemloadtime", 10) // moved from restrictschematicloading which was hardcoded to 10ms to a new schemloadtime setting that is configurable
         settings.remove("restrictschematicloading")
-        settings.remove("cnpw") // no longer needed as cn has updated their account system
     }
 
     private fun migration8() = settings.remove("schematicsearchdesc") // Now in form of search bar

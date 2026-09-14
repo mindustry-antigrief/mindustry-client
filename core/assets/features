@@ -10,6 +10,13 @@
 # Foo's Client
  * Funky woe client
 
+// Explaining some settings exist is better than none
+# Qol & Misc - Client settings
+ * Auto Excavate Vote - Automatically votes for CN's excavates based on the option you selected in settings, forces votes if you are staff instead
+ * Pan To Core - Disables the pan to core after gameover behaviour so you are no longer forced to spectate dead cores on gameover
+ * DDNS Name Verifyer - Replaces all illegal characters in your player name so you can join the DDNS servers with a fancy name without changing it constantly
+ * Playerchat toggle - Toggles typing indicator on servers so you can hide that you have the chat open
+
 # Keybinds
  * {tile_actions_menu_modifier} - display actions for a tile
  * {freecam_modifier} movement keys - free camera movement
@@ -88,6 +95,8 @@
  * {p}unmute <player> - Same as {p}mute
  * {p}clearmutes - Clears the list of muted players
  * {p}admin [option] - open admin settings ('settings') or leave logs ('leaves')
+ * {p}login - Login to a server, use !help login for more details
+ * {p}team - Switchs your team to any valid team ID or name, requires vanilla admin in servers
  // * {p}hh - Switches between all io servers and does /novote aka pet point farmer
  // * {p}rebuild <timestart> <timerange> <radius> - Searches through tile log history and rebuilds buildings from the specified time range and radius. (Bye bye griefers)
  // * {p}undo <player> [range] - Undoes player buildings and configurations.

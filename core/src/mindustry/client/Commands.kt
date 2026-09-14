@@ -29,6 +29,8 @@ import mindustry.gen.*
 import mindustry.input.*
 import mindustry.logic.*
 import mindustry.net.*
+import mindustry.net.Packets.*
+import mindustry.ui.*
 import mindustry.ui.fragments.*
 import mindustry.world.blocks.distribution.*
 import mindustry.world.blocks.distribution.DirectionalUnloader.*
@@ -47,9 +49,17 @@ import java.util.concurrent.*
 import java.util.regex.*
 import kotlin.math.*
 import kotlin.random.*
+// import kotlinx.coroutines.*
 
+// Uncomment when a command needs a coroutine
+// private val commandScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
 fun setupCommands() {
+    /* Runtime.getRuntime().addShutdownHook(Thread {
+        commandScope.cancel()
+        Log.debug("Cancelled all command scopes")
+    }) */
+
     register("help [page/command]", Core.bundle.get("client.command.help.description")) { args, player ->
         if (args.isNotEmpty() && !Strings.canParseInt(args[0])) {
             val command = clientCommandHandler.commandList.find { it.text == args[0] }
@@ -741,7 +751,48 @@ fun setupCommands() {
             else -> player.sendMessage("[scarlet]Invalid option specified, options are:\nSettings, Leaves")
         }
     }
+register("team [id/name]", Core.bundle.get("client.command.team.description")) { args, player ->
+        try {
+            var team: Int? = null
+            val arg = if (args.isEmpty()) "" else args[0]
+            for (fteam in Team.baseTeams) {
+                if (arg.equals(fteam.name, ignoreCase = true)) {
+                    team = fteam.id
+                    break
+                }
+            }
+            if (team == null) team = team ?: arg.toInt()
 
+            if (!net.client()) player.team(Team.get(team))
+            else if (player.admin || (Server.cn() && rank > 1))
+                Call.adminRequest(player, AdminAction.switchTeam, Team.get(team))
+
+        } catch (e: NumberFormatException) {
+            player.sendMessage(Core.bundle.get("client.command.team.invalidTeam"))
+            return@register
+        }
+    }
+
+    // FINISHME: Still as bad as before, but i dont want to make "secure" storage
+    // Only works in CN, can change if other servers have a /login command
+    register("login [username] [password]", Core.bundle.get("client.command.login.description")) { args, player ->
+        if (args.size == 0) {
+            Server.current.handleLogin()
+            return@register
+        }
+        if (args.size < 2) {
+            player.sendMessage(Core.bundle.get("client.command.login.badargs"))
+            return@register
+        }
+        val username = args[0]
+        val password = args[1]
+        if (username.length > 64 || password.length > 64) {
+            player.sendMessage(Core.bundle.get("client.command.login.toolong"))
+            return@register
+        }
+        Core.settings.put("cnpw", args[0] + " " + args[1])
+        player.sendMessage(Core.bundle.get("client.command.login.added"))
+    }
 
     // Symbol replacements
 

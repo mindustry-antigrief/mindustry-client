@@ -437,6 +437,7 @@ project(":core"){
         compileOnly files("../bouncycastle/bcutil-jdk15on.jar")
         compileOnly arcModule("backends:backend-sdl")
         implementation 'commons-net:commons-net:3.8.0'
+        // implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
 
         implementation 'org.jline:jline:4.0.0'
         compileOnly project(":annotations")

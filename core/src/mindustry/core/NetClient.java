@@ -137,8 +137,11 @@ public class NetClient implements ApplicationListener{
                         c.color = get != null ? get.rgba() : Color.valueOf(col).rgba();
                     } catch (IndexOutOfBoundsException ignored) {}
                 }
-            } else if (ui.join.communityHosts.contains(h -> "Chaotic Neutral".equals(h.group) && h.address.equals(address))) {
-                if (!Structs.contains(playerColors, col -> col.rgba() == c.color)) c.color = playerColors[0].rgba();
+            } else if (ui.join.communityHosts.contains(h -> "mindustry.ddns.net".equals(h.group) && h.address.equals(address))) {
+                // such a bad naming system
+                // https://github.com/BnDLett/NameValidation/blob/master/src/org/lettsn/NameValidation/Constants.java#L9
+                var matcher = Pattern.compile("\\A(?!\\(Admin\\)|\\(Staff\\))([ -~])+\\z", Pattern.CASE_INSENSITIVE).matcher(player.name);
+                if (matcher.find()) c.name = matcher.replaceAll("");
             }
 
             if(c.uuid == null){
@@ -963,7 +966,9 @@ public class NetClient implements ApplicationListener{
             unit instanceof Mechc m ? m.baseRotation() : 0,
             unit == null ? 0f : unit.vel.x, unit == null ? 0f : unit.vel.y,
             dead ? null : unit.mineTile,
-            player.boosting, player.shooting, ui.chatfrag.shown(), control.input.isBuilding,
+            player.boosting, player.shooting,
+            Core.settings.getBool("playerchat") && ui.chatfrag.shown(),
+            control.input.isBuilding,
             player.selectedBlock, player.selectedRotation, player.isBuilder() && unit != null ? unit.plans : null,
             Core.camera.position.x, Core.camera.position.y,
             Core.camera.width, Core.camera.height
