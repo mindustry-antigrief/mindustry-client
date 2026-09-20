@@ -233,7 +233,7 @@ public class ChatFragment extends Table{
 
     private void updateMaxLength(String text) {
         int max = maxTextLength;
-        if (Server.io.b()) max = 256; // io allows longer messages FINISHME: Add this to fooplugin as an optional feature with a length specified by packet? Would require server to run a custom jar or provide their own mixin
+        if (Server.corium.b()) max = 256; // io allows longer messages FINISHME: Vanilla PR
         max -= 2; // Account for 2 char message id
         if (text.startsWith("!js ") || text.startsWith("!kt ")) max = 0; // If running js or kt, allow infinite length
         if (text.startsWith("!c ")) max = 503; // Max foo's chat length is 1000

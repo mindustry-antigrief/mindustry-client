@@ -306,7 +306,6 @@ public class Menus{
     @Remote(variants = Variant.both)
     public static void infoMessage(String message){
         if(message == null) return;
-        if(Server.io.b() && Time.timeSinceMillis(ClientVars.lastJoinTime) < 1000) return;
 
         ui.showText("", message);
     }
