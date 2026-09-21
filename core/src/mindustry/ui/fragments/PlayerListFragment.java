@@ -399,7 +399,7 @@ public class PlayerListFragment{
                         ).tooltip("@client.modmute").get();
                         muteButton.update(() -> {
                             muteButton.setDisabled(!user.serverModerationStateKnown);
-                            muteButton.getStyle().imageUpColor =!user.serverMuted ? Color.valueOf("#222222") : Color.gray;
+                            muteButton.getStyle().imageUpColor = user.serverMuted ? Color.valueOf("#222222") : Color.gray;
                         });
                     }
                 }
