@@ -297,7 +297,7 @@ public class PlayerListFragment{
 
                 if(adminui && (!user.admin || user.isLocal())){
                     if(!user.isLocal()){
-                        t.button(hammerIcon, ustyle,
+                        t.button(hammerIcon, ustyle, Server.corium.b() ? () -> Server.current.handleBan(user) :
                             () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()),
                                 () -> Server.current.handleBan(user))
                         ).tooltip("@player.ban").get().resizeImage(h/2.2f);
@@ -340,15 +340,23 @@ public class PlayerListFragment{
 
                     // Server-integrated buttons
                     if(Server.current.freeze.canRun()){
-                        t.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () ->
-                        Server.current.handleFreeze(user)
-                        ).tooltip("@client.freeze");
+                        var freezeButton = t.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle, () ->
+                            Server.current.handleFreeze(user)
+                        ).tooltip("@client.freeze").get();
+                        freezeButton.update(() -> {
+                            freezeButton.setDisabled(!user.serverModerationStateKnown);
+                            freezeButton.getStyle().imageUpColor = user.serverFrozen ? Color.darkGray : Color.cyan;
+                        });
                     }
 
                     if(user == player && Server.current.mute.canRun()){ // If the player is local, the mute button won't be drawn on a new row, otherwise it will be drawn on a new row
-                        t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
-                        Server.current.handleMute(user)
-                        ).tooltip("@client.modmute");
+                        var muteButton = t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon), ustyle, () ->
+                            Server.current.handleMute(user)
+                        ).tooltip("@client.modmute").get();
+                        muteButton.update(() -> {
+                            muteButton.setDisabled(!user.serverModerationStateKnown);
+                            muteButton.getStyle().imageUpColor = user.serverMuted ? Color.valueOf("#222222") : Color.gray;
+                        });
                     }
 
                     t.row();
@@ -386,9 +394,13 @@ public class PlayerListFragment{
                     ).size(h / 2).tooltip("@client.goto").get().resizeImage(h/2.2f);
 
                     if(Server.current.mute.canRun()){ // Server-integrated mute
-                        t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
-                        Server.current.handleMute(user)
-                        ).tooltip("@client.modmute");
+                        var muteButton = t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon), ustyle, () ->
+                            Server.current.handleMute(user)
+                        ).tooltip("@client.modmute").get();
+                        muteButton.update(() -> {
+                            muteButton.setDisabled(!user.serverModerationStateKnown);
+                            muteButton.getStyle().imageUpColor = !user.serverModerationStateKnown || !user.serverMuted ? Color.gray : serverMutedColor;
+                        });
                     }
                 }
             }).height(bs);
