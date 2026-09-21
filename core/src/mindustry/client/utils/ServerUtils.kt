@@ -241,7 +241,7 @@ object Corium : Server(
         }
     }
 
-    val codeRegex = Regex("[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$")
+    val codeRegex = Regex("[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}")
 
     override val playerIDCopy = Func { p: Player -> p.serverID }
 
@@ -375,9 +375,7 @@ object Corium : Server(
         val message = msg.message
         val playerCodeMatches = codeRegex.findAll(message)
         playerCodeMatches.forEach { match ->
-            match.groupValues[0].let { code ->
-                msg.addButton(code) { Core.app.setClipboardText(code) }
-            }
+            msg.addButton(match.value) { Core.app.setClipboardText(match.value) }
         }
         if (defense() && Core.bundle.get("client.io.shop-vote") in message) { // td upgrade voting
             val agree = Companion.Cmd("/agree", 0)
