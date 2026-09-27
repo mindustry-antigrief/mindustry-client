@@ -418,121 +418,38 @@ public class SchematicBrowserDialog extends BaseDialog {
     }
 
     void showAllTags(){
-        var dialog = new BaseDialog("@schematic.edittags");
-        dialog.addCloseButton();
-        Runnable[] rebuild = {null};
-        dialog.cont.pane(p -> {
-            rebuild[0] = () -> {
-                p.clearChildren();
-                p.margin(12f).defaults().fillX().left();
-                p.table(t -> {
-                    t.left().defaults().fillX().height(tagh).pad(2);
-                    t.button("@client.schematic.cleartags", Icon.refresh, selectedTags::clear).wrapLabel(false).get().getLabelCell().padLeft(5);
-                    t.button("@client.schematic.prunetags", Icon.trash, this::pruneTags).wrapLabel(false).get().getLabelCell().padLeft(5);
-                });
-                p.row();
+        new TagsDialog(tags, selectedTags)
+        .tagsChanged(this::tagsChanged)
+        .selectionChanged(() -> {
+            rebuildTags.run();
+            rebuildPane.run();
+        }).pruneTags(this::pruneTags)
 
-                float sum = 0f;
-                Table current = new Table().left();
-
-                for(var tag : tags){
-
-                    var next = new Table(n -> {
-                        n.table(Tex.pane, move -> {
-                            move.margin(2);
-
-                            //move up
-                            move.button(Icon.upOpen, Styles.emptyi, () -> {
-                                int idx = tags.indexOf(tag);
-                                if(idx > 0){
-                                    if(Core.input.shift()){
-                                        tags.insert(0, tags.remove(idx));
-                                    } else {
-                                        tags.swap(idx, idx - 1);
-                                    }
-                                    tagsChanged();
-                                    rebuild[0].run();
-                                }
-                            }).tooltip("@editor.moveup").row();
-                            //move down
-                            move.button(Icon.downOpen, Styles.emptyi, () -> {
-                                int idx = tags.indexOf(tag);
-                                if(idx < tags.size - 1){
-                                    if(Core.input.shift()){
-                                        tags.insert(tags.size - 1, tags.remove(idx));
-                                    } else {
-                                        tags.swap(idx, idx + 1);
-                                    }
-                                    tagsChanged();
-                                    rebuild[0].run();
-                                }
-                            }).tooltip("@editor.movedown");
-                        }).fillY().margin(6f);
-
-                        n.table(Tex.whiteui, t -> {
-                            t.setColor(Pal.gray);
-                            t.add(tag).left().row();
-                            var count = 0;
-                            var totalCount = 0;
-                            for (var link : loadedRepositories.keys()) {
-                                var c = loadedRepositories.get(link).count(s -> s.labels.contains(tag));
-                                totalCount += c;
-                                if (!hiddenRepositories.contains(link)) count += c;
-                            }
-                            int finalTotalCount = totalCount;
-                            t.add(Core.bundle.format("client.schematic.browser.tagged", count, totalCount)).left()
-                            .update(b -> b.setColor(b.hasMouse() ? Pal.accent : selectedTags.contains(tag) ? Color.lime : finalTotalCount == 0 ? Color.red : Color.lightGray))
-                            .get().clicked(() -> {
-                                if (!selectedTags.contains(tag)) selectedTags.add(tag);
-                                else selectedTags.remove(tag);
-                                rebuildTags.run();
-                                rebuildPane.run();
-                            });
-                        }).growX().fillY().margin(8f);
-
-                        n.table(Tex.pane, b -> {
-                            b.margin(2);
-
-                            //delete tag
-                            b.button(Icon.trash, Styles.emptyi, () -> { // FINISHME: Figure out what to do when tags get deleted. This feels scufffed for some reason.
-                                for (var schematics : loadedRepositories.values()) { // Only delete when no schematics (globally) are tagged
-                                    if (schematics.contains(s -> s.labels.contains(tag))) return;
-                                }
-                                ui.showConfirm("@schematic.tagdelconfirm", () -> {
-                                    selectedTags.remove(tag);
-                                    tags.remove(tag);
-                                    tagsChanged();
-                                    rebuildPane.run();
-                                    rebuild[0].run();
-                                });
-                            }).tooltip("@save.delete");
-                        }).fillY().margin(6f);
-                    });
-
-                    next.pack();
-                    float w = next.getPrefWidth() + Scl.scl(6f);
-
-                    if(w + sum >= Core.graphics.getWidth() * (Core.graphics.isPortrait() ? 1f : 0.8f)){
-                        p.add(current).row();
-                        current = new Table();
-                        current.left();
-                        current.add(next).minWidth(240).pad(4);
-                        sum = 0;
-                    }else{
-                        current.add(next).minWidth(240).pad(4);
-                    }
-
-                    sum += w;
-                }
-
-                if(sum > 0){
-                    p.add(current).row();
-                }
-            };
-
-            resized(true, rebuild[0]);
-        }).scrollX(false);
-        dialog.show();
+        .count(tag -> {
+            int count = 0;
+            int total = 0;
+            for(var link : loadedRepositories.keys()){
+                int c = loadedRepositories.get(link).count(s -> s.labels.contains(tag));
+                total += c;
+                if(!hiddenRepositories.contains(link)) count += c;
+            }
+            return new TagsDialog.TagCountResult(
+            Core.bundle.format("client.schematic.browser.tagged", count, total),
+            total == 0
+            );
+        })
+        .delete((tag, rebuild) -> { // FINISHME: Figure out what to do when tags get deleted. This feels scufffed for some reason.
+            for(var schematics : loadedRepositories.values()){ // Only delete when no schematics (globally) are tagged
+                if(schematics.contains(s -> s.labels.contains(tag))) return;
+            }
+            ui.showConfirm("@schematic.tagdelconfirm", () -> {
+                selectedTags.remove(tag);
+                tags.remove(tag);
+                tagsChanged();
+                rebuildPane.run();
+                rebuild.run();
+            });
+        }).show();
     }
 
     void getSettings(){
