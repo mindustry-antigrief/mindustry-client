@@ -117,6 +117,7 @@ public class TagsDialog extends BaseDialog{
                                 @Override
                                 public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
                                     if(button != KeyCode.mouseLeft || pointer > 0) return false;
+                                    event.cancel();
                                     dragPointer = pointer;
                                     return true;
                                 }
@@ -151,7 +152,7 @@ public class TagsDialog extends BaseDialog{
                                     dragPointer = -1;
                                 }
                             });
-                        }).fillY().padRight(5);
+                        }).fillY().padRight(6);
 
                         n.table(t -> {
                             t.add(tag).left().row();
