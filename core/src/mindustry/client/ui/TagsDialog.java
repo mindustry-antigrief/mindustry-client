@@ -15,7 +15,7 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
-/** Interface for editing/displaying all tags. */
+/** Used for editing/displaying all tags. */
 public class TagsDialog extends BaseDialog{
     private static final float tagh = 42f;
     public record TagCountResult(String text, boolean isEmpty){}
