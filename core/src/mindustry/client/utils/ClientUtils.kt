@@ -111,17 +111,24 @@ object Compression {
         return output
     }
 
-    fun inflate(input: ByteArray): ByteArray {
-        val inflater = InflaterInputStream(input.inputStream())
-        val output = inflater.readBytes()
-        inflater.close()
-        return output
+    /** @throws IOException If inflated output exceeds [maxSize] */
+    fun inflate(input: ByteArray, maxSize: Int = Int.MAX_VALUE): ByteArray {
+        InflaterInputStream(input.inputStream()).use { inflater ->
+            val output = ByteArrayOutputStream()
+            val buffer = ByteArray(8192)
+            while (true) {
+                val read = inflater.read(buffer)
+                if (read == -1) return output.toByteArray()
+                if (output.size() + read > maxSize) throw IOException("Inflated data exceeds $maxSize bytes")
+                output.write(buffer, 0, read)
+            }
+        }
     }
 }
 
 fun ByteArray.compress() = Compression.compress(this)
 
-fun ByteArray.inflate() = Compression.inflate(this)
+fun ByteArray.inflate(maxSize: Int = Int.MAX_VALUE) = Compression.inflate(this, maxSize)
 
 fun String.capLength(length: Int): String {
     if (this.length <= length) return this
@@ -384,8 +391,54 @@ fun compressImageAsPng(img: Pixmap): ByteArray {
         return bytes.toByteArray()
     }
 
-fun inflateImage(array: ByteArray, offset: Int, length: Int): Pixmap? {
-    return try { Pixmap(array, offset, length) } catch (e: Exception) { Log.err(e); null }
+private val pngHeader = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+private val jpegHeader = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
+
+private fun ByteArray.startsWith(prefix: ByteArray, offset: Int, length: Int) = length >= prefix.size && prefix.indices.all { this[offset + it] == prefix[it] }
+
+/** Reads the size of an image from the header. This feels like wizardry, I had to do too much googling for this.
+ * @return (width, height), or null if the data is neither format, or the header is malformed. May be negative (png sizes unsigned int). */
+private fun imageSize(array: ByteArray, offset: Int, length: Int): Pair<Int, Int>? {
+    val buf = ByteBuffer.wrap(array, offset, length) // Big-endian, as are both formats
+    runCatching { // Catch exceptions caused by malformed headers.
+        if (array.startsWith(pngHeader, offset, length)) {
+            buf.position(offset + pngHeader.size)
+            val chunkLength = buf.int
+            val chunkType = buf.int
+            if (chunkLength != 13 || chunkType != 0x49484452) return null // IHDR chunk: length and type are always the same.
+            return buf.int to buf.int // After the IHDR chunk label is the size of the image.
+        }
+
+        if (array.startsWith(jpegHeader, offset, length)) {
+            buf.position(offset + jpegHeader.size)
+            while (true) {
+                if (buf.get().toUByte().toInt() != 0xFF) return null // All JPEG markers start with this byte
+                var marker = buf.get().toUByte().toInt()
+                while (marker == 0xFF) marker = buf.get().toUByte().toInt() // The marker may be repeated for padding reasons
+
+                val segmentLength = buf.short.toUShort().toInt() // Includes the length field itself
+                if (marker in 0xC0..0xC2) { // Baseline/extended/progressive type JPEG start of frame markers
+                    buf.get() // Sample precision
+                    val height = buf.short.toUShort().toInt()
+                    val width = buf.short.toUShort().toInt()
+                    return width to height
+                }
+                if (segmentLength < Short.SIZE_BYTES) return null // If we don't have another segment, we don't have a size anywhere.
+                buf.position(buf.position() + segmentLength - Short.SIZE_BYTES) // Check the next segment as this was not the start of frame segment.
+            }
+        }
+    }
+    return null
+}
+
+/** Decodes only PNG or JPEG. Other formats or images above [maxPixels] are rejected before any memory is allocated. */
+fun inflateUntrustedImage(array: ByteArray, offset: Int, length: Int, maxPixels: Int): Pixmap? {
+    val (width, height) = imageSize(array, offset, length) ?: run { Log.err("Failed to decode image: Invalid PNG/JPEG"); return null }
+    if (width <= 0 || height <= 0 || width.toLong() * height > maxPixels) {
+        Log.err("Rejected @x@ image as it is too large (@/@)", width, height, width * height, maxPixels)
+        return null
+    }
+    return try { Pixmap(array, offset, length) } catch (e: Exception) { Log.err("Failed to decode image", e); null }
 }
 
 inline fun circle(x: Int, y: Int, radius: Float, cons: (Tile?) -> Unit) {

@@ -147,8 +147,7 @@ object Main : ApplicationListener {
 
                 is ImageTransmission -> {
                     Log.debug("Received image transmission")
-                    val msg = findMessage(transmission.message) ?: return@addListener
-                    msg.attachments.add(Texture(transmission.image)).shrink()
+                    findMessage(transmission.message)?.run { attachments.add(Texture(transmission.image)).shrink() }
                     transmission.image.dispose()
                 }
 

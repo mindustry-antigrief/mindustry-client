@@ -21,7 +21,7 @@ class ImageTransmission : Transmission {
     constructor(b: ByteArray, id: Long, senderID: Int) {
         val metadata = ByteBuffer.wrap(b)
         message = metadata.short
-        image = inflateImage(b, 2, b.size - 2)!!
+        image = inflateUntrustedImage(b, 2, b.size - 2, 1920 * 1080) ?: throw IllegalArgumentException("Invalid image in transmission $id")
     }
 
     override fun serialize(): ByteArray {
