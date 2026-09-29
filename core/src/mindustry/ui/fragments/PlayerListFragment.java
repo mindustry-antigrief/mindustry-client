@@ -79,7 +79,7 @@ public class PlayerListFragment{
                         playerName = playerClipboard = p -> "Groups.player.getByID(" + p.id + ")";
                     } else if (Core.input.alt()) {
                         var idMapper = Server.current.getPlayerIDCopy();
-                        if (idMapper != null) { // Server specific id support (i.e., io player codes and such)
+                        if (idMapper != null) { // Server-specific id support (i.e., corium player codes and such)
                             playerName = p -> p.coloredName() + "[accent] | " + idMapper.get(p);
                             playerClipboard = idMapper;
                         }
@@ -123,6 +123,9 @@ public class PlayerListFragment{
         });
         Events.on(PlayerJoin.class, e -> {
             if(visible) rebuild();
+        });
+        Events.on(PlayerLeave.class, e -> {
+            if(visible) Core.app.post(this::rebuild);
         });
         Events.on(WorldLoadEvent.class, e -> Timer.schedule(() -> {
             if(visible) rebuild();
@@ -355,9 +358,9 @@ public class PlayerListFragment{
                     button.button(hammerIcon, ustyle,
                         () -> ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "", reason -> {
                             Call.sendChatMessage("/votekick #" + user.id() + " " + reason);
-                            if(Server.io.b() && (user.trace != null || user.serverID != null))
+                            if(Server.corium.b() && (user.trace != null || user.serverID != null))
                                 ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () ->
-                                    Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID))
+                                    Call.sendChatMessage(Strings.format("/undo @ 5", user.trace != null ? user.trace.uuid : user.serverID))
                                 );
                         })).size(h/2).tooltip("@player.kick").get().resizeImage(h/2.2f);
                 }
