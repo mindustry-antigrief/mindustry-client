@@ -7,7 +7,6 @@ import arc.func.*
 import arc.util.*
 import mindustry.Vars.*
 import mindustry.client.*
-import mindustry.client.antigrief.*
 import mindustry.client.utils.CustomMode.*
 import mindustry.content.*
 import mindustry.content.UnitTypes.*
@@ -16,6 +15,7 @@ import mindustry.game.EventType.*
 import mindustry.gen.*
 import mindustry.net.*
 import mindustry.net.Packets.*
+import mindustry.ui.dialogs.BaseDialog
 import mindustry.ui.fragments.ChatFragment.*
 
 sealed class Server(
@@ -29,7 +29,7 @@ sealed class Server(
     @JvmField val unmute: Cmd = Cmd("/unmute", -1),
     @JvmField val ghost: Boolean = false,
     val networkTileLogs: Boolean = false,
-    private val votekickString: String = "Type[orange] /vote <y/n>[] to agree.",
+    private val votekickString: String = "Type [orange]/vote <y/n>[] to agree."
 ) {
     /** Converts a player to a copyable server-specific player identifier. Alt-click in the tab list will copy to clipboard. */
     open val playerIDCopy: Func<Player, String?>? = null
@@ -96,13 +96,12 @@ sealed class Server(
         @JvmField val other = Other
         @JvmField val nydus = Nydus
         @JvmField val cn = CN
-        @JvmField val io = IO
         @JvmField val korea = Korea
         @JvmField val fish = Fish
         @JvmField val darkdustry = Darkdustry
         @JvmField val corium = Corium
 
-        private val servers = listOf(other, nydus, cn, io, korea, fish, darkdustry, corium)
+        private val servers = listOf(other, nydus, cn, korea, fish, darkdustry, corium)
 
         open class Cmd(val str: String, private val rank: Int = 0) { // 0 = anyone, -1 = disabled
             val enabled = rank != -1
@@ -164,62 +163,6 @@ object Nydus : Server(groupName = "nydus") {
 }
 
 object CN : Server(groupName = "Chaotic Neutral", rtv = Companion.Cmd("/rtv"))
-
-object IO : Server(
-    groupName = "io",
-    mapVote = Companion.MapVote(),
-    whisper = Companion.Cmd("/w"),
-    rtv = Companion.Cmd("/rtv"),
-    freeze = Companion.Cmd("/freeze", 4),
-    thaw = Companion.Cmd("/thaw", 4),
-    mute = Companion.Cmd("/mute", 4),
-    unmute = Companion.Cmd("/unmute", 4),
-    votekickString = "Type[orange] /vote <y/n>[] to vote."
-) {
-    override val playerIDCopy = Func { p: Player -> p.serverID }
-
-    override fun handleBan(p: Player) {
-        ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing.") { reason ->
-            val id = p.trace?.uuid ?: p.serverID
-            if (id != null) {
-                ui.showConfirm("@confirm", "@client.rollback.title") {
-                    Call.sendChatMessage("/rollback $id 5 -f")
-                }
-            }
-            Call.adminRequest(p, AdminAction.ban, reason)
-        }
-    }
-
-    override fun handleFreeze(p: Player) {
-        Moderation.freezePlayer = p
-        getStats(p, true)
-    }
-
-    override fun handleMute(p: Player) {
-        Moderation.mutePlayer = p
-        getStats(p, true)
-    }
-
-    override fun adminui() = player.admin || ClientVars.rank >= 4
-
-    override fun handleButtons(msg: ChatMessage) {
-        super.handleButtons(msg)
-        val message = msg.message
-        val playerCodeMatch = ("""(?:has (?:dis)?connected \[#?\w+\]- |last placed by:[\s\S]+\[#?\w+\]ID:\[#?\w+\] )([A-Z0-9]+)""").toRegex().find(message)
-        if (playerCodeMatch !== null) {
-            val (code) = playerCodeMatch.destructured
-            msg.addButton(code) { Core.app.setClipboardText(code) }
-        }
-        if (defense() && Core.bundle.get("client.io.shop-vote") in message) { // td upgrade voting
-            val agree = Companion.Cmd("/agree", 0)
-            msg.addButton(agree.str, agree::invoke)
-            val disagree = Companion.Cmd("/disagree", 0)
-            msg.addButton(disagree.str, disagree::invoke)
-        }
-    }
-
-    override fun getStats(player: Player, force: Boolean) = if (Core.settings.getBool("autostats") || force) Call.serverPacketReliable("playerdata_by_id", player.id.toString()) else Unit
-}
 
 object Korea : Server(groupName = "Korea", ghost = true)
 
@@ -286,7 +229,9 @@ object Corium : Server(
     mute = Companion.Cmd("/mute", 5),
     unmute = Companion.Cmd("/unmute", 5),
     networkTileLogs = true
-) { // FINISHME: Implement everything else specific to corium
+) {
+    private val moderationDurations = arrayOf("1d", "1w", "1mo", "1y", "5y")
+
     init {
         netClient.addPacketHandler("playerCode") {
             if (corium()) {
@@ -296,32 +241,131 @@ object Corium : Server(
         }
     }
 
-    val codeRegex = Regex("^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$")
+    val codeRegex = Regex("[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}")
 
     override val playerIDCopy = Func { p: Player -> p.serverID }
 
     override val ratelimitMax get() = if (ClientVars.rank < 1) 10 else super.ratelimitMax
 
     override fun handleBan(p: Player) {
-        ui.showTextInput("@client.banreason.title", "@client.banreason.body", "Griefing.") { reason ->
-            val id = p.trace?.uuid ?: p.serverID
-            if (id != null) {
-                ui.showConfirm("@confirm", "@client.rollback.title") {
-                    Call.sendChatMessage("/rollback $id 5-f")
-                }
+        val playerId = p.id.toString()
+        val rollbackId = p.trace?.uuid ?: p.serverID
+        Call.serverPacketReliable("silentFreeze", playerId)
+
+        val banMenu = BaseDialog("Ban ${p.coloredName()}")
+        banMenu.setFillParent(false)
+        var submitted = false
+
+        banMenu.cont.add("Reason:").left()
+        banMenu.cont.row()
+        val reasonField = banMenu.cont.field("Griefing.") {}.width(400f).get()
+        banMenu.cont.row()
+        banMenu.cont.table { durations ->
+            moderationDurations.forEach { duration ->
+                durations.button(duration) {
+                    submitted = true
+                    Call.sendChatMessage("/ban ${playerString(p)} $duration ${reasonField.text}")
+                    banMenu.hide()
+                    if (rollbackId != null) {
+                        ui.showConfirm("@confirm", "@client.rollback.title") {
+                            Call.sendChatMessage("/undo $rollbackId 10")
+                            Call.sendChatMessage("/undo f")
+                        }
+                    }
+                }.size(70f, 50f).pad(2f)
             }
-            Call.adminRequest(p, AdminAction.ban, reason)
         }
+
+        banMenu.buttons.button("@cancel", Icon.cancel, banMenu::hide).size(200f, 54f).pad(2f)
+        banMenu.closeOnBack()
+        banMenu.hidden {
+            if (!submitted) Call.serverPacketReliable("silentThaw", playerId)
+        }
+        banMenu.show()
     }
 
     override fun handleFreeze(p: Player) {
-        Moderation.freezePlayer = p
-        getStats(p, true)
+        if (!p.serverModerationStateKnown) {
+            getStats(p, true)
+            return
+        }
+
+        if (p.serverFrozen) {
+            ui.showConfirm("@confirm", Core.bundle.format("client.confirmthaw", p.coloredName())) {
+                thaw(p)
+            }
+            return
+        }
+
+        val playerId = p.id.toString()
+        Call.serverPacketReliable("silentFreeze", playerId)
+
+        val freezeMenu = BaseDialog("Freeze ${p.coloredName()}")
+        freezeMenu.setFillParent(false)
+        var submitted = false
+
+        freezeMenu.cont.add("Reason:").left()
+        freezeMenu.cont.row()
+        val reasonField = freezeMenu.cont.field("Griefing.") {}.width(400f).get()
+        freezeMenu.cont.row()
+        freezeMenu.cont.table { durations ->
+            moderationDurations.forEach { duration ->
+                durations.button(duration) {
+                    submitted = true
+                    freeze(p, duration, reasonField.text)
+                    freezeMenu.hide()
+                }.size(70f, 50f).pad(2f)
+            }
+        }.pad(4f)
+
+        freezeMenu.buttons.button("@cancel", Icon.cancel, freezeMenu::hide).size(200f, 54f).pad(2f)
+        freezeMenu.closeOnBack()
+        freezeMenu.hidden {
+            if (!submitted) Call.serverPacketReliable("silentThaw", playerId)
+        }
+        freezeMenu.show()
     }
 
     override fun handleMute(p: Player) {
-        Moderation.mutePlayer = p
-        getStats(p, true)
+        if (!p.serverModerationStateKnown) {
+            getStats(p, true)
+            return
+        }
+
+        if (p.serverMuted) {
+            ui.showConfirm("@confirm", Core.bundle.format("client.confirmunmute", p.coloredName())) {
+                unmute(p)
+            }
+            return
+        }
+
+        val playerId = p.id.toString()
+        Call.serverPacketReliable("silentMute", playerId)
+
+        val muteMenu = BaseDialog("Mute ${p.coloredName()}")
+        muteMenu.setFillParent(false)
+        var submitted = false
+
+        muteMenu.cont.add("Reason:").left()
+        muteMenu.cont.row()
+        val reasonField = muteMenu.cont.field("Breaking chatting rules.") {}.width(400f).get()
+        muteMenu.cont.row()
+        muteMenu.cont.table { durations ->
+            moderationDurations.forEach { duration ->
+                durations.button(duration) {
+                    submitted = true
+                    mute(p, duration, reasonField.text)
+                    muteMenu.hide()
+                }.size(70f, 50f).pad(2f)
+            }
+        }.pad(4f)
+
+        muteMenu.buttons.button("@cancel", Icon.cancel, muteMenu::hide).size(200f, 54f).pad(2f)
+        muteMenu.closeOnBack()
+        muteMenu.hidden {
+            if (!submitted) Call.serverPacketReliable("silentUnmute", playerId)
+        }
+        muteMenu.show()
     }
 
     override fun adminui() = player.admin || ClientVars.rank >= 5
@@ -329,10 +373,9 @@ object Corium : Server(
     override fun handleButtons(msg: ChatMessage) {
         super.handleButtons(msg)
         val message = msg.message
-        val playerCodeMatch = codeRegex.find(message)
-        if (playerCodeMatch !== null) {
-            val (code) = playerCodeMatch.destructured
-            msg.addButton(code) { Core.app.setClipboardText(code) }
+        val playerCodeMatches = codeRegex.findAll(message)
+        playerCodeMatches.forEach { match ->
+            msg.addButton(match.value) { Core.app.setClipboardText(match.value) }
         }
         if (defense() && Core.bundle.get("client.io.shop-vote") in message) { // td upgrade voting
             val agree = Companion.Cmd("/agree", 0)
@@ -344,7 +387,7 @@ object Corium : Server(
 
     override fun isJoinedServer(group: List<String>?, host: Host?) = host?.name?.contains("Corium") == true
 
-    /** Gets player stats if autotrace or force. Otherwise, only requests player code for serverID usage. */
+    /** Gets player stats if needed. Otherwise, only requests the player code for serverID usage. */
     override fun getStats(player: Player, force: Boolean) = Call.serverPacketReliable(if (Core.settings.getBool("autostats") || force) "playerdata_by_id" else "getPlayerCodeById", player.id.toString())
 
     override fun updateRank() {
