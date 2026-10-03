@@ -588,140 +588,50 @@ public class SchematicsDialog extends BaseDialog{
     }
 
     void showAllTags(){
-        var dialog = new BaseDialog("@schematic.edittags");
-        dialog.addCloseButton();
-        Runnable[] rebuild = {null};
-        dialog.cont.pane(p -> {
-            rebuild[0] = () -> {
-                p.clearChildren();
-                p.margin(12f).defaults().fillX().left();
+        new TagsDialog(tags, selectedTags)
+        .tagsChanged(this::tagsChanged)
+        .selectionChanged(() -> {
+            rebuildTags.run();
+            rebuildPane.run();
+        }).pruneTags(this::pruneTags)
 
-                p.table(t -> {
-                    t.left().defaults().fillX().height(tagh).pad(2);
-                    t.button("@client.schematic.cleartags", Icon.refresh, selectedTags::clear).wrapLabel(false).get().getLabelCell().padLeft(5);
-                    t.button("@client.schematic.prunetags", Icon.trash, this::pruneTags).wrapLabel(false).get().getLabelCell().padLeft(5);
-                    t.button("@schematic.texttag", Icon.add, () -> showNewTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
-                    t.button("@schematic.icontag", Icon.add, () -> showNewIconTag(res -> rebuild[0].run())).wrapLabel(false).get().getLabelCell().padLeft(5);
-                });
-                p.row();
-
-                float sum = 0f;
-                Table current = new Table().left();
-
-                for(var tag : tags){
-                    float si = 40f;
-
-                    var next = new Table(Tex.whiteui, n -> {
-                        n.setColor(Pal.gray);
-                        n.margin(5f);
-
-                        n.table(move -> {
-
-                            //move up
-                            move.button(Icon.upOpen, Styles.emptyi, () -> {
-                                int idx = tags.indexOf(tag);
-                                if(idx > 0){
-                                    if(Core.input.shift()){
-                                        tags.insert(0, tags.remove(idx));
-                                    } else {
-                                        tags.swap(idx, idx - 1);
-                                    }
-                                    tagsChanged();
-                                    rebuild[0].run();
-                                }
-                            }).size(si).tooltip("@editor.moveup").row();
-                            //move down
-                            move.button(Icon.downOpen, Styles.emptyi, () -> {
-                                int idx = tags.indexOf(tag);
-                                if(idx < tags.size - 1){
-                                    if(Core.input.shift()){
-                                        tags.insert(tags.size - 1, tags.remove(idx));
-                                    } else {
-                                        tags.swap(idx, idx + 1);
-                                    }
-                                    tagsChanged();
-                                    rebuild[0].run();
-                                }
-                            }).size(si).tooltip("@editor.movedown");
-                        }).fillY();
-
-                        n.table(t -> {
-                            t.add(tag).left().row();
-                            final var count = schematics.all().count(s -> s.labels.contains(tag));
-                            t.add(Core.bundle.format("schematic.tagged", count)).left()
-                            .update(b -> b.setColor(b.hasMouse() ? Pal.accent : selectedTags.contains(tag) ? Color.lime : count == 0 ? Color.red : Color.lightGray))
-                            .get().clicked(() -> {
-                                if (!selectedTags.contains(tag)) selectedTags.add(tag);
-                                else selectedTags.remove(tag);
-                                rebuildTags.run();
-                                rebuildPane.run();
-                            });
-                        }).growX().fillY();
-
-                        n.table(b -> {
-                            b.margin(2);
-
-                            //rename tag
-                            b.button(Icon.pencil, Styles.emptyi, () -> {
-                                ui.showTextInput("@schematic.renametag", "@name", tag, result -> {
-                                    //same tag, nothing was renamed
-                                    if(result.equals(tag)) return;
-
-                                    if(tags.contains(result)){
-                                        ui.showInfo("@schematic.tagexists");
-                                    }else{
-                                        for(Schematic s : schematics.all()){
-                                            if(s.labels.any()){
-                                                s.labels.replace(tag, result);
-                                                s.save();
-                                            }
-                                        }
-                                        selectedTags.replace(tag, result);
-                                        tags.replace(tag, result);
-                                        tagsChanged();
-                                        rebuild[0].run();
-                                    }
-                                });
-                            }).size(si).tooltip("@schematic.renametag").row();
-                            //delete tag
-                            b.button(Icon.trash, Styles.emptyi, () -> {
-                                if (Core.input.shift()) {
-                                    deleteTag(tag);
-                                    rebuild[0].run();
-                                    return;
-                                }
-
-                                ui.showConfirm("@schematic.tagdelconfirm", () -> {
-                                    deleteTag(tag);
-                                    rebuild[0].run();
-                                });
-                            }).size(si).tooltip("@save.delete");
-                        }).fillY();
-                    });
-
-                    next.pack();
-                    float w = next.getWidth() + Scl.scl(9f);
-
-                    if(w*2f + sum >= Core.graphics.getWidth() * 0.9f){
-                        p.add(current).row();
-                        current = new Table();
-                        current.left();
-                        sum = 0;
+        .count(tag -> {
+            int count = schematics.all().count(s -> s.labels.contains(tag));
+            return new TagsDialog.TagCountResult(Core.bundle.format("schematic.tagged", count), count == 0);
+        })
+        .rename((tag, rebuild) -> {
+            ui.showTextInput("@schematic.renametag", "@name", tag, result -> {
+                if(result.equals(tag)) return;
+                if(tags.contains(result)){
+                    ui.showInfo("@schematic.tagexists");
+                }else{
+                    for(Schematic s : schematics.all()){
+                        if(s.labels.any()){
+                            s.labels.replace(tag, result);
+                            s.save();
+                        }
                     }
-
-                    current.add(next).minWidth(210).pad(4);
-
-                    sum += w;
+                    selectedTags.replace(tag, result);
+                    tags.replace(tag, result);
+                    tagsChanged();
+                    rebuild.run();
                 }
-
-                if(sum > 0){
-                    p.add(current).row();
-                }
-            };
-
-            resized(true, rebuild[0]);
-        }).scrollX(false);
-        dialog.show();
+            });
+        })
+        .delete((tag, rebuild) -> {
+            if(Core.input.shift()){
+                deleteTag(tag);
+                rebuild.run();
+                return;
+            }
+            ui.showConfirm("@schematic.tagdelconfirm", () -> {
+                deleteTag(tag);
+                rebuild.run();
+            });
+        })
+        .addButton("@schematic.texttag", Icon.add, rebuild -> showNewTag(res -> rebuild.run()))
+        .addButton("@schematic.icontag", Icon.add, rebuild -> showNewIconTag(res -> rebuild.run()))
+        .show();
     }
 
     public void pruneTags() {
