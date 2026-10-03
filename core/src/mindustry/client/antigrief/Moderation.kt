@@ -49,22 +49,24 @@ class Moderation {
                         mutePlayer = null
                     }
 
-                    val rank = "rank".i() // Server-specific rank. 0 is unranked.
-                    if (player == Vars.player) { // Set rank accordingly
-                        ClientVars.rank = rank
-                        Server.current.updateRank()
-                    }
-                    else if (rank == 0) { // If they're unranked, check if they're new
-                        val games = "games".i()
-                        val buildings = "buildings".i()
-                        val time = "playtime".i()
-                        val name = "realname".s() ?: player.coloredName()
+                    if (!(json.hasChild("update") && "update".b())) { // If update == true, ignore all of this
+                        val rank = "rank".i() // Server-specific rank. 0 is unranked.
+                        if (player == Vars.player) { // Set rank accordingly
+                            ClientVars.rank = rank
+                            Server.current.updateRank()
+                        }
+                        else if (rank == 0) { // If they're unranked, check if they're new
+                            val games = "games".i()
+                            val buildings = "buildings".i()
+                            val time = "playtime".i()
+                            val name = "realname".s() ?: player.coloredName()
 
-                        if (games < 3 || buildings < 1000 || time < 60) { // Low-stat player; show a warning FINISHME: Settings for these values
-                            fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
-                            Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet](${player.serverID}) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
-                                .addButton(name) { Spectate.spectate(player) }
-                                .addButton(player.serverID) { Call.sendChatMessage("/stats ${player.id}") }
+                            if (games < 3 || buildings < 1000 || time < 60) { // Low-stat player; show a warning FINISHME: Settings for these values
+                                fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
+                                Vars.ui.chatfrag.addMsg("[scarlet]Player $name [scarlet](${player.serverID}) has ${games.s()} games, ${buildings.s()} builds, ${time.s()} mins")
+                                    .addButton(name) { Spectate.spectate(player) }
+                                    .addButton(player.serverID) { Call.sendChatMessage("/stats ${player.id}") }
+                            }
                         }
                     }
                 }
