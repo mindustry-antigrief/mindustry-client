@@ -34,6 +34,15 @@ class ClientLogic {
     private var turretVoidWarnPlayer: Player? = null
     private var lastTurretVoidWarn = 0L
 
+    /** One chat line per player for the power split warnings, so reworking a grid is not fifty messages. */
+    private var powerWarnMsg: ChatFragment.ChatMessage? = null
+    private var powerWarnPlayer: Player? = null
+    private var powerWarnLinks = 0
+    private val powerWarnNodes = IntSet()
+    private var lastPowerWarn = 0L
+    /** How long the same player keeps writing into his line, in milliseconds. */
+    private val powerWarnWindow = 20000L
+
     /** Create event listeners */
     init {
         Events.on(ServerJoinEvent::class.java) { // Run just after the player joins a server
@@ -225,18 +234,41 @@ class ClientLogic {
                     prev.count { !((event.value as? Array<Point2>)?.contains(it)?: true) }
                 }
                 if (count == 0) return@on // No need to warn
+
+                // The same player breaking links on node after node keeps writing into one message instead of one per node
+                val msg = powerWarnMsg
+                val stack = msg != null && powerWarnPlayer == event.player && !msg.message.isNullOrEmpty() &&
+                    Time.timeSinceMillis(lastPowerWarn) < powerWarnWindow && ui.chatfrag.messages.indexOf(msg) in 0..8
+                if (!stack) {
+                    powerWarnLinks = 0
+                    powerWarnNodes.clear()
+                    powerWarnMsg = null
+                }
+                powerWarnPlayer = event.player
+                powerWarnLinks += count
+                powerWarnNodes.add(event.tile.pos())
+                lastPowerWarn = Time.millis()
                 event.tile.disconnections += count
 
-                val message: String = bundle.format("client.powerwarn", Strings.stripColors(event.player.name), event.tile.disconnections, event.tile.tileX().toString(), event.tile.tileY().toString()) // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                // FINISHME: Awful way to circumvent arc formatting numerics with commas at thousandth places
+                val name = Strings.stripColors(event.player.name)
+                val x = event.tile.tileX().toString()
+                val y = event.tile.tileY().toString()
+                val message: String = if (powerWarnNodes.size > 1) {
+                    bundle.format("client.powerwarn.many", name, powerWarnLinks.toString(), powerWarnNodes.size.toString(), x, y)
+                } else bundle.format("client.powerwarn", name, powerWarnLinks.toString(), x, y)
                 lastWarnPos.set(event.tile.tileX().toFloat(), event.tile.tileY().toFloat())
-                if (event.tile.message == null || ui.chatfrag.messages.indexOf(event.tile.message) > 8) {
+                if (!stack) {
                     event.tile.disconnections = count
                     event.tile.message = ui.chatfrag.addMsg(message)
+                    powerWarnMsg = event.tile.message
                     NetClient.findCoords(event.tile.message)
                 } else {
                     ui.chatfrag.doFade(2f)
-                    event.tile.message!!.message = message
-                    event.tile.message!!.format()
+                    msg!!.message = message
+                    msg.format()
+                    msg.buttons?.clear() // the coordinates moved, the old clickable spots do not match any more
+                    NetClient.findCoords(msg)
                 }
             }
         }
