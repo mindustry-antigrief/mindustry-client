@@ -29,12 +29,12 @@ class Moderation {
                     if (Core.settings.getBool("logplayerdata")) Log.debug(json)
 
                     fun String.i() = json.getInt(this, Int.MAX_VALUE)
-                    fun String.s() = json.getString(this, "unknown")
+                    fun String.s(): String? = json.getString(this, null)
                     fun String.b() = json.getBoolean(this)
 
                     val id = "id".i()
                     val player = Groups.player.getByID(id) ?: return@addPacketHandler
-                    player.serverID = "playercode".s()
+                    if ("playercode".s() != null) player.serverID = "playercode".s()
 
                     if (player === freezePlayer) { // FINISHME: Use callbacks instead of this jank.
                         freezeState = "frozen".b()
@@ -58,7 +58,7 @@ class Moderation {
                         val games = "games".i()
                         val buildings = "buildings".i()
                         val time = "playtime".i()
-                        val name = "realname".s()
+                        val name = "realname".s() ?: player.coloredName()
 
                         if (games < 3 || buildings < 1000 || time < 60) { // Low-stat player; show a warning FINISHME: Settings for these values
                             fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
