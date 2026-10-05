@@ -74,6 +74,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
     transient boolean assisting;
     transient @Nullable TraceInfo trace;
     transient @Nullable String serverID;
+    transient boolean serverFrozen, serverMuted, serverModerationStateKnown;
     transient boolean hasLoadedMap;
 
     transient int lastPreviewPlanGroup = -1, lastPreviewPlanGroupServer = -1;
