@@ -54,7 +54,7 @@ fun autoShoot() {
 
     if (target == null || Client.timer.get(2, 6f)) { // Acquire target FINISHME: Heal allied units?
         if (type.canAttack) {
-            val ignoreDisarmed = Server.io() && !CustomMode.defense();
+            val ignoreDisarmed = Server.corium() && !CustomMode.defense();
             target = Units.closestEnemy(unit.team, unit.x, unit.y, unit.range()) { u -> !(ignoreDisarmed && u.disarmed) && u.checkTarget(type.targetAir, unit.type.targetGround) }
         }
         if (type.canHeal && target == null) {

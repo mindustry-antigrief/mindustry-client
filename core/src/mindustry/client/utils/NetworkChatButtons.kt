@@ -4,6 +4,8 @@ import arc.*
 import arc.util.*
 import arc.util.io.*
 import mindustry.*
+import mindustry.client.Spectate
+import mindustry.gen.Groups
 import mindustry.ui.fragments.ChatFragment.*
 import java.io.*
 import java.security.*
@@ -16,7 +18,8 @@ object NetworkChatButtons {
 
     /** Actions a button can run locally instead of a chat command. */
     private val actions = mapOf<String, (String) -> Unit>(
-        "%copy" to { text -> Core.app.clipboardText = text }
+        "%copy" to { text -> Core.app.clipboardText = text },
+        "%spectate" to { text -> Groups.player.getByID(text.toInt())?.apply { Spectate.spectate(this) } }
     )
 
     fun init() {

@@ -68,7 +68,7 @@ class ClientLogic {
             app.post { syncing = false } // Run this next frame so that it can be used elsewhere safely
             lastJoinTime = Time.millis()
             if (!syncing) {
-                AutoTransfer.enabled = settings.getBool("autotransfer") && !(state.rules.pvp && Server.io())
+                AutoTransfer.enabled = settings.getBool("autotransfer")
                 frozenPlans.clear()
                 app.post {
                 when (val vote = settings.getInt("automapvote")) {
@@ -133,13 +133,12 @@ class ClientLogic {
         Events.on(PlayerJoin::class.java) { e -> // Run when a player joins the server
             if (e.player == null) return@on
 
-            if (settings.getBool("clientjoinleave")) {
-                val target = "${Strings.stripColors(e.player.name)} has connected."
-                val found = findRecentMessage { Strings.stripColors(it.message) == target }
-                    ?: ui.chatfrag.addMsg(bundle.format("client.connected", e.player.name))
-                if (found.buttons != null && found.buttons.isEmpty) {
-                    found.addButton(e.player.name) { Spectate.spectate(e.player) }
-                }
+            val target = "${Strings.stripColors(e.player.name)} has connected."
+            val found = findRecentMessage { Strings.stripColors(it.message) == target }
+                ?: if (settings.getBool("clientjoinleave") && !Server.corium()) ui.chatfrag.addMsg(bundle.format("client.connected", e.player.name)) else null
+            if (found == null) return@on
+            if (found.buttons != null && found.buttons.isEmpty) {
+                found.addButton(e.player.name) { Spectate.spectate(e.player) }
             }
         }
 
@@ -148,8 +147,8 @@ class ClientLogic {
 
             val id = e.player.id.toString()
 
-            if (settings.getBool("clientjoinleave") && !Server.io() && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
-                ui.chatfrag.addMsg(bundle.format("client.disconnected", e.player.name)).addButton(e.player.name) { app.clipboardText = id } // FINISHME: Also apply to io leaves!
+            if (settings.getBool("clientjoinleave") && !Server.corium() && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
+                ui.chatfrag.addMsg(bundle.format("client.disconnected", e.player.name)).addButton(e.player.name) { app.clipboardText = id }
 
             if (settings.getBool("showidinjoinleave", false))
                 ui.chatfrag.addMsg(bundle.format("client.disconnected.withid", id))
