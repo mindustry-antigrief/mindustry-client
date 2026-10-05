@@ -203,7 +203,7 @@ object Packets {
 
                 if (!entry.segments.contains(null)) {
                     val array = entry.segments.reduceRight { a, b -> a!! + b!! }!!  // Collapse the list of packet contents to the full byte array
-                    val inflated = array.inflate()  // Decompress the transmission
+                    val inflated = array.inflate(16 * 1024 * 1024) // Decompress the transmission (16MB max)
                     val transmission = registeredTransmissionTypes[header.transmissionType].constructor(inflated, header.transmissionId, sender)  // Deserialize the transmission
 
                     listenersLock.withLock {
