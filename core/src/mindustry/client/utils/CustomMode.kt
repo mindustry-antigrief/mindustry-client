@@ -22,7 +22,7 @@ enum class CustomMode(
 
         override fun enable() {
             super.enable()
-            if ((Corium()) && net.client()) {
+            if (Corium() && net.client()) {
                 var floodMod: Mods.LoadedMod? = mods.getMod("floodcompat")
 
                 fun enable() { // Just enables the mod

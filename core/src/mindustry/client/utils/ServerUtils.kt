@@ -29,7 +29,7 @@ sealed class Server(
     @JvmField val unmute: Cmd = Cmd("/unmute", -1),
     @JvmField val ghost: Boolean = false,
     val networkTileLogs: Boolean = false,
-    private val votekickString: String = "Type [orange]/vote <y/n>[] to agree."
+    private val votekickString: String = "Type[orange] /vote <y/n>[] to agree."
 ) {
     /** Converts a player to a copyable server-specific player identifier. Alt-click in the tab list will copy to clipboard. */
     open val playerIDCopy: Func<Player, String?>? = null
@@ -241,8 +241,6 @@ object Corium : Server(
         }
     }
 
-    val codeRegex = Regex("[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}")
-
     override val playerIDCopy = Func { p: Player -> p.serverID }
 
     override val ratelimitMax get() = if (ClientVars.rank < 1) 10 else super.ratelimitMax
@@ -373,11 +371,7 @@ object Corium : Server(
     override fun handleButtons(msg: ChatMessage) {
         super.handleButtons(msg)
         val message = msg.message
-        val playerCodeMatches = codeRegex.findAll(message)
-        playerCodeMatches.forEach { match ->
-            msg.addButton(match.value) { Core.app.setClipboardText(match.value) }
-        }
-        if (defense() && Core.bundle.get("client.io.shop-vote") in message) { // td upgrade voting
+        if (defense() && Core.bundle.get("client.io.shop-vote") in message) { // td upgrade voting FINISHME server-side buttons
             val agree = Companion.Cmd("/agree", 0)
             msg.addButton(agree.str, agree::invoke)
             val disagree = Companion.Cmd("/disagree", 0)

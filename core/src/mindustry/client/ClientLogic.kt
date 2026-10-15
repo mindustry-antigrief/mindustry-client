@@ -134,7 +134,7 @@ class ClientLogic {
             if (e.player == null) return@on
 
             val target = "${Strings.stripColors(e.player.name)} has connected."
-            val found = findRecentMessage { Strings.stripColors(it.message) == target }
+            val found = findRecentMessage { it.message != null && Strings.stripColors(it.message) == target }
                 ?: if (settings.getBool("clientjoinleave") && !Server.corium()) ui.chatfrag.addMsg(bundle.format("client.connected", e.player.name)) else null
             if (found == null) return@on
             if (found.buttons != null && found.buttons.isEmpty) {
