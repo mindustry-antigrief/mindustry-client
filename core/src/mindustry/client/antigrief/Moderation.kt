@@ -33,6 +33,8 @@ class Moderation {
                     if ("playercode".s() != null) player.serverID = "playercode".s()
                     player.serverFrozen = "frozen".b()
                     player.serverMuted = "muted".b()
+                    val firstKnownModState = player.serverModerationStateKnown
+                    player.serverModerationStateKnown = true
 
                     if (!(json.hasChild("update") && "update".b())) { // If update == true, ignore all of this
                         val rank = "rank".i() // Server-specific rank. 0 is unranked.
@@ -42,8 +44,7 @@ class Moderation {
                             }
                             ClientVars.rank = rank
                             Server.current.updateRank()
-                        }
-                        else if (rank == 0) { // If they're unranked, check if they're new
+                        } else if (firstKnownModState && rank == 0) { // If they're unranked, check if they're new
                             val games = "games".i()
                             val buildings = "buildings".i()
                             val time = "playtime".i()
