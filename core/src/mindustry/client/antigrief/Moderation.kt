@@ -33,28 +33,28 @@ class Moderation {
                     if ("playercode".s() != null) player.serverID = "playercode".s()
                     player.serverFrozen = "frozen".b()
                     player.serverMuted = "muted".b()
-                    val firstKnownModState = player.serverModerationStateKnown
-                    player.serverModerationStateKnown = true
 
-                    val rank = "rank".i() // Server-specific rank. 0 is unranked.
-                    if (player == Vars.player) { // Set rank accordingly
-                        if (rank != ClientVars.rank && rank >= 5 && (Server.current.freeze.canRun() || Server.current.mute.canRun())) {
-                            Groups.player.each { p -> if (p != Vars.player) Server.current.getStats(p, true) }
+                    if (!(json.hasChild("update") && "update".b())) { // If update == true, ignore all of this
+                        val rank = "rank".i() // Server-specific rank. 0 is unranked.
+                        if (player == Vars.player) { // Set rank accordingly
+                            if (rank != ClientVars.rank && rank >= 5 && (Server.current.freeze.canRun() || Server.current.mute.canRun())) {
+                                Groups.player.each { p -> if (p != Vars.player) Server.current.getStats(p, true) }
+                            }
+                            ClientVars.rank = rank
+                            Server.current.updateRank()
                         }
-                        ClientVars.rank = rank
-                        Server.current.updateRank()
-                    }
-                    else if (firstKnownModState && rank == 0) { // If they're unranked, check if they're new
-                        val games = "games".i()
-                        val buildings = "buildings".i()
-                        val time = "playtime".i()
-                        val name = "realname".s() ?: player.coloredName()
+                        else if (rank == 0) { // If they're unranked, check if they're new
+                            val games = "games".i()
+                            val buildings = "buildings".i()
+                            val time = "playtime".i()
+                            val name = "realname".s() ?: player.coloredName()
 
-                        if (games < 3 || buildings < 1000 || time < 60) { // Low-stat player; show a warning FINISHME: Settings for these values
-                            fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
-                            Vars.ui.chatfrag.addMsg("[scarlet]Player [stat]$name [white](${player.serverID}) [scarlet]has [stat]${games.s()}[] games, [stat]${buildings.s()}[] builds, [stat]${time.s()}[] mins")
-                                .addButton(name) { Spectate.spectate(player) }
-                                .addButton(player.serverID) { Call.sendChatMessage("/stats ${player.id}") }
+                            if (games < 3 || buildings < 1000 || time < 60) { // Low-stat player; show a warning FINISHME: Settings for these values
+                                fun Int.s() = if (this == Int.MAX_VALUE) "unknown" else toString()
+                                Vars.ui.chatfrag.addMsg("[scarlet]Player [stat]$name [white](${player.serverID}) [scarlet]has [stat]${games.s()}[] games, [stat]${buildings.s()}[] builds, [stat]${time.s()}[] mins")
+                                    .addButton(name) { Spectate.spectate(player) }
+                                    .addButton(player.serverID) { Call.sendChatMessage("/stats ${player.id}") }
+                            }
                         }
                     }
                 }
