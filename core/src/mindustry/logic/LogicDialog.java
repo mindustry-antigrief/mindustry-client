@@ -49,8 +49,8 @@ public class LogicDialog extends BaseDialog{
             wasRows = LCanvas.isCompact();
             wasPortrait = Core.graphics.isPortrait();
         });
-        hidden(() -> {
-            if (executor != null && !Core.input.shift() && (executor.team == player.team() || !net.client())) consumer.get(canvas.save());
+        hidden(() -> { // Foo: We allow viewing enemy logic so we have to check that it's not an enemy block. Additionally, holding shift discards changes.
+            if (!Core.input.shift() && (executor == null || executor.team == player.team() || !net.client())) consumer.get(canvas.save());
         });
         onResize(() -> {
             if(wasRows != LCanvas.isCompact() || wasPortrait != Core.graphics.isPortrait()){
