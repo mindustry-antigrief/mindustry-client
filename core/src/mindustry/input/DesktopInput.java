@@ -699,7 +699,7 @@ public class DesktopInput extends InputHandler{
                     settings.put("autotransfer", AutoTransfer.enabled);
                     new Toast(1).add(bundle.get("client.autotransfer") + ": " + bundle.get(AutoTransfer.enabled ? "mod.enabled" : "mod.disabled"));
                     table.remove();
-                }).disabled(b -> state.rules.pvp && Server.io.b());
+                });
 
                 table.row().fill();
                 table.button("@client.unitpicker.title", () -> { // Unit Picker / Sniper

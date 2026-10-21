@@ -46,7 +46,7 @@ class MinePath @JvmOverloads constructor(
             player.sendMessage(Core.bundle.format("client.path.miner.toidle", items.joinToString(), player.closestCore()?.storageCapacity ?: "-∞"))
         }
 
-        addListener { AutoTransfer.enabled = Core.settings.getBool("autotransfer") && !(state.rules.pvp && Server.io()) } // Re-enable autoTransfer if we turned it off during the path
+        addListener { AutoTransfer.enabled = Core.settings.getBool("autotransfer") } // Re-enable autoTransfer if we turned it off during the path
     }
 
     companion object {

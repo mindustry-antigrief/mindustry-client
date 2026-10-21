@@ -79,7 +79,7 @@ public class PlayerListFragment{
                         playerName = playerClipboard = p -> "Groups.player.getByID(" + p.id + ")";
                     } else if (Core.input.alt()) {
                         var idMapper = Server.current.getPlayerIDCopy();
-                        if (idMapper != null) { // Server specific id support (i.e., io player codes and such)
+                        if (idMapper != null) { // Server-specific id support (i.e., corium player codes and such)
                             playerName = p -> p.coloredName() + "[accent] | " + idMapper.get(p);
                             playerClipboard = idMapper;
                         }
@@ -123,6 +123,9 @@ public class PlayerListFragment{
         });
         Events.on(PlayerJoin.class, e -> {
             if(visible) rebuild();
+        });
+        Events.on(PlayerLeave.class, e -> {
+            if(visible) Core.app.post(this::rebuild);
         });
         Events.on(WorldLoadEvent.class, e -> Timer.schedule(() -> {
             if(visible) rebuild();
@@ -294,7 +297,7 @@ public class PlayerListFragment{
 
                 if(adminui && (!user.admin || user.isLocal())){
                     if(!user.isLocal()){
-                        t.button(hammerIcon, ustyle,
+                        t.button(hammerIcon, ustyle, Server.corium.b() ? () -> Server.current.handleBan(user) :
                             () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban", user.name()),
                                 () -> Server.current.handleBan(user))
                         ).tooltip("@player.ban").get().resizeImage(h/2.2f);
@@ -337,15 +340,23 @@ public class PlayerListFragment{
 
                     // Server-integrated buttons
                     if(Server.current.freeze.canRun()){
-                        t.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon).tint(Color.cyan), ustyle, () ->
-                        Server.current.handleFreeze(user)
-                        ).tooltip("@client.freeze");
+                        var freezeButton = t.button(new TextureRegionDrawable(StatusEffects.freezing.uiIcon), ustyle, () ->
+                            Server.current.handleFreeze(user)
+                        ).tooltip("@client.freeze").get();
+                        freezeButton.update(() -> {
+                            freezeButton.setDisabled(!user.serverModerationStateKnown);
+                            freezeButton.getStyle().imageUpColor = user.serverFrozen ? Color.darkGray : Color.cyan;
+                        });
                     }
 
                     if(user == player && Server.current.mute.canRun()){ // If the player is local, the mute button won't be drawn on a new row, otherwise it will be drawn on a new row
-                        t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
-                        Server.current.handleMute(user)
-                        ).tooltip("@client.modmute");
+                        var muteButton = t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon), ustyle, () ->
+                            Server.current.handleMute(user)
+                        ).tooltip("@client.modmute").get();
+                        muteButton.update(() -> {
+                            muteButton.setDisabled(!user.serverModerationStateKnown);
+                            muteButton.getStyle().imageUpColor = user.serverMuted ? Color.valueOf("#222222") : Color.gray;
+                        });
                     }
 
                     t.row();
@@ -355,9 +366,9 @@ public class PlayerListFragment{
                     button.button(hammerIcon, ustyle,
                         () -> ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "", reason -> {
                             Call.sendChatMessage("/votekick #" + user.id() + " " + reason);
-                            if(Server.io.b() && (user.trace != null || user.serverID != null))
+                            if(Server.corium.b() && (user.trace != null || user.serverID != null))
                                 ui.showConfirm("@confirm", "Do you want to rollback this player's actions?", () ->
-                                    Call.sendChatMessage(Strings.format("/rollback @ 5", user.trace != null ? user.trace.uuid : user.serverID))
+                                    Call.sendChatMessage(Strings.format("/undo @ 5", user.trace != null ? user.trace.uuid : user.serverID))
                                 );
                         })).size(h/2).tooltip("@player.kick").get().resizeImage(h/2.2f);
                 }
@@ -383,9 +394,13 @@ public class PlayerListFragment{
                     ).size(h / 2).tooltip("@client.goto").get().resizeImage(h/2.2f);
 
                     if(Server.current.mute.canRun()){ // Server-integrated mute
-                        t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon).tint(Color.gray), ustyle, () ->
-                        Server.current.handleMute(user)
-                        ).tooltip("@client.modmute");
+                        var muteButton = t.button(new TextureRegionDrawable(StatusEffects.disarmed.uiIcon), ustyle, () ->
+                            Server.current.handleMute(user)
+                        ).tooltip("@client.modmute").get();
+                        muteButton.update(() -> {
+                            muteButton.setDisabled(!user.serverModerationStateKnown);
+                            muteButton.getStyle().imageUpColor = user.serverMuted ? Color.valueOf("#222222") : Color.gray;
+                        });
                     }
                 }
             }).height(bs);
