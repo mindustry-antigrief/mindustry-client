@@ -26,24 +26,25 @@ class Moderation {
 
                     fun String.i() = json.getInt(this, Int.MAX_VALUE)
                     fun String.s(): String? = json.getString(this, null)
-                    fun String.b() = json.getBoolean(this)
+                    fun String.b() = json.getBoolean(this, false)
 
                     val id = "id".i()
                     val player = Groups.player.getByID(id) ?: return@addPacketHandler
                     if ("playercode".s() != null) player.serverID = "playercode".s()
                     player.serverFrozen = "frozen".b()
                     player.serverMuted = "muted".b()
-                    val firstKnownModState = player.serverModerationStateKnown
+                    val firstKnownModState = !player.serverModerationStateKnown
                     player.serverModerationStateKnown = true
 
                     if (!(json.hasChild("update") && "update".b())) { // If update == true, ignore all of this
                         val rank = "rank".i() // Server-specific rank. 0 is unranked.
                         if (player == Vars.player) { // Set rank accordingly
-                            if (rank != ClientVars.rank && rank >= 5 && (Server.current.freeze.canRun() || Server.current.mute.canRun())) {
-                                Groups.player.each { p -> if (p != Vars.player) Server.current.getStats(p, true) }
-                            }
+                            var oldRank = ClientVars.rank
                             ClientVars.rank = rank
                             Server.current.updateRank()
+                            if (!firstKnownModState && rank != oldRank && rank >= 5 && (Server.current.freeze.canRun() || Server.current.mute.canRun())) { // Player gets promoted to staff after their first rank check: request new moderation state
+                                Groups.player.each { p -> if (p != Vars.player) Server.current.getStats(p, true) }
+                            }
                         } else if (firstKnownModState && rank == 0) { // If they're unranked, check if they're new
                             val games = "games".i()
                             val buildings = "buildings".i()
@@ -106,22 +107,26 @@ class Moderation {
     fun addInfo(player: Player, info: Administration.TraceInfo) {
         // FINISHME: Integrate these with join/leave messages
         if (Time.timeSinceMillis(lastJoinTime) > 10000 && player.trace == null) {
-            val mainColor = if (info.timesJoined == 1) "scarlet" else "#777777"
-            Vars.player.sendMessage("[stat]${player.plainName()} [$mainColor]has joined [stat]${info.timesJoined-1}[] times before, they have been kicked [stat]${info.timesKicked}[] times")
+            val mainColor = if (info.timesJoined == 1) "scarlet" else "gray"
+            Vars.ui.chatfrag.addMsg("[stat]${player.plainName()} [$mainColor]has joined [stat]${info.timesJoined-1}[] times before, they have been kicked [stat]${info.timesKicked}[] times")
+                .addButton(player.plainName()) { Spectate.spectate(player) }
         }
 
         // These next three lines are the laziest way of deduplicating the messages, but it works, so we don't really care.
         val ids = ObjectSet<String>()
         val ips = ObjectSet<String>()
         val names = ObjectSet<String>()
-        for (n in traces.size - 1 downTo 0) {
-            val i = traces[n]
-            if (i.trace.ip == info.uuid || i.trace.ip == info.ip) { // Update info
-                if (i.trace.uuid != info.uuid && ids.add(i.trace.uuid)) Vars.player.sendMessage("[stat]${player.plainName()} [scarlet]has changed UUID: [stat]${i.trace.uuid}[] -> [stat]${info.uuid}[]")
-                if (i.trace.ip != info.ip && ips.add(i.trace.ip)) Vars.player.sendMessage("[stat]${player.plainName()} [scarlet]has changed IP: [stat]${i.trace.ip}[] -> [stat]${info.ip}[]")
-                if (i.name != player.name && names.add(i.name)) Vars.player.sendMessage("[stat]${player.plainName()} [scarlet]has changed name, was previously: [stat]${i.name}[]")
+        val changes = buildList(3) {
+            for (n in traces.size - 1 downTo 0) {
+                val i = traces[n]
+                if (i.trace.uuid == info.uuid || i.trace.ip == info.ip) { // Update info
+                    if (i.trace.uuid != info.uuid && ids.add(i.trace.uuid)) add("UUID: [stat]${i.trace.uuid}[] -> [stat]${info.uuid}[]")
+                    if (i.trace.ip != info.ip && ips.add(i.trace.ip)) add("IP: [stat]${i.trace.ip}[] -> [stat]${info.ip}[]")
+                    if (i.name != player.name && names.add(i.name)) add("name (was [stat]${i.name}[])")
+                }
             }
         }
+        if (changes.isNotEmpty()) Vars.ui.chatfrag.addMsg("[stat]${player.plainName()} [scarlet]has changed ${changes.joinToString(", ")}").addButton(player.plainName()) { Spectate.spectate(player) }
 
         player.trace = info
     }

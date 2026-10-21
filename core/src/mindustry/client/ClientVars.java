@@ -5,13 +5,12 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.math.geom.*;
 import arc.struct.*;
-import arc.util.Nullable;
 import arc.util.*;
+import arc.util.Nullable;
 import kotlin.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.net.*;
-import mindustry.ui.*;
 import mindustry.world.blocks.defense.*;
 import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.payloads.*;
@@ -25,7 +24,7 @@ public class ClientVars {
     public static byte silentTrace; // How many actions to do silently (this is pretty 0head but shh)
     public static float spawnTime = 60f * Core.settings.getInt("spawntime");
     public static float travelTime = Core.settings.getInt("traveltime");
-    public static int rank; // The rank int for servers such as io
+    public static int rank; // The rank int for server specific permissions
     @Nullable protected static ArrayList<?> switchTo;
     public static float jpegQuality = Core.settings.getFloat("commpicquality", 0.5f);
     public static boolean benchmarkNav;

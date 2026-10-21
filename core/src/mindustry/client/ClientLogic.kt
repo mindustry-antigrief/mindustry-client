@@ -146,8 +146,9 @@ class ClientLogic {
             if (e.player == null) return@on
 
             val id = e.player.id.toString()
+            val last = ui.chatfrag.messages.firstOpt()?.message
 
-            if (settings.getBool("clientjoinleave") && !Server.corium() && (ui.chatfrag.messages.isEmpty || !Strings.stripColors(ui.chatfrag.messages.first().message).equals("${Strings.stripColors(e.player.name)} has disconnected.")))
+            if (settings.getBool("clientjoinleave") && !Server.corium() && (last == null || Strings.stripColors(last) != "${Strings.stripColors(e.player.name)} has disconnected."))
                 ui.chatfrag.addMsg(bundle.format("client.disconnected", e.player.name)).addButton(e.player.name) { app.clipboardText = id }
 
             if (settings.getBool("showidinjoinleave", false))

@@ -256,7 +256,7 @@ object Corium : Server(
 
         banMenu.cont.add("Reason:").left()
         banMenu.cont.row()
-        val reasonField = banMenu.cont.field("Griefing.") {}.width(400f).get()
+        val reasonField = banMenu.cont.field("Griefing.") {}.width(400f).maxTextLength(500).get()
         banMenu.cont.row()
         banMenu.cont.table { durations ->
             moderationDurations.forEach { duration ->
@@ -266,7 +266,7 @@ object Corium : Server(
                     banMenu.hide()
                     if (rollbackId != null) {
                         ui.showConfirm("@confirm", "@client.rollback.title") {
-                            Call.sendChatMessage("/undo $rollbackId 10")
+                            Call.sendChatMessage("/undo 600 $rollbackId")
                             Call.sendChatMessage("/undo f")
                         }
                     }
