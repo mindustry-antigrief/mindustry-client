@@ -774,7 +774,11 @@ public class SettingsMenuDialog extends BaseDialog{
         moderation.sliderPref("leavecount", 100, 5, 1000, 10, String::valueOf);
         // End Moderation Settings
 
-        dev.checkPref("console", false);
+        dev.checkPref("console", false, val -> {
+            if(val == false && ui.consolefrag != null){
+                ui.consolefrag.close();
+            }
+        });
         dev.checkPref("drawhitboxes", false);
         dev.checkPref("showperformance", false);
 

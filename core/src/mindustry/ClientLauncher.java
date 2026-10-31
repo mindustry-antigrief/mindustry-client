@@ -194,7 +194,10 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         assets.load(schematics);
 
-        assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
+        assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> {
+            content.load();
+            mods.loadModPatches();
+        });
         assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
 
 //        Musics.load(); Loaded in clientlogic instead
