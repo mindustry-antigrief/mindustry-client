@@ -28,6 +28,7 @@ public class PhysicsProcess implements AsyncProcess{
     private PhysicsWorld[] physics;
     private Seq<PhysicRef> refs = new Seq<>(false, 20, PhysicRef.class);
     private Seq<Future<?>> futures = new Seq<>(false, layers, Future.class);
+    private Seq<PhysicRef> pendingAdds = new Seq<>(false, 20, PhysicRef.class);
 
     private static volatile long maxPhysicsTime = 0;
 
@@ -46,7 +47,8 @@ public class PhysicsProcess implements AsyncProcess{
         PhysicRef ref = new PhysicRef(unit, body);
         refs.add(ref);
 
-        if(ref.lastLayer >= 0) physics[ref.lastLayer].add(body);
+        //defer adds until physics update is done
+        pendingAdds.add(ref);
     }
 
     @Override
@@ -69,6 +71,13 @@ public class PhysicsProcess implements AsyncProcess{
         PerfCounter.unitPhysicsWait.end();
         PerfCounter.unitPhysicsAsync.add(maxPhysicsTime);
         maxPhysicsTime = 0;
+
+        //flush newly added entities
+        for(int i = 0; i < pendingAdds.size; i++){
+           PhysicRef ref = pendingAdds.items[i];
+           if(ref.lastLayer >= 0) physics[ref.lastLayer].add(ref.body);
+        }
+        pendingAdds.clear();
 
         //move entities
         for(PhysicRef ref : refs){
