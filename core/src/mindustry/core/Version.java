@@ -36,6 +36,8 @@ public class Version{
     @SuppressWarnings("unused") private static boolean foos;
 
     public static void init(){
+        // Better way for mods to detect foos, no reflection required. Usage: (System.getProperty("foos") != null)
+        System.setProperty("foos", "");
         if(!enabled) return;
 
         Fi file = OS.isAndroid || OS.isIos ? Core.files.internal("version.properties") : new Fi("version.properties", FileType.internal);
