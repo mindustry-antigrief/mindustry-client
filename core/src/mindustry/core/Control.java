@@ -748,7 +748,7 @@ public class Control implements ApplicationListener, Loadable{
                 }else if(ui.consolefrag.shown() || ui.consolefrag.open()){
                     if(ui.consolefrag.open()) ui.consolefrag.hide();
                     else ui.consolefrag.setShown(false);
-                }else if(ui.listfrag.shown()){
+                }else if(ui.listfrag.shown() && !scene.hasDialog()){
                     ui.listfrag.toggle();
                 }else if(!ui.paused.isShown() && !scene.hasDialog()){
                     ui.paused.show();
