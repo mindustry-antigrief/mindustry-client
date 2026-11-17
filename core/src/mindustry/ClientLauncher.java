@@ -57,6 +57,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         checkLaunch();
         loadLogger();
+        System.setProperty("foos", "");
 
         loader = new LoadRenderer();
         Events.fire(new ClientCreateEvent());
