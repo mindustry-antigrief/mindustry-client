@@ -57,6 +57,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         checkLaunch();
         loadLogger();
+        // Better way for mods to detect foos, no reflection required. Usage: (System.getProperty("foos") != null)
+        System.setProperty("foos", "");
 
         loader = new LoadRenderer();
         Events.fire(new ClientCreateEvent());
